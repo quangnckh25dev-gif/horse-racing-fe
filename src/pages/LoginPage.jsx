@@ -7,6 +7,7 @@ import { Label } from "../components/ui/label";
 export default function LoginPage() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false); // Thêm state cho Duy trì đăng nhập
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [isMounted, setIsMounted] = useState(false);
@@ -50,26 +51,24 @@ export default function LoginPage() {
       console.log("Dữ liệu Backend gửi sang:", result);
 
       if (response.ok) {
-        // ĐÂY NÈ: Mở cái hộp "data" của Java ra
         const responseData = result.data;
 
-        // Lưu an toàn vào LocalStorage từ trong responseData
+        // Xử lý Duy trì đăng nhập (Tick thì lưu localStorage, không thì sessionStorage)
+        const storage = rememberMe ? localStorage : sessionStorage;
+
+        // Xóa sạch kho cũ trước khi lưu mới
+        localStorage.clear();
+        sessionStorage.clear();
+
         if (responseData?.accessToken) {
-          localStorage.setItem("accessToken", responseData.accessToken);
+          storage.setItem("accessToken", responseData.accessToken);
         }
         if (responseData?.user) {
-          localStorage.setItem("user", JSON.stringify(responseData.user));
+          storage.setItem("user", JSON.stringify(responseData.user));
         }
 
-        // Lấy tên thật từ responseData.user (Ưu tiên lấy fullName, không có thì lấy username)
-        const nameToDisplay =
-          responseData?.user?.fullName ||
-          responseData?.user?.FullName ||
-          formData.username;
-
-        alert("Chào mừng " + nameToDisplay + " đã quay trở lại!");
-
-        // navigate('/dashboard');
+        // BỎ LUÔN ALERT - Dùng lệnh bạo lực ép trình duyệt chuyển trang
+        window.location.href = "/dashboard";
       } else {
         setErrorMsg(
           result.message || "Tài khoản hoặc mật khẩu chưa chính xác.",
@@ -116,7 +115,7 @@ export default function LoginPage() {
         ))}
       </div>
 
-      {/* CỘT TRÁI: Ảnh nền tĩnh của ông kết hợp hiệu ứng bụi vàng */}
+      {/* CỘT TRÁI: Ảnh nền tĩnh kết hợp hiệu ứng bụi vàng */}
       <div
         className="hidden lg:flex w-1/2 flex-col justify-end p-16 bg-cover bg-center bg-no-repeat relative z-10"
         style={{
@@ -148,7 +147,7 @@ export default function LoginPage() {
         >
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 rounded-full bg-[#0A0E1A] border-2 border-[#D4AF37] mb-5 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)] hover:rotate-12 transition-transform duration-500 cursor-pointer">
-              <div className="w-8 h-4 border-t-4 border-[#D4AF38] rounded-t-full rotate-45"></div>
+              <div className="w-8 h-4 border-t-4 border-[#D4AF37] rounded-t-full rotate-45"></div>
             </div>
             <h2 className="text-2xl font-bold text-white tracking-wide">
               Truy cập hệ thống
@@ -233,6 +232,8 @@ export default function LoginPage() {
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="w-4 h-4 rounded border-gray-600 bg-[#0A0E1A] text-[#D4AF37] focus:ring-[#D4AF37] focus:ring-offset-0 transition-all cursor-pointer"
                 />
                 <span className="text-gray-400 text-sm font-medium group-hover:text-gray-300 transition-colors">
@@ -261,7 +262,7 @@ export default function LoginPage() {
             <p className="text-sm text-gray-400">
               Chưa có tài khoản?{" "}
               <a
-                href="#"
+                href="/register"
                 className="text-[#D4AF37] hover:text-[#f3cd57] font-semibold hover:underline underline-offset-2 transition-all"
               >
                 Đăng ký tham gia ngay

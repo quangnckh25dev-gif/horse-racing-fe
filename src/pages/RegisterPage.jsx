@@ -55,7 +55,7 @@ export default function RegisterPage() {
     setErrorMsg("");
     setSuccessMsg("");
 
-    const API_URL = "http://localhost:8081/api/auth/register";
+    const API_URL = "http://localhost:8080/api/auth/register";
 
     try {
       const response = await fetch(API_URL, {

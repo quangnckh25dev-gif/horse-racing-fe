@@ -3,11 +3,14 @@ import { User, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { useAuth } from "../context/AuthContext";
+import { authService } from "../services/auth";
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false); // Thêm state cho Duy trì đăng nhập
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [isMounted, setIsMounted] = useState(false);
@@ -38,45 +41,13 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrorMsg("");
 
-    const API_URL = "http://localhost:8081/api/auth/login";
-
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-      console.log("Dữ liệu Backend gửi sang:", result);
-
-      if (response.ok) {
-        const responseData = result.data;
-
-        // Xử lý Duy trì đăng nhập (Tick thì lưu localStorage, không thì sessionStorage)
-        const storage = rememberMe ? localStorage : sessionStorage;
-
-        // Xóa sạch kho cũ trước khi lưu mới
-        localStorage.clear();
-        sessionStorage.clear();
-
-        if (responseData?.accessToken) {
-          storage.setItem("accessToken", responseData.accessToken);
-        }
-        if (responseData?.user) {
-          storage.setItem("user", JSON.stringify(responseData.user));
-        }
-
-        // BỎ LUÔN ALERT - Dùng lệnh bạo lực ép trình duyệt chuyển trang
-        window.location.href = "/dashboard";
-      } else {
-        setErrorMsg(
-          result.message || "Tài khoản hoặc mật khẩu chưa chính xác.",
-        );
-      }
-    } catch (error) {
-      console.error("Lỗi thực sự là:", error);
-      setErrorMsg("Lỗi: " + error.message);
+      const result = await authService.login(formData);
+      const { accessToken, user } = result.data;
+      login(user, accessToken, rememberMe);
+      window.location.href = "/dashboard";
+    } catch (err) {
+      setErrorMsg(err.message || "Tài khoản hoặc mật khẩu chưa chính xác.");
     } finally {
       setIsLoading(false);
     }
@@ -198,7 +169,7 @@ export default function LoginPage() {
                   Mật khẩu
                 </Label>
                 <a
-                  href="#"
+                  href="/forgot-password"
                   className="text-xs text-[#D4AF37] hover:text-[#f3cd57] hover:underline underline-offset-2 transition-all"
                 >
                   Quên mật khẩu?

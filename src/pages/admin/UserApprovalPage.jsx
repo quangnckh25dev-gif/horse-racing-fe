@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import { CheckCircle2, XCircle, Loader2, AlertCircle, RefreshCw, Users } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { adminService } from "../../services/admin";
+import { useAuth } from "../../context/AuthContext";
+import AdminLayout from "../../components/layout/AdminLayout";
 
 export default function UserApprovalPage() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -29,7 +32,7 @@ export default function UserApprovalPage() {
   const handleApprove = async (userId) => {
     setActionLoading(userId + "_approve");
     try {
-      await adminService.approveUser(userId);
+      await adminService.approveUser(userId, currentUser.userId);
       setUsers((prev) => prev.filter((u) => u.userId !== userId));
     } catch (err) {
       setErrorMsg(err.message || "Duyệt tài khoản thất bại.");
@@ -41,7 +44,7 @@ export default function UserApprovalPage() {
   const handleReject = async (userId) => {
     setActionLoading(userId + "_reject");
     try {
-      await adminService.rejectUser(userId);
+      await adminService.rejectUser(userId, currentUser.userId);
       setUsers((prev) => prev.filter((u) => u.userId !== userId));
     } catch (err) {
       setErrorMsg(err.message || "Từ chối tài khoản thất bại.");
@@ -51,8 +54,8 @@ export default function UserApprovalPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] text-white p-6">
-      {/* Header */}
+    <AdminLayout title="Duyệt tài khoản">
+      <div className="p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
@@ -162,6 +165,7 @@ export default function UserApprovalPage() {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

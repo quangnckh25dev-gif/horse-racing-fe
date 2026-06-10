@@ -5,6 +5,41 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { authService } from "../services/auth";
 
+function PasswordField({ id, label, showKey, placeholder, value, show, onToggle, onChange }) {
+  return (
+    <div className="space-y-1.5 group">
+      <Label
+        htmlFor={id}
+        className="text-gray-400 text-xs font-semibold uppercase tracking-widest group-focus-within:text-[#D4AF37]"
+      >
+        {label}
+      </Label>
+      <div className="relative">
+        <Lock
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D4AF37]"
+          size={18}
+        />
+        <Input
+          id={id}
+          type={show ? "text" : "password"}
+          placeholder={placeholder}
+          className="pl-11 pr-11 h-11 bg-[#0A0E1A]/80 border-gray-700 text-white focus-visible:ring-[#D4AF37] [&::-ms-reveal]:hidden [&::-webkit-credentials-auto-fill-button]:hidden"
+          value={value}
+          onChange={onChange}
+          required
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#D4AF37]"
+        >
+          {show ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ChangePasswordPage() {
   const [formData, setFormData] = useState({
     oldPassword: "",
@@ -64,39 +99,6 @@ export default function ChangePasswordPage() {
     }
   };
 
-  const PasswordField = ({ id, label, showKey, placeholder }) => (
-    <div className="space-y-1.5 group">
-      <Label
-        htmlFor={id}
-        className="text-gray-400 text-xs font-semibold uppercase tracking-widest group-focus-within:text-[#D4AF37]"
-      >
-        {label}
-      </Label>
-      <div className="relative">
-        <Lock
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D4AF37]"
-          size={18}
-        />
-        <Input
-          id={id}
-          type={show[showKey] ? "text" : "password"}
-          placeholder={placeholder}
-          className="pl-11 pr-11 h-11 bg-[#0A0E1A]/80 border-gray-700 text-white focus-visible:ring-[#D4AF37]"
-          value={formData[id]}
-          onChange={handleChange}
-          required
-        />
-        <button
-          type="button"
-          onClick={() => setShow({ ...show, [showKey]: !show[showKey] })}
-          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#D4AF37]"
-        >
-          {show[showKey] ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="flex min-h-screen w-full bg-[#0A0E1A] font-sans text-white overflow-hidden relative">
       <style>{`
@@ -152,9 +154,9 @@ export default function ChangePasswordPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <PasswordField id="oldPassword"     label="Mật khẩu hiện tại" showKey="old"     placeholder="••••••••" />
-            <PasswordField id="newPassword"     label="Mật khẩu mới"      showKey="new"     placeholder="Tối thiểu 6 ký tự" />
-            <PasswordField id="confirmPassword" label="Xác nhận mật khẩu" showKey="confirm" placeholder="Nhập lại mật khẩu mới" />
+            <PasswordField id="oldPassword"     label="Mật khẩu hiện tại" placeholder="••••••••"            value={formData.oldPassword}     show={show.old}     onToggle={() => setShow((s) => ({ ...s, old: !s.old }))}     onChange={handleChange} />
+            <PasswordField id="newPassword"     label="Mật khẩu mới"      placeholder="Tối thiểu 6 ký tự"  value={formData.newPassword}     show={show.new}     onToggle={() => setShow((s) => ({ ...s, new: !s.new }))}     onChange={handleChange} />
+            <PasswordField id="confirmPassword" label="Xác nhận mật khẩu" placeholder="Nhập lại mật khẩu mới" value={formData.confirmPassword} show={show.confirm} onToggle={() => setShow((s) => ({ ...s, confirm: !s.confirm }))} onChange={handleChange} />
 
             <Button
               type="submit"

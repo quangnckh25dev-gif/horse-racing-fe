@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [failedCount, setFailedCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
 
   // Tạo ra 40 hạt bụi vàng với vị trí và thời gian rơi ngẫu nhiên
@@ -33,7 +34,8 @@ export default function LoginPage() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
-    if (errorMsg) setErrorMsg("");
+    if (errorMsg) { setErrorMsg(""); }
+    if (e.target.id === "username") { setFailedCount(0); }
   };
 
   const handleLogin = async (e) => {
@@ -44,10 +46,22 @@ export default function LoginPage() {
     try {
       const result = await authService.login(formData);
       const { accessToken, user } = result.data;
+      setFailedCount(0);
       login(user, accessToken, rememberMe);
       window.location.href = "/dashboard";
     } catch (err) {
-      setErrorMsg(err.message || "Tài khoản hoặc mật khẩu chưa chính xác.");
+      const msg = err.message || "";
+      const isLocked = msg.toLowerCase().includes("khoa") || msg.toLowerCase().includes("lock");
+      if (isLocked) {
+        setFailedCount(5);
+        setErrorMsg("Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần.");
+      } else {
+        setFailedCount((prev) => {
+          const next = Math.min(prev + 1, 5);
+          setErrorMsg(`Sai tài khoản hoặc mật khẩu. (Lần ${next}/5)`);
+          return next;
+        });
+      }
     } finally {
       setIsLoading(false);
     }

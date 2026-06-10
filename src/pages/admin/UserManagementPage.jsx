@@ -4,6 +4,8 @@ import {
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { adminService } from "../../services/admin";
+import { useAuth } from "../../context/AuthContext";
+import AdminLayout from "../../components/layout/AdminLayout";
 
 const ROLES = ["Admin", "HorseOwner", "Jockey", "Referee", "Spectator"];
 
@@ -16,6 +18,7 @@ const ROLE_STYLE = {
 };
 
 export default function UserManagementPage() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -49,7 +52,7 @@ export default function UserManagementPage() {
     setActionLoading(user.userId);
     setErrorMsg("");
     try {
-      await adminService.changeUserRole(user.userId, newRole);
+      await adminService.changeUserRole(user.userId, newRole, currentUser.userId);
       setUsers((prev) =>
         prev.map((u) =>
           u.userId === user.userId ? { ...u, roleName: newRole } : u
@@ -69,7 +72,8 @@ export default function UserManagementPage() {
     pendingRole[user.userId] && pendingRole[user.userId] !== user.roleName;
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] text-white p-6">
+    <AdminLayout title="Quản lý người dùng">
+      <div className="p-6">
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
@@ -183,6 +187,7 @@ export default function UserManagementPage() {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

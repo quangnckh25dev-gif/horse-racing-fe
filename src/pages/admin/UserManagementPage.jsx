@@ -7,14 +7,16 @@ import { adminService } from "../../services/admin";
 import { useAuth } from "../../context/AuthContext";
 import AdminLayout from "../../components/layout/AdminLayout";
 
-const ROLES = ["Admin", "HorseOwner", "Jockey", "Referee", "Spectator"];
+const ROLES = ["Admin", "OrganizerHead", "OrganizerMember", "HorseOwner", "Jockey", "Referee", "Spectator"];
 
 const ROLE_STYLE = {
-  Admin:      "bg-red-900/30 text-red-300 border-red-800/50",
-  HorseOwner: "bg-blue-900/30 text-blue-300 border-blue-800/50",
-  Jockey:     "bg-purple-900/30 text-purple-300 border-purple-800/50",
-  Referee:    "bg-yellow-900/30 text-yellow-300 border-yellow-800/50",
-  Spectator:  "bg-gray-800/60 text-gray-300 border-gray-700/50",
+  Admin:           "bg-red-900/30 text-red-300 border-red-800/50",
+  OrganizerHead:   "bg-[#D4AF37]/15 text-[#D4AF37] border-[#D4AF37]/30",
+  OrganizerMember: "bg-blue-900/30 text-blue-300 border-blue-800/50",
+  HorseOwner:      "bg-orange-900/30 text-orange-300 border-orange-800/50",
+  Jockey:          "bg-purple-900/30 text-purple-300 border-purple-800/50",
+  Referee:         "bg-yellow-900/30 text-yellow-300 border-yellow-800/50",
+  Spectator:       "bg-gray-800/60 text-gray-300 border-gray-700/50",
 };
 
 export default function UserManagementPage() {

@@ -110,12 +110,18 @@ export default function LoginPage() {
         <div
           className={`relative z-20 max-w-xl transition-all duration-1000 transform ${isMounted ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
         >
-          <h1 className="text-5xl font-bold text-white mb-6 leading-tight tracking-wide drop-shadow-lg">
-            Equestrian & Racing
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/30 flex items-center justify-center">
+              <span className="text-sm">🏆</span>
+            </div>
+            <span className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest font-data">HorseRacing Pro</span>
+          </div>
+          <h1 className="font-display text-5xl font-black text-white mb-4 leading-tight tracking-tight drop-shadow-lg">
+            Equestrian &amp; Racing
             <br />
-            <span className="text-[#D4AF37]">Ecosystem</span>
+            <span className="text-gold-gradient">Ecosystem</span>
           </h1>
-          <p className="text-gray-300 text-lg leading-relaxed drop-shadow-md">
+          <p className="text-gray-300 text-base leading-relaxed drop-shadow-md">
             Nền tảng toàn diện kết nối Chủ ngựa, Nài ngựa chuyên nghiệp, Ban
             trọng tài và Cộng đồng đam mê thể thao tốc độ.
           </p>
@@ -131,14 +137,14 @@ export default function LoginPage() {
           className={`w-full max-w-md bg-[#111827]/90 backdrop-blur-xl rounded-2xl p-8 border border-gray-800/60 shadow-2xl relative z-10 transition-all duration-700 delay-150 transform ${isMounted ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
         >
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 rounded-full bg-[#0A0E1A] border-2 border-[#D4AF37] mb-5 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)] hover:rotate-12 transition-transform duration-500 cursor-pointer">
-              <div className="w-8 h-4 border-t-4 border-[#D4AF37] rounded-t-full rotate-45"></div>
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/30 mb-5 flex items-center justify-center gold-glow-ring">
+              <span className="text-2xl select-none">🏇</span>
             </div>
-            <h2 className="text-2xl font-bold text-white tracking-wide">
-              Truy cập hệ thống
+            <h2 className="font-display text-2xl font-black text-white tracking-tight">
+              HorseRacing Pro
             </h2>
-            <p className="text-gray-400 text-sm mt-2 text-center">
-              Đăng nhập để xem lịch thi đấu, quản lý hồ sơ và tham gia dự đoán
+            <p className="text-gray-400 text-sm mt-1.5 text-center">
+              Đăng nhập để quản lý hồ sơ và tham gia thi đấu
             </p>
           </div>
 

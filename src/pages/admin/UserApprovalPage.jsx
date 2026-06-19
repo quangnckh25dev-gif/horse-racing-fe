@@ -55,116 +55,123 @@ export default function UserApprovalPage() {
 
   return (
     <AdminLayout title="Duyệt tài khoản">
-      <div className="p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center">
-              <Users size={20} className="text-[#D4AF37]" />
+
+      {/* ── Page Header Banner ── */}
+      <div className="page-header">
+        <div className="absolute right-0 top-0 w-72 h-full bg-gradient-to-l from-yellow-500/[0.04] to-transparent pointer-events-none" />
+        {users.length > 0 && (
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.1] select-none pointer-events-none animate-float">⏳</div>
+        )}
+
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+                <Users size={14} className="text-yellow-400" />
+              </div>
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Admin</span>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Duyệt tài khoản</h1>
-              <p className="text-gray-400 text-sm">Danh sách tài khoản chờ phê duyệt</p>
+            <h1 className="text-2xl font-black text-white leading-tight">Duyệt tài khoản</h1>
+            <div className="flex items-center gap-3 mt-2">
+              {users.length > 0
+                ? <span className="stat-pill text-yellow-400"><span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {users.length} chờ phê duyệt</span>
+                : <span className="stat-pill text-green-400"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" /> Tất cả đã xử lý</span>
+              }
             </div>
           </div>
-          <button
-            onClick={fetchPendingUsers}
-            disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 transition-all text-sm"
-          >
-            <RefreshCw size={15} className={isLoading ? "animate-spin" : ""} />
-            Làm mới
+          <button onClick={fetchPendingUsers} disabled={isLoading}
+            className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-gray-700/60 rounded-xl text-gray-400 hover:text-white text-sm transition-all shrink-0">
+            <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} /> Làm mới
           </button>
         </div>
+      </div>
 
+      <div className="p-6 max-w-7xl mx-auto">
         {errorMsg && (
-          <div className="mb-6 flex items-center gap-3 p-3 rounded-lg bg-red-950/50 border border-red-900 text-red-200 text-sm">
-            <AlertCircle size={18} className="text-red-400 shrink-0" />
-            <span>{errorMsg}</span>
+          <div className="mb-5 flex items-center gap-3 p-4 rounded-xl bg-red-950/30 border border-red-900/50 text-red-300 text-sm">
+            <AlertCircle size={15} className="text-red-400 shrink-0" /> {errorMsg}
           </div>
         )}
 
-        {/* Loading */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 size={32} className="animate-spin text-[#D4AF37]" />
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-20 shimmer rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />
+            ))}
           </div>
         ) : users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-gray-500">
-            <CheckCircle2 size={48} className="text-green-600 mb-4" />
-            <p className="text-lg font-medium">Không có tài khoản nào chờ duyệt</p>
-            <p className="text-sm mt-1">Tất cả đã được xử lý</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-green-500/5 border border-green-500/10 flex items-center justify-center mb-4 animate-float">
+              <CheckCircle2 size={32} className="text-green-500/40" />
+            </div>
+            <p className="text-white font-semibold mb-1">Không có tài khoản chờ duyệt</p>
+            <p className="text-gray-500 text-sm">Tất cả tài khoản đã được xử lý</p>
           </div>
         ) : (
-          <>
-            <div className="mb-4 text-sm text-gray-400">
-              Có <span className="text-[#D4AF37] font-semibold">{users.length}</span> tài khoản đang chờ phê duyệt
-            </div>
+          <div className="space-y-3">
+            {users.map((user, idx) => {
+              const initials = (user.fullName || user.username || "?")[0].toUpperCase();
+              const approveLoading = actionLoading === user.userId + "_approve";
+              const rejectLoading  = actionLoading === user.userId + "_reject";
+              const busy = actionLoading !== null;
 
-            {/* Table */}
-            <div className="rounded-xl border border-gray-800/60 overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-[#111827] border-b border-gray-800/60">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-widest">Tài khoản</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-widest">Họ tên</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-widest">Email</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-widest">SĐT</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-widest">Role</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-widest">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user, idx) => (
-                    <tr
-                      key={user.userId}
-                      className={`border-b border-gray-800/40 transition-colors hover:bg-[#111827]/60 ${idx % 2 === 0 ? "bg-[#0A0E1A]/60" : "bg-[#0d1220]/60"}`}
-                    >
-                      <td className="px-4 py-3 text-sm font-medium text-white">{user.username}</td>
-                      <td className="px-4 py-3 text-sm text-gray-300">{user.fullName}</td>
-                      <td className="px-4 py-3 text-sm text-gray-300">{user.email}</td>
-                      <td className="px-4 py-3 text-sm text-gray-300">{user.phone || "—"}</td>
-                      <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30">
+              return (
+                <div
+                  key={user.userId}
+                  className="group bg-[#0d1117] border border-yellow-500/15 rounded-xl overflow-hidden card-hover border-l-gold-glow animate-fade-in-up"
+                  style={{ animationDelay: `${idx * 50}ms` }}
+                >
+                  <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                    {/* Avatar */}
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/25 flex items-center justify-center shrink-0">
+                      <span className="text-[#D4AF37] font-black text-lg">{initials}</span>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2.5 flex-wrap mb-1">
+                        <p className="text-white font-bold">{user.fullName || user.username}</p>
+                        <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/25 font-bold">
                           {user.roleName}
                         </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-2">
-                          <Button
-                            size="sm"
-                            disabled={actionLoading !== null}
-                            onClick={() => handleApprove(user.userId)}
-                            className="h-8 px-3 bg-green-700/80 hover:bg-green-600 text-white text-xs font-semibold border-0"
-                          >
-                            {actionLoading === user.userId + "_approve" ? (
-                              <Loader2 size={13} className="animate-spin" />
-                            ) : (
-                              <><CheckCircle2 size={13} className="mr-1" /> Duyệt</>
-                            )}
-                          </Button>
-                          <Button
-                            size="sm"
-                            disabled={actionLoading !== null}
-                            onClick={() => handleReject(user.userId)}
-                            className="h-8 px-3 bg-red-800/80 hover:bg-red-700 text-white text-xs font-semibold border-0"
-                          >
-                            {actionLoading === user.userId + "_reject" ? (
-                              <Loader2 size={13} className="animate-spin" />
-                            ) : (
-                              <><XCircle size={13} className="mr-1" /> Từ chối</>
-                            )}
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-300 border border-yellow-500/25 font-semibold flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" /> Chờ duyệt
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        <span className="stat-pill">👤 {user.username}</span>
+                        {user.email && <span className="stat-pill">✉️ {user.email}</span>}
+                        {user.phone && <span className="stat-pill">📞 {user.phone}</span>}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => handleApprove(user.userId)}
+                        className="flex items-center gap-1.5 h-9 px-4 bg-green-600/20 hover:bg-green-600/35 text-green-300 border border-green-600/30 hover:border-green-600/50 rounded-xl text-xs font-bold transition-all"
+                      >
+                        {approveLoading ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                        Duyệt
+                      </Button>
+                      <Button
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => handleReject(user.userId)}
+                        className="flex items-center gap-1.5 h-9 px-4 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-600/20 hover:border-red-600/40 rounded-xl text-xs font-medium transition-all"
+                      >
+                        {rejectLoading ? <Loader2 size={13} className="animate-spin" /> : <XCircle size={13} />}
+                        Từ chối
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </div>
       </div>
     </AdminLayout>
   );

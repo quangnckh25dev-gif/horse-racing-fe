@@ -1,0 +1,21 @@
+import { api } from "./api";
+
+export const raceResultService = {
+  // ── Results ───────────────────────────────────────────────
+  getResults: (raceId) => api.get(`/races/${raceId}/results`),
+  createResults: (raceId, data) => api.post(`/races/${raceId}/results`, data),
+  updateResults: (raceId, data) => api.put(`/races/${raceId}/results`, data),
+
+  // ── Violations ────────────────────────────────────────────
+  getViolations: (raceId) => api.get(`/races/${raceId}/violations`),
+  addViolation: (raceId, data) => api.post(`/races/${raceId}/violations`, data),
+  updateViolation: (raceId, violationId, data) =>
+    api.put(`/races/${raceId}/violations/${violationId}`, data),
+  deleteViolation: (raceId, violationId) =>
+    api.delete(`/races/${raceId}/violations/${violationId}`),
+
+  // ── Minutes (biên bản) ────────────────────────────────────
+  getMinutes: (raceId) => api.get(`/races/${raceId}/minutes`),
+  createMinutes: (raceId, data) => api.post(`/races/${raceId}/minutes`, data),
+  updateMinutes: (raceId, data) => api.put(`/races/${raceId}/minutes`, data),
+};

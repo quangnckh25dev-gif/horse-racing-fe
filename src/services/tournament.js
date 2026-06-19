@@ -17,14 +17,14 @@ export const tournamentService = {
   deleteRound: (roundId) => api.delete(`/admin/rounds/${roundId}`),
 
   // ── Races ────────────────────────────────────────────────
-  createRace: (data) => api.post("/admin/races", data),
-  updateRace: (raceId, data) => api.put(`/admin/races/${raceId}`, data),
-  deleteRace: (raceId) => api.delete(`/admin/races/${raceId}`),
+  createRace: (data) => api.post("/organizer/races", data),
+  updateRace: (raceId, data) => api.put(`/organizer/races/${raceId}`, data),
+  deleteRace: (raceId) => api.delete(`/organizer/races/${raceId}`),
 
   // ── Referee assignment ───────────────────────────────────
-  getAllReferees: () => api.get("/admin/referees"),
+  getAllReferees: () => api.get("/organizer/referees"),
   assignReferee: (raceId, refereeId, role) =>
-    api.post(`/admin/races/${raceId}/referees`, { refereeId, role }),
+    api.post(`/organizer/races/${raceId}/referees`, { refereeId, role }),
   removeReferee: (raceId, refereeId) =>
-    api.delete(`/admin/races/${raceId}/referees/${refereeId}`),
+    api.delete(`/organizer/races/${raceId}/referees/${refereeId}`),
 };

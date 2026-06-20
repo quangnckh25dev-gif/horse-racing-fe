@@ -19,7 +19,7 @@ export default function AdminLayout({ children, title = "" }) {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/[0.02] rounded-full blur-[100px] pointer-events-none" />
 
           {/* Actual page content */}
-          <div className="relative z-10 animate-fade-in-up">
+          <div className="relative z-10 animate-fade-in">
             {children}
           </div>
         </main>

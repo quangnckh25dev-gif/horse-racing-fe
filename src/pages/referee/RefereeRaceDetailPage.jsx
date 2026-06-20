@@ -202,7 +202,7 @@ function ViolationsTab({ raceId, entries }) {
   const handleDelete = async (violationId) => {
     if (!confirm("Xác nhận xoá vi phạm này?")) return;
     try {
-      await raceResultService.deleteViolation(raceId, violationId);
+      await raceResultService.deleteViolation(violationId);
       load();
     } catch (err) {
       alert(err.message || "Xoá thất bại");

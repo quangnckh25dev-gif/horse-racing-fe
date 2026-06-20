@@ -9,10 +9,10 @@ export const raceResultService = {
   // ── Violations ────────────────────────────────────────────
   getViolations: (raceId) => api.get(`/races/${raceId}/violations`),
   addViolation: (raceId, data) => api.post(`/races/${raceId}/violations`, data),
-  updateViolation: (raceId, violationId, data) =>
-    api.put(`/races/${raceId}/violations/${violationId}`, data),
-  deleteViolation: (raceId, violationId) =>
-    api.delete(`/races/${raceId}/violations/${violationId}`),
+  updateViolation: (violationId, data) =>
+    api.put(`/violations/${violationId}`, data),
+  deleteViolation: (violationId) =>
+    api.delete(`/violations/${violationId}`),
 
   // ── Minutes (biên bản) ────────────────────────────────────
   getMinutes: (raceId) => api.get(`/races/${raceId}/minutes`),

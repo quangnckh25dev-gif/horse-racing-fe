@@ -131,7 +131,7 @@ export default function PredictionPage() {
         spectatorService.getRaces(),
         spectatorService.getPredictionHistory(),
       ]);
-      const upcoming = (racesRes.data || []).filter((r) => r.status === "Upcoming");
+      const upcoming = (racesRes.data || []).filter((r) => ["Scheduled", "RegistrationOpen"].includes(r.status));
       setRaces(upcoming);
       setHistory(historyRes.data || []);
     } catch (e) {

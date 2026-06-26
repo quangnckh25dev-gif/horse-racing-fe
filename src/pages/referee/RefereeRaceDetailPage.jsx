@@ -70,9 +70,29 @@ function ResultsTab({ raceId, entries }) {
     e.preventDefault();
     setFormLoading(true);
     try {
-      const data = { results: form };
-      if (isEditing) await raceResultService.updateResults(raceId, data);
-      else await raceResultService.createResults(raceId, data);
+      if (isEditing) {
+        // Individual PUT per result (contract: PUT /races/{raceId}/results/{resultId})
+        for (const row of form) {
+          const existing = results.find((r) => r.entryId === row.entryId);
+          if (existing?.resultId) {
+            await raceResultService.updateResult(raceId, existing.resultId, {
+              entryId: row.entryId,
+              position: Number(row.position),
+              finishTime: row.finishTime || null,
+              note: row.note || "",
+            });
+          }
+        }
+      } else {
+        // Individual POST per entry (contract: POST /races/{raceId}/results)
+        for (const row of form) {
+          await raceResultService.createResults(raceId, {
+            entryId: row.entryId,
+            position: Number(row.position),
+            finishTime: row.finishTime || null,
+          });
+        }
+      }
       setShowForm(false);
       load();
     } catch (err) {

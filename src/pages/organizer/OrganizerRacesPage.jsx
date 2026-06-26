@@ -3,24 +3,26 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, Edit2, Trash2, Eye, AlertCircle, Loader2,
   RefreshCw, Flag, ChevronDown, X, Check,
-  Clock, Zap, Trophy, Users,
+  Clock, Zap, Trophy, Users, Calendar,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { organizerService } from "../../services/organizer";
 import { useAuth } from "../../context/AuthContext";
 
 const STATUS_CONFIG = {
-  Upcoming:   { label: "Sắp diễn ra",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",    borderCls: "border-l-blue-glow",   icon: Clock,   iconCls: "text-blue-400",    glow: "hover:shadow-blue-500/10" },
-  InProgress: { label: "Đang diễn ra", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", borderCls: "border-l-gold-glow", icon: Zap,    iconCls: "text-[#D4AF37]",  glow: "hover:shadow-yellow-500/10" },
-  Finished:   { label: "Đã kết thúc",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green", borderCls: "border-l-green-glow",  icon: Trophy,  iconCls: "text-green-400",   glow: "hover:shadow-green-500/10" },
-  Cancelled:  { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",                        borderCls: "border-l-red-glow",    icon: X,       iconCls: "text-red-400",     glow: "" },
+  Scheduled:        { label: "Sắp diễn ra",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",       borderCls: "border-l-blue-glow",   icon: Clock,     iconCls: "text-blue-400",    glow: "hover:shadow-blue-500/10" },
+  RegistrationOpen: { label: "Mở đăng ký",   color: "bg-purple-500/20 text-purple-300 border-purple-500/40",                 borderCls: "border-l-purple-glow", icon: Calendar,  iconCls: "text-purple-400",  glow: "hover:shadow-purple-500/10" },
+  Ongoing:          { label: "Đang diễn ra", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", borderCls: "border-l-gold-glow",   icon: Zap,       iconCls: "text-[#D4AF37]",   glow: "hover:shadow-yellow-500/10" },
+  Finished:         { label: "Đã kết thúc",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",   borderCls: "border-l-green-glow",  icon: Trophy,    iconCls: "text-green-400",   glow: "hover:shadow-green-500/10" },
+  Cancelled:        { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",                          borderCls: "border-l-red-glow",    icon: X,         iconCls: "text-red-400",     glow: "" },
 };
 
 const STATUS_TRANSITIONS = {
-  Upcoming:   ["InProgress", "Cancelled"],
-  InProgress: ["Finished"],
-  Finished:   [],
-  Cancelled:  [],
+  Scheduled:        ["RegistrationOpen", "Cancelled"],
+  RegistrationOpen: ["Ongoing", "Cancelled"],
+  Ongoing:          ["Finished"],
+  Finished:         [],
+  Cancelled:        [],
 };
 
 const EMPTY_FORM = {
@@ -32,7 +34,7 @@ const inputCls = "w-full bg-[#070B14] border border-gray-800 rounded-xl px-3 py-
 
 function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status] || { label: status, color: "bg-gray-500/20 text-gray-300 border-gray-500/40" };
-  const isLive = status === "InProgress";
+  const isLive = status === "Ongoing";
   return (
     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${cfg.color}`}>
       {isLive && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot shrink-0" />}
@@ -183,8 +185,9 @@ export default function OrganizerRacesPage() {
 
   const filtered = filterStatus === "all" ? races : races.filter((r) => r.status === filterStatus);
 
-  const upcomingCount   = races.filter((r) => r.status === "Upcoming").length;
-  const inProgressCount = races.filter((r) => r.status === "InProgress").length;
+  const scheduledCount  = races.filter((r) => r.status === "Scheduled").length;
+  const regOpenCount    = races.filter((r) => r.status === "RegistrationOpen").length;
+  const ongoingCount    = races.filter((r) => r.status === "Ongoing").length;
   const finishedCount   = races.filter((r) => r.status === "Finished").length;
 
   return (
@@ -206,12 +209,12 @@ export default function OrganizerRacesPage() {
             <h1 className="text-2xl font-black text-white leading-tight">Quản lý vòng đua</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <span className="stat-pill"><span className="text-white font-bold">{races.length}</span> vòng đua</span>
-              {inProgressCount > 0 && (
+              {ongoingCount > 0 && (
                 <span className="stat-pill text-yellow-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {inProgressCount} đang diễn ra
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {ongoingCount} đang diễn ra
                 </span>
               )}
-              {upcomingCount > 0 && <span className="stat-pill text-blue-400">{upcomingCount} sắp diễn ra</span>}
+              {(scheduledCount + regOpenCount) > 0 && <span className="stat-pill text-blue-400">{scheduledCount + regOpenCount} sắp diễn ra</span>}
               {finishedCount > 0 && <span className="stat-pill text-green-400">{finishedCount} đã kết thúc</span>}
             </div>
           </div>
@@ -232,11 +235,12 @@ export default function OrganizerRacesPage() {
         {/* ── Filter tabs ── */}
         <div className="flex gap-2 flex-wrap">
           {[
-            { key: "all", label: "Tất cả", count: races.length },
-            { key: "Upcoming", count: upcomingCount },
-            { key: "InProgress", count: inProgressCount },
-            { key: "Finished", count: finishedCount },
-            { key: "Cancelled", count: races.filter(r => r.status === "Cancelled").length },
+            { key: "all",              label: "Tất cả",    count: races.length },
+            { key: "Scheduled",        count: scheduledCount },
+            { key: "RegistrationOpen", count: regOpenCount },
+            { key: "Ongoing",          count: ongoingCount },
+            { key: "Finished",         count: finishedCount },
+            { key: "Cancelled",        count: races.filter(r => r.status === "Cancelled").length },
           ].map(({ key, label, count }) => {
             const cfg = STATUS_CONFIG[key];
             const isActive = filterStatus === key;

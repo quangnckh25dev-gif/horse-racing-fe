@@ -8,10 +8,10 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { horseService } from "../../services/horse";
 
 const STATUS_CONFIG = {
-  Active:   { label: "Hoạt động",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green", strip: "from-green-500/30 to-green-500/5", dot: "bg-green-400" },
-  Injured:  { label: "Bị thương",  color: "bg-red-500/20 text-red-300 border-red-500/40 badge-glow-red",         strip: "from-red-500/30 to-red-500/5",   dot: "bg-red-400" },
-  Retired:  { label: "Đã nghỉ",    color: "bg-gray-500/20 text-gray-400 border-gray-500/40",                     strip: "from-gray-500/20 to-gray-500/5", dot: "bg-gray-400" },
-  Training: { label: "Đang luyện", color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",     strip: "from-blue-500/30 to-blue-500/5", dot: "bg-blue-400" },
+  Active:   { label: "Hoạt động",  color: "bg-green-50 text-green-700 border-green-200",  strip: "from-green-400/20 to-green-400/5", dot: "bg-green-500" },
+  Injured:  { label: "Bị thương",  color: "bg-red-50 text-red-600 border-red-200",        strip: "from-red-400/20 to-red-400/5",    dot: "bg-red-500" },
+  Retired:  { label: "Đã nghỉ",    color: "bg-gray-50 text-gray-500 border-gray-200",     strip: "from-gray-400/15 to-gray-400/5",  dot: "bg-gray-400" },
+  Training: { label: "Đang luyện", color: "bg-blue-50 text-blue-600 border-blue-200",     strip: "from-blue-400/20 to-blue-400/5",  dot: "bg-blue-500" },
 };
 
 const EMPTY_FORM = {
@@ -19,15 +19,14 @@ const EMPTY_FORM = {
   weight: "", height: "", description: "",
 };
 
-function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
+function Modal({ title, accentColor = "#2563EB", onClose, children }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
-      <div className="bg-[#0d1117] border border-gray-800/60 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/60 max-h-[90vh] overflow-y-auto animate-scale-in">
-        {/* Accent top bar */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/20 max-h-[90vh] overflow-y-auto animate-scale-in">
         <div className="h-0.5 w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }} />
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/60">
-          <h3 className="text-white font-bold">{title}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="text-gray-900 font-bold">{title}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -46,7 +45,7 @@ function FormField({ label, children }) {
   );
 }
 
-const inputCls = "w-full bg-[#070B14] border border-gray-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.08)] transition-all";
+const inputCls = "w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all placeholder:text-gray-400";
 
 function HorseForm({ form, onChange, onSubmit, onCancel, loading, submitLabel }) {
   return (
@@ -88,7 +87,7 @@ function HorseForm({ form, onChange, onSubmit, onCancel, loading, submitLabel })
       </div>
       <div className="flex gap-3 pt-1">
         <button type="button" onClick={onCancel}
-          className="flex-1 py-2.5 rounded-xl border border-gray-700/60 text-gray-400 hover:text-white hover:border-gray-600 text-sm transition-colors">
+          className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-800 hover:border-gray-300 text-sm transition-colors">
           Huỷ
         </button>
         <button type="submit" disabled={loading}
@@ -141,12 +140,12 @@ function HealthModal({ horseId, horseName, onClose }) {
     <Modal title={`Hồ sơ sức khoẻ — ${horseName}`} accentColor="rgb(244,114,182)" onClose={onClose}>
       <div className="space-y-4">
         <button onClick={() => setShowAdd(!showAdd)}
-          className="flex items-center gap-2 px-3 py-2 bg-pink-600/10 border border-pink-600/30 text-pink-300 rounded-xl text-xs font-semibold hover:bg-pink-600/20 transition-colors">
+          className="flex items-center gap-2 px-3 py-2 bg-pink-50 border border-pink-200 text-pink-600 rounded-xl text-xs font-semibold hover:bg-pink-100 transition-colors">
           <Plus size={13} /> Thêm hồ sơ mới
         </button>
 
         {showAdd && (
-          <form onSubmit={handleAdd} className="bg-[#070B14]/80 rounded-xl border border-gray-800/60 p-4 space-y-3">
+          <form onSubmit={handleAdd} className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <FormField label="Ngày kiểm tra">
                 <input type="date" value={addForm.checkDate} onChange={(e) => setAddForm((p) => ({ ...p, checkDate: e.target.value }))} className={inputCls} />
@@ -168,7 +167,7 @@ function HealthModal({ horseId, horseName, onClose }) {
               </div>
             </div>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-xl border border-gray-700 text-gray-400 text-sm">Huỷ</button>
+              <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-500 text-sm">Huỷ</button>
               <button type="submit" disabled={addLoading} className="flex-1 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
                 {addLoading && <Loader2 size={12} className="animate-spin" />} Thêm
               </button>
@@ -177,19 +176,19 @@ function HealthModal({ horseId, horseName, onClose }) {
         )}
 
         {loading ? (
-          <div className="flex justify-center py-8"><Loader2 className="animate-spin text-[#D4AF37]" size={24} /></div>
+          <div className="flex justify-center py-8"><Loader2 className="animate-spin text-blue-600" size={24} /></div>
         ) : records.length === 0 ? (
           <div className="text-center py-10">
-            <Activity size={32} className="mx-auto text-gray-700 mb-2" />
+            <Activity size={32} className="mx-auto text-gray-400 mb-2" />
             <p className="text-gray-500 text-sm">Chưa có hồ sơ sức khoẻ</p>
           </div>
         ) : (
           <div className="space-y-2 max-h-72 overflow-y-auto">
             {records.map((r, i) => (
-              <div key={i} className="bg-[#070B14]/60 border border-gray-800/40 rounded-xl p-3">
+              <div key={i} className="bg-gray-50 border border-gray-100 rounded-xl p-3">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-white text-sm font-semibold">{r.condition || "—"}</span>
-                  <span className="text-gray-500 text-xs bg-white/5 px-2 py-0.5 rounded-full">{r.checkDate || "—"}</span>
+                  <span className="text-gray-900 text-sm font-semibold">{r.condition || "—"}</span>
+                  <span className="text-gray-500 text-xs bg-gray-100 px-2 py-0.5 rounded-full">{r.checkDate || "—"}</span>
                 </div>
                 {r.veterinarian && <p className="text-gray-500 text-xs">🩺 {r.veterinarian}</p>}
                 {r.notes && <p className="text-gray-400 text-xs mt-1 italic">"{r.notes}"</p>}
@@ -324,16 +323,16 @@ export default function HorsesPage() {
               </div>
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Quản lý ngựa</span>
             </div>
-            <h1 className="text-2xl font-black text-white leading-tight">Ngựa của tôi</h1>
+            <h1 className="text-2xl font-black text-gray-900 leading-tight">Ngựa của tôi</h1>
             <div className="flex items-center gap-3 mt-2">
-              <span className="stat-pill"><span className="text-white font-bold">{horses.length}</span> tổng cộng</span>
+              <span className="stat-pill"><span className="text-gray-900 font-bold">{horses.length}</span> tổng cộng</span>
               {activeCount > 0 && <span className="stat-pill text-green-400"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block mr-1" />{activeCount} hoạt động</span>}
               {injuredCount > 0 && <span className="stat-pill text-red-400"><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block mr-1" />{injuredCount} bị thương</span>}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={fetchHorses}
-              className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-gray-700/60 rounded-xl text-gray-400 hover:text-white text-sm transition-all">
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-blue-600 hover:border-blue-300 text-sm transition-all">
               <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
             </button>
             <button onClick={() => { setFormData(EMPTY_FORM); setFormError(""); setShowCreate(true); }}
@@ -346,7 +345,7 @@ export default function HorsesPage() {
 
       <div className="p-6 space-y-5">
         {error && (
-          <div className="flex items-center gap-3 p-4 bg-red-950/30 border border-red-900/50 rounded-xl text-red-300 text-sm">
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
             <AlertCircle size={15} className="text-red-400 shrink-0" /> {error}
           </div>
         )}
@@ -363,7 +362,7 @@ export default function HorsesPage() {
             <div className="w-20 h-20 rounded-2xl bg-orange-500/5 border border-orange-500/10 flex items-center justify-center mb-4 animate-float">
               <span className="text-4xl">🐴</span>
             </div>
-            <p className="text-white font-semibold mb-1">Chưa có ngựa nào</p>
+            <p className="text-gray-800 font-semibold mb-1">Chưa có ngựa nào</p>
             <p className="text-gray-500 text-sm mb-4">Thêm ngựa đầu tiên vào danh sách của bạn</p>
             <button onClick={() => { setFormData(EMPTY_FORM); setFormError(""); setShowCreate(true); }}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm btn-gold-glow">
@@ -377,7 +376,7 @@ export default function HorsesPage() {
               return (
                 <div
                   key={horse.horseId}
-                  className="group relative bg-[#0d1117] border border-gray-800/60 rounded-2xl overflow-hidden card-hover"
+                  className="group relative bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-blue-200 transition-all"
                   style={{ animationDelay: `${idx * 60}ms` }}
                 >
                   {/* Top gradient strip based on status */}
@@ -388,12 +387,12 @@ export default function HorsesPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         {/* Horse avatar */}
-                        <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br ${statusCfg.strip} border border-white/[0.06] shrink-0`}>
+                        <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br ${statusCfg.strip} border border-gray-100 shrink-0`}>
                           🐴
-                          <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#0d1117] ${statusCfg.dot}`} />
+                          <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${statusCfg.dot}`} />
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-white font-bold text-base leading-tight truncate">{horse.horseName}</h3>
+                          <h3 className="text-gray-900 font-bold text-base leading-tight truncate">{horse.horseName}</h3>
                           <p className="text-gray-500 text-xs mt-0.5 flex items-center gap-1">
                             <Dna size={10} className="shrink-0" />
                             {horse.breed || "Chưa xác định"}
@@ -412,10 +411,10 @@ export default function HorsesPage() {
                         { label: "Nặng",    value: horse.weight ? `${horse.weight}kg`     : "—", icon: "⚖️" },
                         { label: "Cao",     value: horse.height ? `${horse.height}cm`     : "—", icon: "📏" },
                       ].map(({ label, value, icon }) => (
-                        <div key={label} className="bg-[#070B14]/60 rounded-xl p-2.5 text-center border border-gray-800/40">
+                        <div key={label} className="bg-gray-50 rounded-xl p-2.5 text-center border border-gray-100">
                           <span className="text-sm block mb-0.5">{icon}</span>
-                          <p className="text-white text-sm font-bold leading-none">{value}</p>
-                          <p className="text-gray-600 text-[9px] uppercase tracking-wider mt-0.5">{label}</p>
+                          <p className="text-gray-900 text-sm font-bold leading-none">{value}</p>
+                          <p className="text-gray-400 text-[9px] uppercase tracking-wider mt-0.5">{label}</p>
                         </div>
                       ))}
                     </div>
@@ -434,12 +433,12 @@ export default function HorsesPage() {
 
                     {/* Status changer */}
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-gray-600 text-[10px] uppercase tracking-wider shrink-0">Trạng thái:</span>
+                      <span className="text-gray-500 text-[10px] uppercase tracking-wider shrink-0">Trạng thái:</span>
                       <select
                         value={horse.status || "Active"}
                         disabled={statusLoading === horse.horseId}
                         onChange={(e) => handleChangeStatus(horse.horseId, e.target.value)}
-                        className="flex-1 bg-[#070B14] border border-gray-800 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-[#D4AF37]/50 transition-all cursor-pointer disabled:opacity-50"
+                        className="flex-1 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-blue-400 transition-all cursor-pointer disabled:opacity-50"
                       >
                         <option value="Active">🟢 Hoạt động</option>
                         <option value="Injured">🔴 Bị thương</option>
@@ -450,17 +449,17 @@ export default function HorsesPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2 pt-3 border-t border-gray-800/40">
+                    <div className="flex gap-2 pt-3 border-t border-gray-100">
                       <button onClick={() => setShowHealth(horse)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-pink-600/10 border border-pink-600/25 text-pink-300 hover:bg-pink-600/20 hover:border-pink-600/40 rounded-xl text-xs font-semibold transition-all">
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-pink-50 border border-pink-200 text-pink-600 hover:bg-pink-100 hover:border-pink-300 rounded-xl text-xs font-semibold transition-all">
                         <Heart size={11} /> Sức khoẻ
                       </button>
                       <button onClick={() => openEdit(horse)}
-                        className="p-2 bg-white/[0.03] border border-gray-700/60 text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37]/30 rounded-xl transition-all">
+                        className="p-2 bg-gray-50 border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 rounded-xl transition-all">
                         <Edit2 size={14} />
                       </button>
                       <button onClick={() => { setFormError(""); setShowDelete(horse); }}
-                        className="p-2 bg-white/[0.03] border border-gray-700/60 text-gray-500 hover:text-red-400 hover:border-red-900/50 rounded-xl transition-all">
+                        className="p-2 bg-gray-50 border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200 hover:bg-red-50 rounded-xl transition-all">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -475,14 +474,14 @@ export default function HorsesPage() {
       {/* ── Modals ── */}
       {showCreate && (
         <Modal title="Thêm ngựa mới" onClose={() => setShowCreate(false)}>
-          {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-red-950/40 border border-red-900/50 rounded-xl text-red-300 text-sm"><AlertCircle size={13} />{formError}</div>}
+          {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm"><AlertCircle size={13} />{formError}</div>}
           <HorseForm form={formData} onChange={handleFormChange} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} loading={formLoading} submitLabel="Thêm ngựa" />
         </Modal>
       )}
 
       {showEdit && (
         <Modal title={`Chỉnh sửa — ${showEdit.horseName}`} onClose={() => setShowEdit(null)}>
-          {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-red-950/40 border border-red-900/50 rounded-xl text-red-300 text-sm"><AlertCircle size={13} />{formError}</div>}
+          {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm"><AlertCircle size={13} />{formError}</div>}
           <HorseForm form={formData} onChange={handleFormChange} onSubmit={handleEdit} onCancel={() => setShowEdit(null)} loading={formLoading} submitLabel="Lưu thay đổi" />
         </Modal>
       )}
@@ -490,16 +489,16 @@ export default function HorsesPage() {
       {showDelete && (
         <Modal title="Xác nhận xoá ngựa" accentColor="rgb(239,68,68)" onClose={() => setShowDelete(null)}>
           {formError && <div className="mb-3 text-red-300 text-sm">{formError}</div>}
-          <div className="flex items-center gap-3 p-4 bg-red-950/20 border border-red-900/30 rounded-xl mb-5">
-            <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0 text-xl">🐴</div>
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl mb-5">
+            <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0 text-xl">🐴</div>
             <div>
-              <p className="text-white font-bold">{showDelete.horseName}</p>
+              <p className="text-gray-900 font-bold">{showDelete.horseName}</p>
               <p className="text-gray-500 text-xs">{showDelete.breed || "Chưa xác định"}</p>
             </div>
           </div>
-          <p className="text-gray-400 text-sm mb-5">Hành động này sẽ xoá vĩnh viễn dữ liệu ngựa và không thể hoàn tác.</p>
+          <p className="text-gray-500 text-sm mb-5">Hành động này sẽ xoá vĩnh viễn dữ liệu ngựa và không thể hoàn tác.</p>
           <div className="flex gap-3">
-            <button onClick={() => setShowDelete(null)} className="flex-1 py-2.5 rounded-xl border border-gray-700/60 text-gray-400 hover:text-white text-sm transition-colors">Huỷ</button>
+            <button onClick={() => setShowDelete(null)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-800 text-sm transition-colors">Huỷ</button>
             <button onClick={handleDelete} disabled={formLoading}
               className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
               {formLoading && <Loader2 size={14} className="animate-spin" />} Xoá ngựa

@@ -15,4 +15,12 @@ export const adminService = {
   getAllUsers: () => api.get("/admin/users"),
   changeUserRole: (userId, roleName, adminId) =>
     api.put(`/admin/users/${userId}/role?adminId=${adminId}`, { roleName }),
+
+  // Audit logs (GET /api/admin/audit-logs)
+  getAuditLogs: () => api.get("/admin/audit-logs"),
+
+  // System configs (GET /api/admin/configs, PUT /api/admin/configs/{configKey})
+  getConfigs: () => api.get("/admin/configs"),
+  updateConfig: (configKey, value) =>
+    api.put(`/admin/configs/${configKey}`, { value }),
 };

@@ -8,10 +8,11 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { spectatorService } from "../../services/spectator";
 
 const STATUS_CONFIG = {
-  Upcoming:   { label: "Sắp diễn ra",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",    borderCls: "border-l-blue-glow",  icon: Clock,        iconCls: "text-blue-400 bg-blue-500/10" },
-  InProgress: { label: "Đang diễn ra", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", borderCls: "border-l-gold-glow", icon: Zap,          iconCls: "text-[#D4AF37] bg-[#D4AF37]/10" },
-  Finished:   { label: "Đã kết thúc",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green", borderCls: "border-l-green-glow", icon: CheckCircle2, iconCls: "text-green-400 bg-green-500/10" },
-  Cancelled:  { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",                        borderCls: "border-l-red-glow",   icon: Flag,         iconCls: "text-red-400 bg-red-500/10" },
+  Scheduled:        { label: "Sắp diễn ra",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",       borderCls: "border-l-blue-glow",   icon: Clock,        iconCls: "text-blue-400 bg-blue-500/10"    },
+  RegistrationOpen: { label: "Mở đăng ký",   color: "bg-purple-500/20 text-purple-300 border-purple-500/40",                 borderCls: "border-l-purple-glow", icon: Calendar,     iconCls: "text-purple-400 bg-purple-500/10" },
+  Ongoing:          { label: "Đang diễn ra", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", borderCls: "border-l-gold-glow",   icon: Zap,          iconCls: "text-[#D4AF37] bg-[#D4AF37]/10"  },
+  Finished:         { label: "Đã kết thúc",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",   borderCls: "border-l-green-glow",  icon: CheckCircle2, iconCls: "text-green-400 bg-green-500/10"   },
+  Cancelled:        { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",                          borderCls: "border-l-red-glow",    icon: Flag,         iconCls: "text-red-400 bg-red-500/10"       },
 };
 
 export default function RefereeRacesPage() {
@@ -38,9 +39,10 @@ export default function RefereeRacesPage() {
   const filtered = filterStatus === "all" ? races : races.filter((r) => r.status === filterStatus);
 
   const counts = {
-    Upcoming:   races.filter((r) => r.status === "Upcoming").length,
-    InProgress: races.filter((r) => r.status === "InProgress").length,
-    Finished:   races.filter((r) => r.status === "Finished").length,
+    Scheduled:        races.filter((r) => r.status === "Scheduled").length,
+    RegistrationOpen: races.filter((r) => r.status === "RegistrationOpen").length,
+    Ongoing:          races.filter((r) => r.status === "Ongoing").length,
+    Finished:         races.filter((r) => r.status === "Finished").length,
   };
 
   return (
@@ -62,12 +64,12 @@ export default function RefereeRacesPage() {
             <h1 className="text-2xl font-black text-white leading-tight">Vòng đua của tôi</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <span className="stat-pill"><span className="text-white font-bold">{races.length}</span> vòng đua</span>
-              {counts.InProgress > 0 && (
+              {counts.Ongoing > 0 && (
                 <span className="stat-pill text-yellow-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {counts.InProgress} ĐANG LIVE
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {counts.Ongoing} ĐANG LIVE
                 </span>
               )}
-              {counts.Upcoming > 0 && <span className="stat-pill text-blue-400">{counts.Upcoming} sắp tới</span>}
+              {(counts.Scheduled + counts.RegistrationOpen) > 0 && <span className="stat-pill text-blue-400">{counts.Scheduled + counts.RegistrationOpen} sắp tới</span>}
             </div>
           </div>
           <button onClick={fetchRaces}
@@ -81,10 +83,11 @@ export default function RefereeRacesPage() {
         {/* ── Filter ── */}
         <div className="flex gap-2 flex-wrap">
           {[
-            { key: "all",        label: "Tất cả",       count: races.length },
-            { key: "Upcoming",   count: counts.Upcoming },
-            { key: "InProgress", count: counts.InProgress },
-            { key: "Finished",   count: counts.Finished },
+            { key: "all",              label: "Tất cả", count: races.length },
+            { key: "Scheduled",        count: counts.Scheduled },
+            { key: "RegistrationOpen", count: counts.RegistrationOpen },
+            { key: "Ongoing",          count: counts.Ongoing },
+            { key: "Finished",         count: counts.Finished },
           ].map(({ key, label, count }) => {
             const cfg = STATUS_CONFIG[key];
             const isActive = filterStatus === key;
@@ -126,7 +129,7 @@ export default function RefereeRacesPage() {
             {filtered.map((race, idx) => {
               const cfg = STATUS_CONFIG[race.status] || { label: race.status, color: "bg-gray-500/20 text-gray-400 border-gray-500/40", borderCls: "border-l-gray-glow", icon: Flag, iconCls: "text-gray-400 bg-white/5" };
               const StatusIcon = cfg.icon;
-              const isLive = race.status === "InProgress";
+              const isLive = race.status === "Ongoing";
 
               return (
                 <div

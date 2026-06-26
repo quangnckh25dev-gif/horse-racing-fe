@@ -27,4 +27,8 @@ export const tournamentService = {
     api.post(`/organizer/races/${raceId}/referees`, { refereeId, role }),
   removeReferee: (raceId, refereeId) =>
     api.delete(`/organizer/races/${raceId}/referees/${refereeId}`),
+
+  // ── Public tournament endpoints (GET /api/tournaments) ───
+  getPublicTournaments: () => api.get("/tournaments"),
+  getPublicTournamentById: (id) => api.get(`/tournaments/${id}`),
 };

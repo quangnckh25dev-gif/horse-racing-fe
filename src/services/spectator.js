@@ -7,6 +7,9 @@ export const spectatorService = {
   getRaceEntries: (raceId) => api.get(`/races/${raceId}/entries`),
   getRaceResults: (raceId) => api.get(`/races/${raceId}/results`),
 
+  // ── Race schedule detail ──────────────────────────────────
+  getRaceSchedule: (raceId) => api.get(`/races/${raceId}/schedule`),
+
   // ── Predictions ───────────────────────────────────────────
   makePrediction: (raceId, data) =>
     api.post(`/races/${raceId}/predictions`, data),

@@ -31,9 +31,19 @@ const ROLE_LABEL = {
   Spectator:       "Khán giả",
 };
 
+const ROLE_BADGE_CLS = {
+  Admin:           "bg-red-50 text-red-600 border-red-200",
+  OrganizerHead:   "bg-amber-50 text-amber-700 border-amber-200",
+  OrganizerMember: "bg-blue-50 text-blue-600 border-blue-200",
+  HorseOwner:      "bg-orange-50 text-orange-600 border-orange-200",
+  Jockey:          "bg-purple-50 text-purple-600 border-purple-200",
+  Referee:         "bg-yellow-50 text-yellow-700 border-yellow-200",
+  Spectator:       "bg-gray-50 text-gray-600 border-gray-200",
+};
+
 const ROLE_AVATAR_GRADIENT = {
   Admin:           "from-red-400 to-rose-500",
-  OrganizerHead:   "from-[#D4AF37] to-amber-400",
+  OrganizerHead:   "from-amber-400 to-amber-500",
   OrganizerMember: "from-blue-400 to-sky-500",
   HorseOwner:      "from-orange-400 to-amber-500",
   Jockey:          "from-purple-400 to-violet-500",
@@ -99,26 +109,20 @@ export default function ProfilePage() {
       <div className="p-6 max-w-2xl mx-auto">
 
         {/* ── User info card ── */}
-        <div className="mb-6 flex items-center gap-4 p-5 bg-[#111827]/60 border border-gray-800/60 rounded-2xl">
-          <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${gradientCls} flex items-center justify-center text-2xl font-black text-white shadow-lg`}>
+        <div className="mb-6 flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-2xl shadow-sm">
+          <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${gradientCls} flex items-center justify-center text-2xl font-black text-white shadow-md`}>
             {(user?.fullName || user?.username || "U")[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-lg truncate">{user?.fullName || user?.username}</p>
-            <p className="text-gray-400 text-sm truncate">{user?.email}</p>
-            <span className={`inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full font-medium border ${
-              role === "OrganizerHead" ? "bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/25"
-              : role === "Jockey"     ? "bg-purple-900/30 text-purple-300 border-purple-800/50"
-              : role === "Referee"    ? "bg-yellow-900/30 text-yellow-300 border-yellow-800/50"
-              : role === "HorseOwner" ? "bg-orange-900/30 text-orange-300 border-orange-800/50"
-              : "bg-white/5 text-gray-400 border-white/10"
-            }`}>
+            <p className="text-gray-900 font-bold text-lg truncate">{user?.fullName || user?.username}</p>
+            <p className="text-gray-500 text-sm truncate">{user?.email}</p>
+            <span className={`inline-block mt-1.5 text-[10px] px-2.5 py-0.5 rounded-full font-semibold border ${ROLE_BADGE_CLS[role] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
               {ROLE_LABEL[role] || role}
             </span>
           </div>
           {hasProfile && (
             <button onClick={loadProfile} disabled={loading}
-              className="p-2 rounded-xl text-gray-500 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 border border-transparent hover:border-[#D4AF37]/20 transition-all">
+              className="p-2 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all">
               <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
             </button>
           )}
@@ -126,22 +130,22 @@ export default function ProfilePage() {
 
         {!hasProfile ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-gray-800 flex items-center justify-center mb-4">
-              <User size={28} className="text-gray-600" />
+            <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center mb-4">
+              <User size={28} className="text-gray-400" />
             </div>
-            <p className="text-gray-300 font-semibold text-base mb-2">Role này chưa có hồ sơ mở rộng</p>
+            <p className="text-gray-700 font-semibold text-base mb-2">Role này chưa có hồ sơ mở rộng</p>
             <p className="text-gray-500 text-sm">Chỉ Chủ ngựa, Nài ngựa và Trọng tài mới có hồ sơ riêng.</p>
           </div>
         ) : loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 size={28} className="animate-spin text-[#D4AF37]" />
+            <Loader2 size={28} className="animate-spin text-blue-600" />
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-5">
             {/* Fields card */}
-            <div className="bg-[#111827]/60 border border-gray-800/60 rounded-2xl p-5">
-              <h3 className="text-white font-bold text-sm mb-4 pb-3 border-b border-gray-800/60 flex items-center gap-2">
-                <User size={14} className="text-[#D4AF37]" />
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+              <h3 className="text-gray-800 font-bold text-sm mb-4 pb-3 border-b border-gray-100 flex items-center gap-2">
+                <User size={14} className="text-blue-600" />
                 Thông tin hồ sơ
               </h3>
               <div className="space-y-4">
@@ -156,7 +160,7 @@ export default function ProfilePage() {
                       onChange={(e) => handleChange(f.key, e.target.value)}
                       placeholder={f.placeholder}
                       step={f.step}
-                      className="w-full bg-[#070B14] border border-gray-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all placeholder:text-gray-700 hover:border-gray-700"
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all placeholder:text-gray-400 hover:border-gray-300"
                     />
                   </div>
                 ))}
@@ -164,13 +168,13 @@ export default function ProfilePage() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-950/50 border border-red-900 rounded-xl text-red-200 text-sm">
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
                 <AlertCircle size={14} className="shrink-0" /> {error}
               </div>
             )}
 
             {success && (
-              <div className="flex items-center gap-2 p-3 bg-green-950/50 border border-green-900 rounded-xl text-green-200 text-sm">
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
                 <CheckCircle2 size={14} className="shrink-0" /> Hồ sơ đã được lưu thành công!
               </div>
             )}

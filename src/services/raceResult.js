@@ -3,8 +3,11 @@ import { api } from "./api";
 export const raceResultService = {
   // ── Results ───────────────────────────────────────────────
   getResults: (raceId) => api.get(`/races/${raceId}/results`),
+  // POST creates a single result entry
   createResults: (raceId, data) => api.post(`/races/${raceId}/results`, data),
-  updateResults: (raceId, data) => api.put(`/races/${raceId}/results`, data),
+  // PUT updates a specific result by resultId (contract: PUT /races/{raceId}/results/{resultId})
+  updateResult: (raceId, resultId, data) =>
+    api.put(`/races/${raceId}/results/${resultId}`, data),
 
   // ── Violations ────────────────────────────────────────────
   getViolations: (raceId) => api.get(`/races/${raceId}/violations`),

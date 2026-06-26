@@ -11,4 +11,7 @@ export const entryService = {
     api.delete(`/races/${raceId}/entries/${entryId}`),
   cancelEntry: (raceId, entryId) =>
     api.delete(`/races/${raceId}/entries/${entryId}`),
+
+  // GET /api/jockeys — list all jockeys for owner invitation dropdown
+  getJockeys: () => api.get("/jockeys"),
 };

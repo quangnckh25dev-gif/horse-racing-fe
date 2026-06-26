@@ -4,7 +4,7 @@ import {
   Users, UserCheck, Trophy, Calendar, CheckCircle2,
   HardHat, Loader2, AlertCircle, RefreshCw, TrendingUp,
   Clock, Target, Flag, Star, Mail, PawPrint, Award,
-  ChevronRight, Zap, BarChart2,
+  ChevronRight, Zap, BarChart2, Wallet, DollarSign,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { adminService } from "../../services/admin";
@@ -12,34 +12,35 @@ import { useAuth } from "../../context/AuthContext";
 
 const ROLE_LINKS = {
   OrganizerHead: [
-    { label: "Quản lý vòng đua",    icon: Flag,  path: "/organizer/races",   color: "text-blue-400",   bg: "bg-blue-500/10",  border: "border-blue-800/50 hover:border-blue-500/50" },
-    { label: "Duyệt kết quả",       icon: Award, path: "/organizer/results",  color: "text-[#D4AF37]",  bg: "bg-[#D4AF37]/10", border: "border-[#D4AF37]/30 hover:border-[#D4AF37]/60" },
-    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password",  color: "text-gray-400",   bg: "bg-white/5",      border: "border-gray-700 hover:border-gray-500" },
+    { label: "Quản lý vòng đua",    icon: Flag,   path: "/organizer/races",   color: "text-blue-600",   bg: "bg-blue-50",  border: "border-blue-200 hover:border-blue-400" },
+    { label: "Duyệt kết quả",       icon: Award,  path: "/organizer/results", color: "text-amber-600",  bg: "bg-amber-50", border: "border-amber-200 hover:border-amber-400" },
+    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password",   color: "text-gray-500",   bg: "bg-gray-50",  border: "border-gray-200 hover:border-gray-300" },
   ],
   OrganizerMember: [
-    { label: "Quản lý vòng đua",    icon: Flag,   path: "/organizer/races",     color: "text-blue-400",   bg: "bg-blue-500/10",   border: "border-blue-800/50 hover:border-blue-500/50" },
-    { label: "Phân công trọng tài", icon: Users,  path: "/organizer/referees",  color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-800/50 hover:border-purple-500/50" },
-    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password",     color: "text-gray-400",   bg: "bg-white/5",       border: "border-gray-700 hover:border-gray-500" },
+    { label: "Quản lý vòng đua",    icon: Flag,   path: "/organizer/races",    color: "text-blue-600",   bg: "bg-blue-50",   border: "border-blue-200 hover:border-blue-400" },
+    { label: "Phân công trọng tài", icon: Users,  path: "/organizer/referees", color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-200 hover:border-purple-400" },
+    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password",    color: "text-gray-500",   bg: "bg-gray-50",   border: "border-gray-200 hover:border-gray-300" },
   ],
   HorseOwner: [
-    { label: "Ngựa của tôi",        icon: PawPrint, path: "/owner/horses",            color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-800/50 hover:border-orange-500/50" },
-    { label: "Đăng ký thi đấu",     icon: Trophy,   path: "/owner/race-registration", color: "text-[#D4AF37]",  bg: "bg-[#D4AF37]/10",  border: "border-[#D4AF37]/30 hover:border-[#D4AF37]/60" },
-    { label: "Lời mời Jockey",      icon: Mail,     path: "/owner/invitations",       color: "text-pink-400",   bg: "bg-pink-500/10",   border: "border-pink-800/50 hover:border-pink-500/50" },
-    { label: "Đổi mật khẩu",        icon: Target,   path: "/change-password",         color: "text-gray-400",   bg: "bg-white/5",       border: "border-gray-700 hover:border-gray-500" },
+    { label: "Ngựa của tôi",        icon: PawPrint, path: "/owner/horses",            color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200 hover:border-orange-400" },
+    { label: "Đăng ký thi đấu",     icon: Trophy,   path: "/owner/race-registration", color: "text-amber-600",  bg: "bg-amber-50",  border: "border-amber-200 hover:border-amber-400" },
+    { label: "Lời mời Jockey",      icon: Mail,     path: "/owner/invitations",       color: "text-pink-600",   bg: "bg-pink-50",   border: "border-pink-200 hover:border-pink-400" },
+    { label: "Đổi mật khẩu",        icon: Target,   path: "/change-password",         color: "text-gray-500",   bg: "bg-gray-50",   border: "border-gray-200 hover:border-gray-300" },
   ],
   Jockey: [
-    { label: "Lời mời thi đấu",     icon: Mail,   path: "/jockey/invitations", color: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10", border: "border-[#D4AF37]/30 hover:border-[#D4AF37]/60" },
-    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password",    color: "text-gray-400",  bg: "bg-white/5",      border: "border-gray-700 hover:border-gray-500" },
+    { label: "Lời mời thi đấu",     icon: Mail,   path: "/jockey/invitations", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200 hover:border-amber-400" },
+    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password",    color: "text-gray-500",  bg: "bg-gray-50",  border: "border-gray-200 hover:border-gray-300" },
   ],
   Referee: [
-    { label: "Vòng đua của tôi",    icon: Flag,   path: "/referee/races",   color: "text-blue-400",  bg: "bg-blue-500/10", border: "border-blue-800/50 hover:border-blue-500/50" },
-    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password", color: "text-gray-400",  bg: "bg-white/5",     border: "border-gray-700 hover:border-gray-500" },
+    { label: "Vòng đua của tôi",    icon: Flag,   path: "/referee/races",   color: "text-blue-600",  bg: "bg-blue-50", border: "border-blue-200 hover:border-blue-400" },
+    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password", color: "text-gray-500",  bg: "bg-gray-50", border: "border-gray-200 hover:border-gray-300" },
   ],
   Spectator: [
-    { label: "Lịch thi đấu",        icon: Calendar, path: "/spectator/schedule",    color: "text-blue-400",  bg: "bg-blue-500/10",  border: "border-blue-800/50 hover:border-blue-500/50" },
-    { label: "Dự đoán kết quả",     icon: Star,     path: "/spectator/predictions", color: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10", border: "border-[#D4AF37]/30 hover:border-[#D4AF37]/60" },
-    { label: "Bảng xếp hạng",       icon: BarChart2,path: "/leaderboard",           color: "text-purple-400",bg: "bg-purple-500/10",border: "border-purple-800/50 hover:border-purple-500/50" },
-    { label: "Đổi mật khẩu",        icon: Target,   path: "/change-password",       color: "text-gray-400",  bg: "bg-white/5",      border: "border-gray-700 hover:border-gray-500" },
+    { label: "Lịch thi đấu",        icon: Calendar,  path: "/spectator/schedule",    color: "text-blue-600",   bg: "bg-blue-50",   border: "border-blue-200 hover:border-blue-400" },
+    { label: "Đặt cược",            icon: DollarSign, path: "/spectator/betting",    color: "text-amber-600",  bg: "bg-amber-50",  border: "border-amber-200 hover:border-amber-400" },
+    { label: "Bảng xếp hạng",       icon: BarChart2, path: "/leaderboard",           color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-200 hover:border-purple-400" },
+    { label: "Ví của tôi",          icon: Wallet,    path: "/spectator/wallet",      color: "text-green-600",  bg: "bg-green-50",  border: "border-green-200 hover:border-green-400" },
+    { label: "Đổi mật khẩu",        icon: Target,    path: "/change-password",       color: "text-gray-500",   bg: "bg-gray-50",   border: "border-gray-200 hover:border-gray-300" },
   ],
 };
 
@@ -59,7 +60,7 @@ const ROLE_TAGLINE = {
   HorseOwner: "Quản lý ngựa, đăng ký thi đấu và xem các lời mời Jockey.",
   Jockey: "Xem và phản hồi các lời mời thi đấu từ chủ ngựa.",
   Referee: "Xem lịch trọng tài và quản lý kết quả các vòng đua.",
-  Spectator: "Theo dõi lịch thi đấu, dự đoán kết quả và xem bảng xếp hạng.",
+  Spectator: "Theo dõi lịch thi đấu, đặt cược và xem bảng xếp hạng.",
 };
 
 function RoleDashboard({ user, role, navigate }) {
@@ -69,21 +70,21 @@ function RoleDashboard({ user, role, navigate }) {
     <AdminLayout title="Dashboard">
       <div className="p-6 max-w-5xl mx-auto">
 
-        {/* ── Hero card ── */}
+        {/* ── Hero card (dark overlay on horse image — intentional) ── */}
         <div className="relative mb-6 rounded-2xl overflow-hidden min-h-[180px] flex flex-col justify-end"
           style={{ backgroundImage: "linear-gradient(to bottom, rgba(10,14,26,0.25), rgba(10,14,26,0.92)), url('/bg-horse.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
-          <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none" />
           <div className="relative p-6">
             <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-[#D4AF37] live-dot" />
-              <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest font-data">
+              <span className="w-2 h-2 rounded-full bg-amber-400 live-dot" />
+              <span className="text-[10px] font-bold text-amber-300 uppercase tracking-widest font-data">
                 {ROLE_LABELS[role] || role}
               </span>
             </div>
             <h2 className="font-display text-2xl font-black text-white leading-tight">
               Xin chào, <span className="text-gold-gradient">{user?.fullName || user?.username}</span>
             </h2>
-            <p className="text-gray-400 text-sm mt-1">{ROLE_TAGLINE[role] || "Chào mừng trở lại hệ thống."}</p>
+            <p className="text-gray-300 text-sm mt-1">{ROLE_TAGLINE[role] || "Chào mừng trở lại hệ thống."}</p>
           </div>
         </div>
 
@@ -96,13 +97,13 @@ function RoleDashboard({ user, role, navigate }) {
             <button
               key={item.path + item.label}
               onClick={() => navigate(item.path)}
-              className={`glass-card group flex items-center gap-4 p-5 rounded-2xl border ${item.border} text-left transition-all duration-200`}
+              className={`group flex items-center gap-4 p-5 rounded-2xl border bg-white hover:shadow-md ${item.border} text-left transition-all duration-200`}
             >
               <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center shrink-0 ${item.color}`}>
                 <item.icon size={18} />
               </div>
-              <span className="font-medium text-white text-sm flex-1">{item.label}</span>
-              <ChevronRight size={14} className="text-gray-600 group-hover:text-[#D4AF37] transition-colors" />
+              <span className="font-medium text-gray-800 text-sm flex-1">{item.label}</span>
+              <ChevronRight size={14} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
             </button>
           ))}
         </div>
@@ -118,9 +119,9 @@ function StatCard({ icon: Icon, label, value, sub, color, bg, onClick, loading, 
   return (
     <div
       onClick={onClick}
-      className={`glass-card group relative rounded-2xl p-5 flex items-center gap-4 overflow-hidden ${onClick ? "cursor-pointer" : ""} ${accent ? "border-l-4 border-l-[#D4AF37]/60" : ""}`}
+      className={`group relative bg-white rounded-2xl p-5 flex items-center gap-4 overflow-hidden border shadow-sm hover:shadow-md transition-all duration-200 ${onClick ? "cursor-pointer" : ""} ${accent ? "border-l-4 border-l-amber-400" : "border-gray-200"}`}
     >
-      {accent && <div className="absolute inset-0 bg-[#D4AF37]/[0.03] pointer-events-none" />}
+      {accent && <div className="absolute inset-0 bg-amber-50/30 pointer-events-none" />}
       <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
         <Icon size={20} className={color} />
       </div>
@@ -129,12 +130,12 @@ function StatCard({ icon: Icon, label, value, sub, color, bg, onClick, loading, 
         {loading ? (
           <div className="h-8 w-16 shimmer rounded-lg mt-1.5" />
         ) : (
-          <p className={`text-3xl font-black mt-0.5 tabular-nums font-display ${accent ? "text-gold-gradient" : "text-white"}`}>{value ?? "—"}</p>
+          <p className={`text-3xl font-black mt-0.5 tabular-nums font-display ${accent ? "text-amber-600" : "text-gray-900"}`}>{value ?? "—"}</p>
         )}
         {sub && !loading && <p className="text-gray-500 text-xs mt-0.5 truncate">{sub}</p>}
       </div>
       {onClick && !loading && (
-        <TrendingUp size={14} className="text-gray-700 group-hover:text-[#D4AF37]/50 transition-colors shrink-0" />
+        <TrendingUp size={14} className="text-gray-300 group-hover:text-blue-500 transition-colors shrink-0" />
       )}
     </div>
   );
@@ -172,23 +173,23 @@ export default function DashboardPage() {
     : null;
 
   const QUICK_ACTIONS = [
-    { label: "Duyệt tài khoản",    icon: UserCheck,   path: "/admin/users/pending", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-white/5 hover:border-yellow-500/30" },
-    { label: "Quản lý người dùng", icon: Users,       path: "/admin/users",          color: "text-blue-400",   bg: "bg-blue-500/10",   border: "border-white/5 hover:border-blue-500/30" },
-    { label: "Quản lý giải đấu",   icon: Trophy,      path: "/admin/tournaments",    color: "text-[#D4AF37]",  bg: "bg-[#D4AF37]/10",  border: "border-white/5 hover:border-[#D4AF37]/30" },
+    { label: "Duyệt tài khoản",    icon: UserCheck,   path: "/admin/users/pending", color: "text-amber-600", bg: "bg-amber-50",  border: "border-amber-200 hover:border-amber-400" },
+    { label: "Quản lý người dùng", icon: Users,       path: "/admin/users",          color: "text-blue-600",  bg: "bg-blue-50",   border: "border-blue-200 hover:border-blue-400" },
+    { label: "Quản lý giải đấu",   icon: Trophy,      path: "/admin/tournaments",    color: "text-amber-600", bg: "bg-amber-50",  border: "border-amber-200 hover:border-amber-400" },
   ];
 
   const STAT_CARDS = [
-    { icon: Users,        label: "Người dùng",     value: stats?.totalActiveUsers,    color: "text-blue-400",   bg: "bg-blue-500/10",   sub: undefined, onClick: () => navigate("/admin/users") },
-    { icon: UserCheck,    label: "Chờ duyệt",      value: stats?.pendingApprovals,    color: stats?.pendingApprovals > 0 ? "text-yellow-400" : "text-green-400", bg: stats?.pendingApprovals > 0 ? "bg-yellow-500/10" : "bg-green-500/10", sub: stats?.pendingApprovals > 0 ? "⚠ Cần xử lý" : "✓ Đã xử lý hết", onClick: () => navigate("/admin/users/pending") },
-    { icon: Trophy,       label: "Giải đang diễn", value: stats?.ongoingTournaments,  color: "text-[#D4AF37]",  bg: "bg-[#D4AF37]/10",  sub: undefined, onClick: () => navigate("/admin/tournaments"), accent: true },
+    { icon: Users,     label: "Người dùng",     value: stats?.totalActiveUsers,   color: "text-blue-600",   bg: "bg-blue-50",   sub: undefined, onClick: () => navigate("/admin/users") },
+    { icon: UserCheck, label: "Chờ duyệt",      value: stats?.pendingApprovals,   color: stats?.pendingApprovals > 0 ? "text-amber-600" : "text-green-600", bg: stats?.pendingApprovals > 0 ? "bg-amber-50" : "bg-green-50", sub: stats?.pendingApprovals > 0 ? "⚠ Cần xử lý" : "✓ Đã xử lý hết", onClick: () => navigate("/admin/users/pending") },
+    { icon: Trophy,    label: "Giải đang diễn", value: stats?.ongoingTournaments, color: "text-amber-600",  bg: "bg-amber-50",  sub: undefined, onClick: () => navigate("/admin/tournaments"), accent: true },
   ];
 
   const DETAIL_STATS = [
-    { icon: Clock,        label: "Đua sắp tới",   value: stats?.upcomingRaces,    color: "text-purple-400",  bg: "bg-purple-500/10" },
-    { icon: CheckCircle2, label: "Đua đã kết thúc",value: stats?.finishedRaces,   color: "text-green-400",   bg: "bg-green-500/10" },
-    { icon: HardHat,      label: "Tổng ngựa",     value: stats?.totalHorses,      color: "text-orange-400",  bg: "bg-orange-500/10" },
-    { icon: Calendar,     label: "Tổng jockey",   value: stats?.totalJockeys,     color: "text-pink-400",    bg: "bg-pink-500/10" },
-    { icon: Target,       label: "Dự đoán",       value: stats?.totalPredictions, color: "text-cyan-400",    bg: "bg-cyan-500/10",  sub: predAccuracy !== null ? `${predAccuracy}% chính xác` : undefined },
+    { icon: Clock,        label: "Đua sắp tới",    value: stats?.upcomingRaces,    color: "text-purple-600",  bg: "bg-purple-50" },
+    { icon: CheckCircle2, label: "Đua đã kết thúc", value: stats?.finishedRaces,   color: "text-green-600",   bg: "bg-green-50" },
+    { icon: HardHat,      label: "Tổng ngựa",       value: stats?.totalHorses,     color: "text-orange-600",  bg: "bg-orange-50" },
+    { icon: Calendar,     label: "Tổng jockey",     value: stats?.totalJockeys,    color: "text-pink-600",    bg: "bg-pink-50" },
+    { icon: Target,       label: "Dự đoán",         value: stats?.totalPredictions, color: "text-cyan-600",   bg: "bg-cyan-50",  sub: predAccuracy !== null ? `${predAccuracy}% chính xác` : undefined },
   ];
 
   return (
@@ -196,10 +197,10 @@ export default function DashboardPage() {
       <div className="p-6 max-w-6xl mx-auto space-y-5">
 
         {error && (
-          <div className="flex items-center gap-2 p-3.5 rounded-xl bg-red-950/40 border border-red-900/60 text-red-200 text-sm">
-            <AlertCircle size={15} className="shrink-0 text-red-400" />
+          <div className="flex items-center gap-2 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+            <AlertCircle size={15} className="shrink-0 text-red-500" />
             {error}
-            <button onClick={fetchStats} className="ml-auto flex items-center gap-1.5 text-xs text-red-400 hover:text-red-200 transition-colors">
+            <button onClick={fetchStats} className="ml-auto flex items-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors">
               <RefreshCw size={12} /> Thử lại
             </button>
           </div>
@@ -220,23 +221,24 @@ export default function DashboardPage() {
           {/* Left 2/3 */}
           <div className="lg:col-span-2 flex flex-col gap-5">
 
-            {/* Featured hero card */}
-            <div className="relative rounded-2xl overflow-hidden min-h-[220px] flex flex-col justify-end group border border-white/[0.06]">
+            {/* Featured hero card (dark overlay on horse image — intentional) */}
+            <div className="relative rounded-2xl overflow-hidden min-h-[220px] flex flex-col justify-end group border border-gray-200 shadow-sm">
               <div className="absolute inset-0">
                 <div className="absolute inset-0 w-full h-full bg-cover bg-center opacity-35 mix-blend-luminosity group-hover:opacity-50 transition-opacity duration-500"
                   style={{ backgroundImage: "url('/bg-horse.png')" }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-[#0A0E1A]/75 to-transparent" />
               </div>
+
               <div className="relative z-10 p-6 flex flex-col md:flex-row items-end justify-between gap-4">
                 <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/25 mb-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] live-dot" />
-                    <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-widest font-data">Hệ thống đang hoạt động</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/30 mb-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-dot" />
+                    <span className="text-amber-300 text-[10px] font-bold uppercase tracking-widest font-data">Hệ thống đang hoạt động</span>
                   </div>
                   <h2 className="font-display text-2xl font-black text-white leading-tight mb-1">
                     Xin chào, <span className="text-gold-gradient">{user?.fullName || user?.username}</span>
                   </h2>
-                  <p className="text-gray-400 text-sm">Tổng quan hệ thống quản lý giải đua ngựa.</p>
+                  <p className="text-gray-300 text-sm">Tổng quan hệ thống quản lý giải đua ngựa.</p>
                 </div>
                 <button
                   onClick={() => navigate("/admin/tournaments")}
@@ -249,7 +251,7 @@ export default function DashboardPage() {
 
             {/* Detail stats grid */}
             <div>
-              <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-3 font-data">Thống kê chi tiết</p>
+              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3 font-data">Thống kê chi tiết</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {DETAIL_STATS.map((card, i) => (
                   <div key={i} style={{ animationDelay: `${i * 40}ms` }} className="animate-fade-in-up">
@@ -265,38 +267,38 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-5">
 
             {/* Quick Actions */}
-            <div className="glass-card rounded-2xl p-5">
-              <div className="flex items-center gap-2 pb-3 mb-3 border-b border-white/[0.06]">
-                <div className="w-6 h-6 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
-                  <Zap size={12} className="text-[#D4AF37]" />
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-2 pb-3 mb-3 border-b border-gray-100">
+                <div className="w-6 h-6 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
+                  <Zap size={12} className="text-blue-600" />
                 </div>
-                <h3 className="font-display font-bold text-sm text-white">Truy cập nhanh</h3>
+                <h3 className="font-display font-bold text-sm text-gray-800">Truy cập nhanh</h3>
               </div>
               <div className="space-y-2">
                 {QUICK_ACTIONS.map((item) => (
                   <button
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className={`group w-full flex items-center gap-3 p-3.5 rounded-xl bg-[#0d1220]/60 border ${item.border} transition-all duration-200 text-left`}
+                    className={`group w-full flex items-center gap-3 p-3.5 rounded-xl bg-gray-50/60 border ${item.border} transition-all duration-200 text-left hover:bg-white`}
                   >
                     <div className={`w-8 h-8 rounded-lg ${item.bg} flex items-center justify-center shrink-0 ${item.color}`}>
                       <item.icon size={15} />
                     </div>
-                    <span className="text-white text-sm font-medium flex-1">{item.label}</span>
-                    <ChevronRight size={13} className="text-gray-700 group-hover:text-[#D4AF37] transition-colors" />
+                    <span className="text-gray-700 text-sm font-medium flex-1">{item.label}</span>
+                    <ChevronRight size={13} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
                   </button>
                 ))}
               </div>
             </div>
 
             {/* System status card */}
-            <div className="glass-card rounded-2xl p-5">
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.06]">
-                <h3 className="font-display font-bold text-sm text-white">Trạng thái hệ thống</h3>
+            <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
+                <h3 className="font-display font-bold text-sm text-gray-800">Trạng thái hệ thống</h3>
                 <button
                   onClick={fetchStats}
                   disabled={loading}
-                  className="p-1.5 rounded-lg text-gray-500 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all"
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
                   title="Làm mới"
                 >
                   <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
@@ -304,15 +306,15 @@ export default function DashboardPage() {
               </div>
               <div className="space-y-3">
                 {[
-                  { label: "API Backend",    status: "online", dot: "bg-green-400" },
-                  { label: "Database",       status: "online", dot: "bg-green-400" },
-                  { label: "Auth Service",   status: "online", dot: "bg-green-400" },
+                  { label: "API Backend",    status: "online", dot: "bg-green-500" },
+                  { label: "Database",       status: "online", dot: "bg-green-500" },
+                  { label: "Auth Service",   status: "online", dot: "bg-green-500" },
                 ].map((s) => (
                   <div key={s.label} className="flex items-center justify-between">
-                    <span className="text-gray-400 text-xs">{s.label}</span>
+                    <span className="text-gray-500 text-xs">{s.label}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${s.dot} shadow-[0_0_6px_rgba(34,197,94,0.6)]`} />
-                      <span className="text-green-400 text-[10px] font-semibold font-data uppercase">{s.status}</span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${s.dot} shadow-[0_0_6px_rgba(34,197,94,0.5)]`} />
+                      <span className="text-green-600 text-[10px] font-semibold font-data uppercase">{s.status}</span>
                     </div>
                   </div>
                 ))}

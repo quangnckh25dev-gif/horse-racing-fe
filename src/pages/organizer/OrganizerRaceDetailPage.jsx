@@ -13,10 +13,11 @@ import { raceResultService } from "../../services/raceResult";
 import { useAuth } from "../../context/AuthContext";
 
 const RACE_STATUS_CONFIG = {
-  Upcoming:   { label: "Sắp diễn ra",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",        icon: Clock,        dot: "bg-blue-400" },
-  InProgress: { label: "Đang diễn ra", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", icon: Zap,          dot: "bg-yellow-400" },
-  Finished:   { label: "Đã kết thúc",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",    icon: CheckCircle2, dot: "bg-green-400" },
-  Cancelled:  { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",                           icon: XCircle,      dot: "bg-red-400" },
+  Scheduled:        { label: "Sắp diễn ra",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",       icon: Clock,        dot: "bg-blue-400" },
+  RegistrationOpen: { label: "Mở đăng ký",   color: "bg-purple-500/20 text-purple-300 border-purple-500/40",                 icon: Calendar,     dot: "bg-purple-400" },
+  Ongoing:          { label: "Đang diễn ra", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", icon: Zap,          dot: "bg-yellow-400" },
+  Finished:         { label: "Đã kết thúc",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",   icon: CheckCircle2, dot: "bg-green-400" },
+  Cancelled:        { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",                          icon: XCircle,      dot: "bg-red-400" },
 };
 
 const REFEREE_ROLES = ["MainReferee", "AssistantReferee", "TimingReferee", "StartReferee"];
@@ -69,7 +70,7 @@ function InfoTab({ race }) {
       <div className="flex items-center gap-3 p-4 bg-white/[0.02] rounded-xl border border-gray-800/60">
         <div className="flex items-center gap-2">
           <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full border flex items-center gap-1.5 ${statusCfg.color || "bg-gray-500/20 text-gray-300 border-gray-600/40"}`}>
-            {race.status === "InProgress" && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" />}
+            {race.status === "Ongoing" && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" />}
             {statusCfg.label || race.status}
           </span>
         </div>
@@ -602,7 +603,7 @@ export default function OrganizerRaceDetailPage() {
                 <div className="flex items-center gap-3 mt-2 flex-wrap">
                   {race?.status && (
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${statusCfg.color || "bg-gray-500/20 text-gray-300 border-gray-600"}`}>
-                      {race.status === "InProgress" && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" />}
+                      {race.status === "Ongoing" && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" />}
                       {statusCfg.label || race.status}
                     </span>
                   )}

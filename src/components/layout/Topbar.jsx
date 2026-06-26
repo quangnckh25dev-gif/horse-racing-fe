@@ -143,14 +143,16 @@ export default function Topbar({ title }) {
   const closeBoth = () => { setDropdownOpen(false); setBellOpen(false); };
 
   return (
-    <header className="relative z-30 h-16 flex items-center justify-between px-6 shrink-0 bg-[#070B14]/90 backdrop-blur-md">
-      {/* Gradient bottom border */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-[#D4AF37]/30 via-[#D4AF37]/10 to-transparent" />
+    <header className="relative z-30 h-16 flex items-center justify-between px-6 shrink-0"
+      style={{ background: "#FFFFFF", borderBottom: "1px solid #EAE5D8", boxShadow: "0 1px 8px rgba(0,0,0,0.05)" }}>
+      {/* Blue accent bottom border */}
+      <div className="absolute bottom-0 left-0 right-0 h-[1.5px]"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(37,99,235,0.55), rgba(99,102,241,0.3), transparent)", animation: "gradient-flow 5s ease infinite", backgroundSize: "200% 100%" }} />
 
       {/* Left: title */}
       <div className="flex items-center gap-3">
         <div className="gold-underline">
-          <h1 className="text-base font-semibold text-white">{title}</h1>
+          <h1 className="text-base font-semibold text-gray-800">{title}</h1>
         </div>
       </div>
 
@@ -161,12 +163,12 @@ export default function Topbar({ title }) {
         <div className="relative">
           <button
             onClick={() => { setBellOpen((p) => !p); setDropdownOpen(false); }}
-            className="relative p-2 rounded-xl text-gray-500 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 border border-transparent hover:border-[#D4AF37]/20 transition-all duration-200"
+            className="relative p-2 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all duration-200"
           >
             <Bell size={17} />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] rounded-full bg-[#D4AF37] border border-[#070B14] flex items-center justify-center">
-                <span className="text-[8px] font-black text-[#0A0E1A] leading-none px-0.5">{unreadCount}</span>
+              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] rounded-full bg-blue-600 border border-white flex items-center justify-center">
+                <span className="text-[8px] font-black text-white leading-none px-0.5">{unreadCount}</span>
               </span>
             )}
           </button>
@@ -174,30 +176,30 @@ export default function Topbar({ title }) {
           {bellOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setBellOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 z-50 w-80 bg-[#0d1321] border border-white/[0.09] rounded-2xl shadow-2xl shadow-black/60 overflow-hidden animate-scale-in">
-                <div className="h-0.5 w-full bg-gradient-to-r from-[#D4AF37] to-transparent" />
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+              <div className="absolute right-0 top-full mt-2 z-50 w-80 bg-white border border-gray-100 rounded-2xl shadow-xl shadow-black/8 overflow-hidden animate-scale-in">
+                <div className="h-0.5 w-full bg-gradient-to-r from-blue-500 to-transparent" />
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                   <div className="flex items-center gap-2">
-                    <Bell size={13} className="text-[#D4AF37]" />
-                    <span className="text-white text-sm font-bold">Thông báo</span>
+                    <Bell size={13} className="text-blue-500" />
+                    <span className="text-gray-800 text-sm font-bold">Thông báo</span>
                     {unreadCount > 0 && (
-                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/25">{unreadCount} mới</span>
+                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">{unreadCount} mới</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
                     {unreadCount > 0 && (
-                      <button onClick={markAllRead} className="text-[10px] text-gray-500 hover:text-[#D4AF37] transition-colors">Đọc tất cả</button>
+                      <button onClick={markAllRead} className="text-[10px] text-gray-400 hover:text-blue-600 transition-colors">Đọc tất cả</button>
                     )}
                     <button onClick={() => { setNotifLoaded(false); fetchNotifications(); }}
-                      className="text-[10px] text-gray-600 hover:text-gray-400 transition-colors">↻</button>
+                      className="text-[10px] text-gray-400 hover:text-gray-600 transition-colors">↻</button>
                   </div>
                 </div>
 
                 <div className="max-h-72 overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <Bell size={22} className="text-gray-700 mb-2" />
-                      <p className="text-gray-500 text-xs">Không có thông báo mới</p>
+                      <Bell size={22} className="text-gray-300 mb-2" />
+                      <p className="text-gray-400 text-xs">Không có thông báo mới</p>
                     </div>
                   ) : (
                     <div className="p-1.5 space-y-0.5">
@@ -208,16 +210,16 @@ export default function Topbar({ title }) {
                           <button key={n.id}
                             onClick={() => markOneRead(n.id)}
                             className={`flex items-start gap-3 w-full px-3 py-2.5 rounded-xl text-left transition-all duration-150 ${
-                              isRead ? "hover:bg-white/[0.03]" : "bg-[#D4AF37]/[0.05] hover:bg-[#D4AF37]/[0.08] border border-[#D4AF37]/10"
+                              isRead ? "hover:bg-gray-50" : "bg-blue-50/70 hover:bg-blue-50 border border-blue-100"
                             }`}>
                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${n.iconCls}`}>
                               <Icon size={12} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className={`text-xs leading-snug ${isRead ? "text-gray-400" : "text-white font-medium"}`}>{n.text}</p>
-                              <p className="text-gray-600 text-[10px] mt-0.5">{n.time}</p>
+                              <p className={`text-xs leading-snug ${isRead ? "text-gray-400" : "text-gray-800 font-medium"}`}>{n.text}</p>
+                              <p className="text-gray-400 text-[10px] mt-0.5">{n.time}</p>
                             </div>
-                            {!isRead && <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] shrink-0 mt-1.5" />}
+                            {!isRead && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />}
                           </button>
                         );
                       })}
@@ -225,8 +227,8 @@ export default function Topbar({ title }) {
                   )}
                 </div>
 
-                <div className="px-4 py-2.5 border-t border-white/[0.06]">
-                  <p className="text-gray-600 text-[10px] text-center">Dữ liệu từ server · Làm mới để cập nhật</p>
+                <div className="px-4 py-2.5 border-t border-gray-100">
+                  <p className="text-gray-400 text-[10px] text-center">Dữ liệu từ server · Làm mới để cập nhật</p>
                 </div>
               </div>
             </>
@@ -237,7 +239,7 @@ export default function Topbar({ title }) {
         <div className="relative">
           <button
             onClick={() => { setDropdownOpen((p) => !p); setBellOpen(false); }}
-            className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
+            className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl border border-gray-200 bg-gray-50/60 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
           >
             {/* Avatar */}
             <div className="relative">
@@ -246,15 +248,15 @@ export default function Topbar({ title }) {
                   {(user?.fullName || user?.username || "U")[0].toUpperCase()}
                 </span>
               </div>
-              <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#070B14] ${dotCls}`} />
+              <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${dotCls}`} />
             </div>
 
             {/* Name + role */}
             <div className="hidden sm:block text-left">
-              <p className="text-xs font-semibold text-white leading-tight">
+              <p className="text-xs font-semibold text-gray-800 leading-tight">
                 {user?.fullName || user?.username}
               </p>
-              <p className="text-[10px] leading-tight text-gray-500">
+              <p className="text-[10px] leading-tight text-gray-400">
                 {ROLE_LABEL[role] || role}
               </p>
             </div>
@@ -266,14 +268,14 @@ export default function Topbar({ title }) {
           {dropdownOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 z-50 w-52 bg-[#0d1321] border border-white/[0.09] rounded-2xl shadow-2xl shadow-black/60 overflow-hidden animate-scale-in">
-                <div className="h-0.5 w-full bg-gradient-to-r from-[#D4AF37] to-transparent" />
+              <div className="absolute right-0 top-full mt-2 z-50 w-52 bg-white border border-gray-100 rounded-2xl shadow-xl shadow-black/8 overflow-hidden animate-scale-in">
+                <div className="h-0.5 w-full bg-gradient-to-r from-blue-500 to-transparent" />
                 {/* User info */}
-                <div className="px-4 py-3 border-b border-white/[0.06]">
-                  <p className="text-white text-sm font-semibold truncate">{user?.fullName || user?.username}</p>
-                  <p className="text-gray-500 text-xs truncate">{user?.email || user?.username}</p>
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-gray-800 text-sm font-semibold truncate">{user?.fullName || user?.username}</p>
+                  <p className="text-gray-400 text-xs truncate">{user?.email || user?.username}</p>
                   <span className={`inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full border font-medium ${
-                    role === "OrganizerHead" ? "bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/30" : "bg-white/5 text-gray-400 border-white/10"
+                    role === "OrganizerHead" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-gray-50 text-gray-500 border-gray-200"
                   }`}>
                     {ROLE_LABEL[role] || role}
                   </span>
@@ -284,20 +286,20 @@ export default function Topbar({ title }) {
                   {HAS_PROFILE.includes(role) && (
                     <button
                       onClick={() => { closeBoth(); navigate("/profile"); }}
-                      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-white/[0.05] transition-all duration-150"
+                      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm text-gray-500 hover:text-gray-800 hover:bg-gray-50 transition-all duration-150"
                     >
                       <User size={14} /> Hồ sơ cá nhân
                     </button>
                   )}
                   <button
                     onClick={() => { closeBoth(); navigate("/change-password"); }}
-                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-white/[0.05] transition-all duration-150"
+                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm text-gray-500 hover:text-gray-800 hover:bg-gray-50 transition-all duration-150"
                   >
                     <KeyRound size={14} /> Đổi mật khẩu
                   </button>
                   <button
                     onClick={() => { closeBoth(); logout(); navigate("/login"); }}
-                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm text-gray-400 hover:text-red-400 hover:bg-red-500/[0.07] transition-all duration-150"
+                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150"
                   >
                     <LogOut size={14} /> Đăng xuất
                   </button>

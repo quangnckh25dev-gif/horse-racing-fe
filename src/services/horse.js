@@ -12,4 +12,7 @@ export const horseService = {
   // ── Health records ────────────────────────────────────────
   getHealthRecords: (id) => api.get(`/horses/${id}/health`),
   addHealthRecord: (id, data) => api.post(`/horses/${id}/health`, data),
+
+  // ── Stats (GET /api/horses/{horseId}/stats) ───────────────
+  getStats: (id) => api.get(`/horses/${id}/stats`),
 };

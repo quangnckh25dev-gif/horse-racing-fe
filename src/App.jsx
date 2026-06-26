@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import PrivateRoute from "./routes/PrivateRoute";
 
 // Public pages
@@ -7,6 +7,9 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
+import PublicLayout from "./components/layout/PublicLayout";
+import AdminLayout from "./components/layout/AdminLayout";
+import PublicRacesPage from "./pages/public/PublicRacesPage";
 
 // Admin pages
 import DashboardPage from "./pages/admin/DashboardPage";
@@ -14,6 +17,8 @@ import UserApprovalPage from "./pages/admin/UserApprovalPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import TournamentManagementPage from "./pages/admin/TournamentManagementPage";
 import TournamentDetailPage from "./pages/admin/TournamentDetailPage";
+import AuditLogsPage from "./pages/admin/AuditLogsPage";
+import SystemConfigsPage from "./pages/admin/SystemConfigsPage";
 
 // Organizer pages
 import OrganizerRacesPage from "./pages/organizer/OrganizerRacesPage";
@@ -35,17 +40,19 @@ import RefereeRaceDetailPage from "./pages/referee/RefereeRaceDetailPage";
 // Spectator pages
 import RaceSchedulePage from "./pages/spectator/RaceSchedulePage";
 import PredictionPage from "./pages/spectator/PredictionPage";
+import WalletPage from "./pages/spectator/WalletPage";
+import BettingPage from "./pages/spectator/BettingPage";
 import LeaderboardPage from "./pages/spectator/LeaderboardPage";
 
 // Shared pages
 import ProfilePage from "./pages/ProfilePage";
 
 const UnauthorizedPage = () => (
-  <div className="flex h-screen w-full items-center justify-center bg-[#0A0E1A] text-white">
+  <div className="flex h-screen w-full items-center justify-center text-gray-900" style={{ background: "#FAFAF5" }}>
     <div className="text-center">
-      <h1 className="text-4xl font-bold text-red-400 mb-4">403 — Không có quyền truy cập</h1>
-      <p className="text-gray-400 mb-6 text-sm">Tài khoản của bạn không có quyền truy cập trang này.</p>
-      <a href="/login" className="text-[#D4AF37] hover:underline">Quay về đăng nhập</a>
+      <h1 className="text-4xl font-bold text-red-500 mb-4">403 — Không có quyền truy cập</h1>
+      <p className="text-gray-500 mb-6 text-sm">Tài khoản của bạn không có quyền truy cập trang này.</p>
+      <a href="/login" className="text-[#D4AF37] hover:underline font-semibold">Quay về đăng nhập</a>
     </div>
   </div>
 );
@@ -56,13 +63,22 @@ const guard = (roles, element) => (
 );
 const anyAuth = (element) => <PrivateRoute>{element}</PrivateRoute>;
 
+// Leaderboard: no auth required — shows sidebar layout when logged in, public nav when not
+function LeaderboardRoute() {
+  const { user } = useAuth();
+  return user
+    ? <AdminLayout title="Bảng xếp hạng"><LeaderboardPage /></AdminLayout>
+    : <PublicLayout><LeaderboardPage /></PublicLayout>;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* ── Public ──────────────────────────────────────── */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* ── Public (no auth required) ───────────────────── */}
+          <Route path="/" element={<Navigate to="/races" replace />} />
+          <Route path="/races" element={<PublicLayout><PublicRacesPage /></PublicLayout>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -77,6 +93,8 @@ export default function App() {
           <Route path="/admin/users"          element={guard(["Admin"], <UserManagementPage />)} />
           <Route path="/admin/tournaments"    element={guard(["Admin"], <TournamentManagementPage />)} />
           <Route path="/admin/tournaments/:id" element={guard(["Admin"], <TournamentDetailPage />)} />
+          <Route path="/admin/audit-logs"     element={guard(["Admin"], <AuditLogsPage />)} />
+          <Route path="/admin/configs"        element={guard(["Admin"], <SystemConfigsPage />)} />
 
           {/* ── Organizer — F5 ──────────────────────────────── */}
           <Route path="/organizer/races"
@@ -112,9 +130,13 @@ export default function App() {
             element={guard(["Spectator"], <RaceSchedulePage />)} />
           <Route path="/spectator/predictions"
             element={guard(["Spectator"], <PredictionPage />)} />
+          <Route path="/spectator/wallet"
+            element={guard(["Spectator"], <WalletPage />)} />
+          <Route path="/spectator/betting"
+            element={guard(["Spectator"], <BettingPage />)} />
 
-          {/* ── Leaderboard (any authenticated user) ──────── */}
-          <Route path="/leaderboard" element={anyAuth(<LeaderboardPage />)} />
+          {/* ── Leaderboard (public — no login required) ──── */}
+          <Route path="/leaderboard" element={<LeaderboardRoute />} />
 
           {/* ── Profile (any authenticated user) ──────────── */}
           <Route path="/profile" element={anyAuth(<ProfilePage />)} />

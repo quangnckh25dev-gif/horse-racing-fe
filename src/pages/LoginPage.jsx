@@ -68,7 +68,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-[#0A0E1A] font-sans text-white overflow-hidden relative">
+    <div className="flex min-h-screen w-full font-sans text-white overflow-hidden relative bg-mesh">
       {/* KHỐI CSS TẠO HIỆU ỨNG RƠI CHUẨN */}
       <style>{`
         @keyframes golden-fall {
@@ -100,11 +100,11 @@ export default function LoginPage() {
         ))}
       </div>
 
-      {/* CỘT TRÁI: Ảnh nền tĩnh kết hợp hiệu ứng bụi vàng */}
+      {/* CỘT TRÁI */}
       <div
         className="hidden lg:flex w-1/2 flex-col justify-end p-16 bg-cover bg-center bg-no-repeat relative z-10"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(10, 14, 26, 0.4), rgba(10, 14, 26, 1)), url('/bg-horse.png')`,
+          backgroundImage: `linear-gradient(to bottom, rgba(253,252,247,0.2), rgba(250,246,230,0.92)), url('/bg-horse.png')`,
         }}
       >
         <div
@@ -114,14 +114,14 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/30 flex items-center justify-center">
               <span className="text-sm">🏆</span>
             </div>
-            <span className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest font-data">HorseRacing Pro</span>
+            <span className="text-[#9A7B0A] text-xs font-bold uppercase tracking-widest font-data">HorseRacing Pro</span>
           </div>
-          <h1 className="font-display text-5xl font-black text-white mb-4 leading-tight tracking-tight drop-shadow-lg">
+          <h1 className="font-display text-5xl font-black text-gray-900 mb-4 leading-tight tracking-tight">
             Equestrian &amp; Racing
             <br />
             <span className="text-gold-gradient">Ecosystem</span>
           </h1>
-          <p className="text-gray-300 text-base leading-relaxed drop-shadow-md">
+          <p className="text-gray-600 text-base leading-relaxed">
             Nền tảng toàn diện kết nối Chủ ngựa, Nài ngựa chuyên nghiệp, Ban
             trọng tài và Cộng đồng đam mê thể thao tốc độ.
           </p>
@@ -134,16 +134,17 @@ export default function LoginPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div
-          className={`w-full max-w-md bg-[#111827]/90 backdrop-blur-xl rounded-2xl p-8 border border-gray-800/60 shadow-2xl relative z-10 transition-all duration-700 delay-150 transform ${isMounted ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
+          className={`w-full max-w-md rounded-2xl p-8 border relative z-10 transition-all duration-700 delay-150 transform ${isMounted ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
+          style={{ background: "#FFFFFF", borderColor: "rgba(212,175,55,0.22)", boxShadow: "0 16px 48px rgba(0,0,0,0.08), 0 0 32px rgba(212,175,55,0.07), inset 0 1px 0 rgba(255,255,255,0.9)" }}
         >
           <div className="flex flex-col items-center mb-8">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/30 mb-5 flex items-center justify-center gold-glow-ring">
               <span className="text-2xl select-none">🏇</span>
             </div>
-            <h2 className="font-display text-2xl font-black text-white tracking-tight">
+            <h2 className="font-display text-2xl font-black text-gray-900 tracking-tight">
               HorseRacing Pro
             </h2>
-            <p className="text-gray-400 text-sm mt-1.5 text-center">
+            <p className="text-gray-500 text-sm mt-1.5 text-center">
               Đăng nhập để quản lý hồ sơ và tham gia thi đấu
             </p>
           </div>
@@ -159,7 +160,7 @@ export default function LoginPage() {
             <div className="space-y-2 group">
               <Label
                 htmlFor="username"
-                className="text-gray-400 text-xs font-semibold uppercase tracking-widest group-focus-within:text-[#D4AF37] transition-colors"
+                className="text-gray-500 text-xs font-semibold uppercase tracking-widest group-focus-within:text-[#D4AF37] transition-colors"
               >
                 Tài khoản
               </Label>
@@ -172,7 +173,7 @@ export default function LoginPage() {
                   id="username"
                   type="text"
                   placeholder="Nhập tên tài khoản..."
-                  className="pl-11 h-12 bg-[#0A0E1A]/80 border-gray-700 text-white placeholder:text-gray-600 focus-visible:ring-1 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37] transition-all duration-300"
+                  className="pl-11 h-12 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37] transition-all duration-300"
                   value={formData.username}
                   onChange={handleChange}
                   required
@@ -184,7 +185,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-between">
                 <Label
                   htmlFor="password"
-                  className="text-gray-400 text-xs font-semibold uppercase tracking-widest group-focus-within:text-[#D4AF37] transition-colors"
+                  className="text-gray-500 text-xs font-semibold uppercase tracking-widest group-focus-within:text-[#D4AF37] transition-colors"
                 >
                   Mật khẩu
                 </Label>
@@ -204,7 +205,7 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="pl-11 pr-11 h-12 bg-[#0A0E1A]/80 border-gray-700 text-white placeholder:text-gray-600 focus-visible:ring-1 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37] transition-all duration-300 tracking-wider"
+                  className="pl-11 pr-11 h-12 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37] transition-all duration-300 tracking-wider"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -225,9 +226,9 @@ export default function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-600 bg-[#0A0E1A] text-[#D4AF37] focus:ring-[#D4AF37] focus:ring-offset-0 transition-all cursor-pointer"
+                  className="w-4 h-4 rounded border-gray-300 bg-white text-[#D4AF37] focus:ring-[#D4AF37] focus:ring-offset-0 transition-all cursor-pointer"
                 />
-                <span className="text-gray-400 text-sm font-medium group-hover:text-gray-300 transition-colors">
+                <span className="text-gray-500 text-sm font-medium group-hover:text-gray-700 transition-colors">
                   Duy trì đăng nhập
                 </span>
               </label>
@@ -236,7 +237,8 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-base transition-all duration-300 hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 relative overflow-hidden group"
+              className="w-full h-12 text-[#0A0E1A] font-bold text-base relative overflow-hidden btn-gold btn-gold-glow transition-all duration-300"
+              style={{ background: "linear-gradient(135deg, #D4AF37 0%, #c9a227 50%, #B8860B 100%)" }}
             >
               {isLoading ? (
                 <>
@@ -249,17 +251,23 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-800/50 text-center space-y-4">
-            <p className="text-sm text-gray-400">
+          <div className="mt-8 pt-6 border-t border-gray-100 text-center space-y-4">
+            <p className="text-sm text-gray-500">
               Chưa có tài khoản?{" "}
               <a
                 href="/register"
-                className="text-[#D4AF37] hover:text-[#f3cd57] font-semibold hover:underline underline-offset-2 transition-all"
+                className="text-[#D4AF37] hover:text-[#9A7B0A] font-semibold hover:underline underline-offset-2 transition-all"
               >
                 Đăng ký tham gia ngay
               </a>
             </p>
-            <div className="flex justify-center items-center gap-2 text-[10px] text-gray-500 uppercase tracking-widest font-medium">
+            <p className="text-sm text-gray-400">
+              Hoặc{" "}
+              <a href="/races" className="text-[#D4AF37] hover:text-[#9A7B0A] font-semibold hover:underline underline-offset-2 transition-all">
+                xem lịch đua không cần đăng nhập
+              </a>
+            </p>
+            <div className="flex justify-center items-center gap-2 text-[10px] text-gray-400 uppercase tracking-widest font-medium">
               <span>Admin</span> • <span>Owner</span> • <span>Jockey</span> •{" "}
               <span>Referee</span> • <span>Spectator</span>
             </div>

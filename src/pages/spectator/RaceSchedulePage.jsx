@@ -9,14 +9,21 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { spectatorService } from "../../services/spectator";
 
 const STATUS_CONFIG = {
-  Upcoming:   {
+  Scheduled:        {
     label: "Sắp diễn ra",  shortLabel: "SẮP",
     color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",
     borderCls: "border-l-blue-glow",
     cardBg: "from-blue-500/[0.06] to-transparent",
     icon: Clock, iconCls: "text-blue-400 bg-blue-500/10",
   },
-  InProgress: {
+  RegistrationOpen: {
+    label: "Mở đăng ký",   shortLabel: "REG",
+    color: "bg-purple-500/20 text-purple-300 border-purple-500/40",
+    borderCls: "border-l-purple-glow",
+    cardBg: "from-purple-500/[0.06] to-transparent",
+    icon: Calendar, iconCls: "text-purple-400 bg-purple-500/10",
+  },
+  Ongoing: {
     label: "Đang diễn ra", shortLabel: "LIVE",
     color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow",
     borderCls: "border-l-gold-glow",
@@ -40,10 +47,11 @@ const STATUS_CONFIG = {
 };
 
 const FILTER_TABS = [
-  { key: "all",        label: "Tất cả",       icon: null },
-  { key: "Upcoming",   label: "Sắp diễn ra",  icon: Clock },
-  { key: "InProgress", label: "Đang diễn ra", icon: Zap },
-  { key: "Finished",   label: "Đã kết thúc",  icon: CheckCircle2 },
+  { key: "all",              label: "Tất cả",       icon: null },
+  { key: "Scheduled",        label: "Sắp diễn ra",  icon: Clock },
+  { key: "RegistrationOpen", label: "Mở đăng ký",   icon: Calendar },
+  { key: "Ongoing",          label: "Đang diễn ra", icon: Zap },
+  { key: "Finished",         label: "Đã kết thúc",  icon: CheckCircle2 },
 ];
 
 export default function RaceSchedulePage() {
@@ -92,11 +100,12 @@ export default function RaceSchedulePage() {
   });
 
   const counts = {
-    all:        races.length,
-    Upcoming:   races.filter((r) => r.status === "Upcoming").length,
-    InProgress: races.filter((r) => r.status === "InProgress").length,
-    Finished:   races.filter((r) => r.status === "Finished").length,
-    Cancelled:  races.filter((r) => r.status === "Cancelled").length,
+    all:              races.length,
+    Scheduled:        races.filter((r) => r.status === "Scheduled").length,
+    RegistrationOpen: races.filter((r) => r.status === "RegistrationOpen").length,
+    Ongoing:          races.filter((r) => r.status === "Ongoing").length,
+    Finished:         races.filter((r) => r.status === "Finished").length,
+    Cancelled:        races.filter((r) => r.status === "Cancelled").length,
   };
 
   return (
@@ -118,12 +127,12 @@ export default function RaceSchedulePage() {
             <h1 className="text-2xl font-black text-white leading-tight">Lịch thi đấu</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <span className="stat-pill"><span className="text-white font-bold">{races.length}</span> vòng đua</span>
-              {counts.InProgress > 0 && (
+              {counts.Ongoing > 0 && (
                 <span className="stat-pill text-yellow-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {counts.InProgress} ĐANG LIVE
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {counts.Ongoing} ĐANG LIVE
                 </span>
               )}
-              {counts.Upcoming > 0 && <span className="stat-pill text-blue-400">{counts.Upcoming} sắp tới</span>}
+              {(counts.Scheduled + counts.RegistrationOpen) > 0 && <span className="stat-pill text-blue-400">{counts.Scheduled + counts.RegistrationOpen} sắp tới</span>}
             </div>
           </div>
           <button onClick={fetchRaces}
@@ -136,12 +145,13 @@ export default function RaceSchedulePage() {
       <div className="p-6 space-y-5">
 
         {/* ── Mini stat strip ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
-            { key: "Upcoming",   label: "Sắp diễn ra",  num: counts.Upcoming,   cls: "text-blue-400",    border: "border-blue-500/20",   bg: "bg-blue-500/5",   icon: Clock },
-            { key: "InProgress", label: "Đang diễn ra", num: counts.InProgress, cls: "text-[#D4AF37] neon-gold", border: "border-[#D4AF37]/25", bg: "bg-[#D4AF37]/5", icon: Zap },
-            { key: "Finished",   label: "Đã kết thúc",  num: counts.Finished,   cls: "text-green-400",   border: "border-green-500/20",  bg: "bg-green-500/5",  icon: CheckCircle2 },
-            { key: "Cancelled",  label: "Đã huỷ",       num: counts.Cancelled,  cls: "text-red-400",     border: "border-red-500/20",    bg: "bg-red-500/5",    icon: XCircle },
+            { key: "Scheduled",        label: "Sắp diễn ra",  num: counts.Scheduled,        cls: "text-blue-400",    border: "border-blue-500/20",    bg: "bg-blue-500/5",    icon: Clock },
+            { key: "RegistrationOpen", label: "Mở đăng ký",   num: counts.RegistrationOpen, cls: "text-purple-400",  border: "border-purple-500/20",  bg: "bg-purple-500/5",  icon: Calendar },
+            { key: "Ongoing",          label: "Đang diễn ra", num: counts.Ongoing,          cls: "text-[#D4AF37] neon-gold", border: "border-[#D4AF37]/25", bg: "bg-[#D4AF37]/5", icon: Zap },
+            { key: "Finished",         label: "Đã kết thúc",  num: counts.Finished,         cls: "text-green-400",   border: "border-green-500/20",   bg: "bg-green-500/5",   icon: CheckCircle2 },
+            { key: "Cancelled",        label: "Đã huỷ",       num: counts.Cancelled,        cls: "text-red-400",     border: "border-red-500/20",     bg: "bg-red-500/5",     icon: XCircle },
           ].map(({ key, label, num, cls, border, bg, icon: Icon }) => (
             <button key={key} onClick={() => setFilterStatus(filterStatus === key ? "all" : key)}
               className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left card-hover ${
@@ -209,7 +219,7 @@ export default function RaceSchedulePage() {
             {filtered.map((race, idx) => {
               const cfg = STATUS_CONFIG[race.status] || STATUS_CONFIG.Cancelled;
               const StatusIcon = cfg.icon;
-              const isLive = race.status === "InProgress";
+              const isLive = race.status === "Ongoing";
 
               return (
                 <div
@@ -255,13 +265,13 @@ export default function RaceSchedulePage() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 shrink-0">
-                      {race.status === "Upcoming" && (
+                      {(race.status === "Scheduled" || race.status === "RegistrationOpen") && (
                         <button onClick={() => navigate("/spectator/predictions")}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded-xl text-xs font-semibold transition-all">
                           <Star size={11} /> Dự đoán
                         </button>
                       )}
-                      {race.status === "InProgress" && (
+                      {race.status === "Ongoing" && (
                         <span className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 rounded-xl text-xs font-bold">
                           <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" /> ĐANG LIVE
                         </span>

@@ -119,7 +119,7 @@ function StatCard({ icon: Icon, label, value, sub, color, bg, onClick, loading, 
   return (
     <div
       onClick={onClick}
-      className={`group relative bg-white rounded-2xl p-5 flex items-center gap-4 overflow-hidden border shadow-sm hover:shadow-md transition-all duration-200 ${onClick ? "cursor-pointer" : ""} ${accent ? "border-l-4 border-l-amber-400" : "border-gray-200"}`}
+      className={`group relative bg-white rounded-2xl p-5 flex items-center gap-4 overflow-hidden border shadow-sm hover:shadow-md transition-all duration-200 h-full min-h-[112px] ${onClick ? "cursor-pointer" : ""} ${accent ? "border-l-4 border-l-amber-400" : "border-gray-200"}`}
     >
       {accent && <div className="absolute inset-0 bg-amber-50/30 pointer-events-none" />}
       <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
@@ -207,9 +207,9 @@ export default function DashboardPage() {
         )}
 
         {/* ── Top stats row ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
           {STAT_CARDS.map((card, i) => (
-            <div key={i} style={{ animationDelay: `${i * 60}ms` }} className="animate-fade-in-up">
+            <div key={i} style={{ animationDelay: `${i * 60}ms` }} className="animate-fade-in-up h-full">
               <StatCard {...card} loading={loading} />
             </div>
           ))}

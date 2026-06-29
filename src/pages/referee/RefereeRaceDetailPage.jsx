@@ -184,6 +184,7 @@ function ResultsTab({ raceId, entries }) {
 // ── Violations Tab ────────────────────────────────────────────────────────────
 function ViolationsTab({ raceId, entries }) {
   const [violations, setViolations] = useState([]);
+  const [violationOptions, setViolationOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -193,8 +194,12 @@ function ViolationsTab({ raceId, entries }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await raceResultService.getViolations(raceId);
-      setViolations(res.data || []);
+      const [vRes, optRes] = await Promise.all([
+        raceResultService.getViolations(raceId),
+        raceResultService.getViolationOptions(),
+      ]);
+      setViolations(vRes.data || []);
+      setViolationOptions(optRes.data || []);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -203,6 +208,15 @@ function ViolationsTab({ raceId, entries }) {
   }, [raceId]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleViolationTypeChange = (violationType) => {
+    const opt = violationOptions.find((o) => (o.violationType || o.type || o.name) === violationType);
+    setForm((p) => ({
+      ...p,
+      violationType,
+      penalty: opt ? (opt.defaultPenalty || opt.penalty || "") : "",
+    }));
+  };
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -278,8 +292,22 @@ function ViolationsTab({ raceId, entries }) {
             </div>
             <div>
               <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Loại vi phạm *</label>
-              <input value={form.violationType} onChange={(e) => setForm((p) => ({ ...p, violationType: e.target.value }))} required
-                placeholder="VD: Cản đường, Xuất phát sớm..." className="w-full bg-[#0A0E1A] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]" />
+              {violationOptions.length > 0 ? (
+                <select value={form.violationType}
+                  onChange={(e) => handleViolationTypeChange(e.target.value)}
+                  required
+                  className="w-full bg-[#0A0E1A] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]">
+                  <option value="">-- Chọn loại vi phạm --</option>
+                  {violationOptions.map((o) => {
+                    const label = o.violationType || o.type || o.name || "";
+                    return <option key={label} value={label}>{label}</option>;
+                  })}
+                </select>
+              ) : (
+                <input value={form.violationType} onChange={(e) => setForm((p) => ({ ...p, violationType: e.target.value }))} required
+                  placeholder="VD: Cản đường, Xuất phát sớm..."
+                  className="w-full bg-[#0A0E1A] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]" />
+              )}
             </div>
             <div>
               <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Mô tả chi tiết</label>
@@ -287,9 +315,13 @@ function ViolationsTab({ raceId, entries }) {
                 className="w-full bg-[#0A0E1A] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37] resize-none" />
             </div>
             <div>
-              <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Hình phạt</label>
-              <input value={form.penalty} onChange={(e) => setForm((p) => ({ ...p, penalty: e.target.value }))}
-                placeholder="VD: Loại khỏi cuộc đua, phạt 30 giây..." className="w-full bg-[#0A0E1A] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]" />
+              <label className="block text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">
+                Hình phạt {form.violationType && <span className="text-[#D4AF37] normal-case">(tự động từ loại vi phạm)</span>}
+              </label>
+              <input value={form.penalty}
+                onChange={(e) => setForm((p) => ({ ...p, penalty: e.target.value }))}
+                placeholder="Tự điền khi chọn loại vi phạm..."
+                className={`w-full bg-[#0A0E1A] border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#D4AF37] ${form.penalty ? "border-amber-600/50 text-amber-300" : "border-gray-700 text-white"}`} />
             </div>
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-white text-sm">Huỷ</button>

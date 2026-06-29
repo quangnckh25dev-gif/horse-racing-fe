@@ -54,6 +54,7 @@ const ROLE_AVATAR_GRADIENT = {
 export default function ProfilePage() {
   const { user, role } = useAuth();
   const [profile, setProfile] = useState({});
+  const [profileExists, setProfileExists] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -70,9 +71,16 @@ export default function ProfilePage() {
       if (role === "HorseOwner")  res = await profileService.getOwnerProfile(user.userId);
       else if (role === "Jockey") res = await profileService.getJockeyProfile(user.userId);
       else if (role === "Referee")res = await profileService.getRefereeProfile(user.userId);
-      if (res) setProfile(res.data || {});
+      if (res?.data && Object.keys(res.data).length > 0) {
+        setProfile(res.data);
+        setProfileExists(true);
+      } else {
+        setProfile({});
+        setProfileExists(false);
+      }
     } catch {
       setProfile({});
+      setProfileExists(false);
     } finally {
       setLoading(false);
     }
@@ -93,6 +101,7 @@ export default function ProfilePage() {
       if (role === "HorseOwner")  await profileService.updateOwnerProfile(user.userId, profile);
       else if (role === "Jockey") await profileService.updateJockeyProfile(user.userId, profile);
       else if (role === "Referee")await profileService.updateRefereeProfile(user.userId, profile);
+      setProfileExists(true);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -166,6 +175,13 @@ export default function ProfilePage() {
                 ))}
               </div>
             </div>
+
+            {!profileExists && (
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-sm">
+                <AlertCircle size={14} className="shrink-0 text-blue-500 mt-0.5" />
+                <span>Hồ sơ chưa có dữ liệu — điền thông tin và nhấn <strong>Lưu hồ sơ</strong> để cập nhật.</span>
+              </div>
+            )}
 
             {error && (
               <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">

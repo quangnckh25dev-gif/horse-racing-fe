@@ -488,8 +488,8 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
                 return (
                   <div key={pos} className={`bg-gradient-to-br ${bg} border ${border} rounded-xl p-4 text-center`}>
                     <div className="text-3xl mb-2">{icon}</div>
-                    <p className={`text-base font-black ${text}`}>{r.horseName || `Ngựa #${r.horseId}`}</p>
-                    <p className="text-gray-500 text-xs mt-1">🏇 {r.jockeyName || "—"}</p>
+                    <p className={`text-base font-black ${text}`}>{r.horseName || (r.horseId ? `Ngựa #${r.horseId}` : "Chưa có")}</p>
+                    <p className="text-gray-500 text-xs mt-1">🏇 {r.jockeyName || "Chưa có jockey"}</p>
                     {r.finishTime && <p className="text-gray-400 text-xs mt-1">⏱ {r.finishTime}</p>}
                   </div>
                 );
@@ -512,9 +512,9 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
                   {r.position ?? "—"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-sm">{r.horseName || `Ngựa #${r.horseId}`}</p>
+                  <p className="text-white font-semibold text-sm">{r.horseName || (r.horseId ? `Ngựa #${r.horseId}` : "Chưa có")}</p>
                   <div className="flex items-center gap-3 flex-wrap mt-0.5">
-                    <span className="text-gray-500 text-xs">🏇 {r.jockeyName || r.jockeyId || "—"}</span>
+                    <span className="text-gray-500 text-xs">🏇 {r.jockeyName || "Chưa có jockey"}</span>
                     {r.finishTime && <span className="stat-pill">⏱ {r.finishTime}</span>}
                   </div>
                 </div>

@@ -124,7 +124,7 @@ export default function SystemConfigsPage() {
                         <input
                           value={editVal}
                           onChange={(e) => setEditVal(e.target.value)}
-                          className="h-8 w-36 rounded-lg bg-[#0A0E1A]/80 border border-[#D4AF37]/40 text-white text-sm px-2.5 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
+                          className="h-8 w-36 rounded-lg bg-white border border-gray-200 text-gray-900 text-sm px-2.5 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === "Enter") handleSave(cfg);
@@ -136,7 +136,7 @@ export default function SystemConfigsPage() {
                           {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
                         </button>
                         <button onClick={cancelEdit}
-                          className="h-8 w-8 rounded-lg bg-white/[0.04] border border-gray-700 hover:border-gray-500 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                          className="h-8 w-8 rounded-lg bg-white border border-gray-200 hover:border-gray-300 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
                           <X size={12} />
                         </button>
                       </div>

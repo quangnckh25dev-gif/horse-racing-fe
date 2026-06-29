@@ -21,6 +21,7 @@ const request = async (endpoint, options = {}) => {
   if (!response.ok) {
     const error = new Error(json.message || "Có lỗi xảy ra");
     error.status = response.status;
+    error.data = json;
     throw error;
   }
 

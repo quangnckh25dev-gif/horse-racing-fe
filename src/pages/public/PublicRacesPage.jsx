@@ -2,10 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   Calendar, Clock, Zap, CheckCircle2, XCircle,
-  Trophy, Users, TrendingUp, Star, LogIn, ChevronRight,
+  Trophy, Users, TrendingUp, Star, LogIn, ChevronRight, LayoutDashboard,
 } from "lucide-react";
 import { spectatorService } from "../../services/spectator";
 import { useLenis } from "../../hooks/useLenis";
+import { useAuth } from "../../context/AuthContext";
 
 /* ── Scroll reveal helper component ───────────────────────── */
 function Reveal({ children, className = "", delay = "" }) {
@@ -176,6 +177,7 @@ const FILTERS = [
 /* ── Page ───────────────────────────────────────────────────── */
 export default function PublicRacesPage() {
   useLenis();
+  const { isAuthenticated } = useAuth();
 
   const [races, setRaces] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -247,12 +249,20 @@ export default function PublicRacesPage() {
           </p>
 
           <div className="flex items-center gap-3 animate-fade-in-up stagger-3">
-            <Link to="/register" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-gold font-bold text-sm">
-              Tham gia ngay <ChevronRight size={15} />
-            </Link>
-            <Link to="/login" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white hover:border-amber-200 hover:bg-amber-50 text-sm font-semibold text-gray-700 transition-all">
-              Đăng nhập
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-gold font-bold text-sm">
+                <LayoutDashboard size={15} /> Vào Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/register" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-gold font-bold text-sm">
+                  Tham gia ngay <ChevronRight size={15} />
+                </Link>
+                <Link to="/login" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white hover:border-amber-200 hover:bg-amber-50 text-sm font-semibold text-gray-700 transition-all">
+                  Đăng nhập
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -321,8 +331,8 @@ export default function PublicRacesPage() {
           </div>
         )}
 
-        {/* Login CTA */}
-        {!loading && races.length > 0 && (
+        {/* Login / Dashboard CTA */}
+        {!loading && races.length > 0 && !isAuthenticated && (
           <Reveal className="mt-14 text-center">
             <div
               className="inline-block px-10 py-7 rounded-2xl bg-white border border-amber-100"

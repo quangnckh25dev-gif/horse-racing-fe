@@ -92,7 +92,7 @@ export default function OwnerInvitationsPage() {
     setModalLoading(true);
     try {
       const [entryRes, jockeyRes] = await Promise.all([
-        entryService.getMyEntries(),
+        entryService.getMyApprovedEntries(),
         entryService.getJockeys(),
       ]);
       setEntries(entryRes.data || []);
@@ -306,7 +306,7 @@ export default function OwnerInvitationsPage() {
               {/* Entry select */}
               <div>
                 <label className="block text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">
-                  Đăng ký thi đấu (entry của bạn)
+                  Đăng ký thi đấu (đã được BTC duyệt)
                 </label>
                 <div className="relative">
                   <select value={selectedEntry} onChange={(e) => setSelectedEntry(e.target.value)} className={selectCls}>
@@ -320,7 +320,7 @@ export default function OwnerInvitationsPage() {
                   <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
                 {entries.length === 0 && (
-                  <p className="text-gray-400 text-xs mt-1">Không có entry nào. Hãy đăng ký thi đấu trước.</p>
+                  <p className="text-gray-400 text-xs mt-1">Chưa có đăng ký nào được BTC duyệt. Hãy đăng ký và chờ ban tổ chức xét duyệt.</p>
                 )}
               </div>
 

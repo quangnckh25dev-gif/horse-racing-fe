@@ -15,7 +15,6 @@ const MENU_BY_ROLE = {
     { label: "Duyệt tài khoản",     icon: UserCheck,     path: "/admin/users/pending" },
     { label: "Quản lý người dùng",  icon: Users,         path: "/admin/users" },
     { label: "Quản lý giải đấu",    icon: Trophy,        path: "/admin/tournaments" },
-    { label: "Audit Logs",          icon: FileText,      path: "/admin/audit-logs" },
     { label: "Cấu hình hệ thống",   icon: Settings,      path: "/admin/configs" },
   ],
   OrganizerHead: [

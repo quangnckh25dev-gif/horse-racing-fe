@@ -2,21 +2,32 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Plus, Edit2, Trash2, AlertCircle, Loader2,
   RefreshCw, X, Heart, Activity, PawPrint,
-  Weight, Ruler, Dna, Mars, Venus,
+  Dna, Mars, Venus,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { horseService } from "../../services/horse";
 
 const STATUS_CONFIG = {
-  Active:   { label: "Hoạt động",  color: "bg-green-50 text-green-700 border-green-200",  strip: "from-green-400/20 to-green-400/5", dot: "bg-green-500" },
-  Injured:  { label: "Bị thương",  color: "bg-red-50 text-red-600 border-red-200",        strip: "from-red-400/20 to-red-400/5",    dot: "bg-red-500" },
-  Retired:  { label: "Đã nghỉ",    color: "bg-gray-50 text-gray-500 border-gray-200",     strip: "from-gray-400/15 to-gray-400/5",  dot: "bg-gray-400" },
-  Training: { label: "Đang luyện", color: "bg-blue-50 text-blue-600 border-blue-200",     strip: "from-blue-400/20 to-blue-400/5",  dot: "bg-blue-500" },
+  Active:   { label: "Hoạt động",       color: "bg-green-50 text-green-700 border-green-200", strip: "from-green-400/20 to-green-400/5", dot: "bg-green-500" },
+  Injured:  { label: "Bị thương",       color: "bg-red-50 text-red-600 border-red-200",       strip: "from-red-400/20 to-red-400/5",    dot: "bg-red-500" },
+  Inactive: { label: "Không hoạt động", color: "bg-gray-50 text-gray-500 border-gray-200",    strip: "from-gray-400/15 to-gray-400/5",  dot: "bg-gray-400" },
 };
 
+const HORSE_COLORS = [
+  "Nâu", "Đen", "Trắng", "Xám", "Đỏ nâu (Bay)", "Vàng (Palomino)",
+  "Hoa (Pinto)", "Nâu nhạt (Chestnut)", "Xám đốm (Dapple Grey)",
+  "Đen tuyền", "Nâu vàng (Buckskin)", "Kem (Cremello)",
+];
+
+const HORSE_BREEDS = [
+  "Thoroughbred", "Arabian", "Quarter Horse", "Warmblood", "Appaloosa",
+  "Morgan", "Friesian", "Mustang", "Andalusian", "Hanoverian",
+  "Paint", "Standardbred", "Irish Draught", "Clydesdale", "Ngựa Việt Nam",
+];
+
 const EMPTY_FORM = {
-  horseName: "", breed: "", age: "", gender: "", color: "",
-  weight: "", height: "", description: "",
+  horseName: "", breed: "", birthYear: "", gender: "", color: "",
+  weightKg: "", description: "", status: "Active",
 };
 
 function Modal({ title, accentColor = "#2563EB", onClose, children }) {
@@ -47,7 +58,10 @@ function FormField({ label, children }) {
 
 const inputCls = "w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all placeholder:text-gray-400";
 
+const currentYear = new Date().getFullYear();
+
 function HorseForm({ form, onChange, onSubmit, onCancel, loading, submitLabel }) {
+  const calcAge = form.birthYear ? currentYear - Number(form.birthYear) : null;
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -57,10 +71,14 @@ function HorseForm({ form, onChange, onSubmit, onCancel, loading, submitLabel })
           </FormField>
         </div>
         <FormField label="Giống ngựa">
-          <input name="breed" value={form.breed} onChange={onChange} className={inputCls} placeholder="VD: Thoroughbred" />
+          <select name="breed" value={form.breed} onChange={onChange} className={inputCls}>
+            <option value="">-- Chọn giống --</option>
+            {HORSE_BREEDS.map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
         </FormField>
-        <FormField label="Tuổi">
-          <input name="age" type="number" min="0" max="30" value={form.age} onChange={onChange} className={inputCls} placeholder="5" />
+        <FormField label={`Năm sinh${calcAge !== null ? ` (${calcAge} tuổi)` : ""}`}>
+          <input name="birthYear" type="number" min="1990" max={currentYear} value={form.birthYear} onChange={onChange}
+            className={inputCls} placeholder={String(currentYear - 5)} />
         </FormField>
         <FormField label="Giới tính">
           <select name="gender" value={form.gender} onChange={onChange} className={inputCls}>
@@ -70,14 +88,16 @@ function HorseForm({ form, onChange, onSubmit, onCancel, loading, submitLabel })
           </select>
         </FormField>
         <FormField label="Màu sắc">
-          <input name="color" value={form.color} onChange={onChange} className={inputCls} placeholder="VD: Hạt dẻ" />
+          <select name="color" value={form.color} onChange={onChange} className={inputCls}>
+            <option value="">-- Chọn màu --</option>
+            {HORSE_COLORS.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
         </FormField>
-        <FormField label="Cân nặng (kg)">
-          <input name="weight" type="number" value={form.weight} onChange={onChange} className={inputCls} placeholder="450" />
-        </FormField>
-        <FormField label="Chiều cao (cm)">
-          <input name="height" type="number" value={form.height} onChange={onChange} className={inputCls} placeholder="165" />
-        </FormField>
+        <div className="col-span-2">
+          <FormField label="Cân nặng (kg)">
+            <input name="weightKg" type="number" min="100" max="1000" value={form.weightKg} onChange={onChange} className={inputCls} placeholder="450" />
+          </FormField>
+        </div>
         <div className="col-span-2">
           <FormField label="Mô tả">
             <textarea name="description" value={form.description} onChange={onChange} rows={2}
@@ -291,12 +311,12 @@ export default function HorsesPage() {
     setFormData({
       horseName: horse.horseName || "",
       breed: horse.breed || "",
-      age: horse.age || "",
+      birthYear: horse.birthYear || "",
       gender: horse.gender || "",
       color: horse.color || "",
-      weight: horse.weight || "",
-      height: horse.height || "",
+      weightKg: horse.weightKg || horse.weight || "",
       description: horse.description || "",
+      status: horse.status || "Active",
     });
     setShowEdit(horse);
     setFormError("");
@@ -304,6 +324,7 @@ export default function HorsesPage() {
 
   const activeCount   = horses.filter((h) => h.status === "Active").length;
   const injuredCount  = horses.filter((h) => h.status === "Injured").length;
+  const inactiveCount = horses.filter((h) => h.status === "Inactive").length;
 
   return (
     <AdminLayout title="Ngựa của tôi">
@@ -328,6 +349,7 @@ export default function HorsesPage() {
               <span className="stat-pill"><span className="text-gray-900 font-bold">{horses.length}</span> tổng cộng</span>
               {activeCount > 0 && <span className="stat-pill text-green-400"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block mr-1" />{activeCount} hoạt động</span>}
               {injuredCount > 0 && <span className="stat-pill text-red-400"><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block mr-1" />{injuredCount} bị thương</span>}
+              {inactiveCount > 0 && <span className="stat-pill text-gray-400"><span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block mr-1" />{inactiveCount} không hoạt động</span>}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -405,11 +427,10 @@ export default function HorsesPage() {
                     </div>
 
                     {/* Stats grid */}
-                    <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="grid grid-cols-2 gap-2 mb-4">
                       {[
-                        { label: "Tuổi",    value: horse.age    ? `${horse.age}t`        : "—", icon: "🎂" },
-                        { label: "Nặng",    value: horse.weight ? `${horse.weight}kg`     : "—", icon: "⚖️" },
-                        { label: "Cao",     value: horse.height ? `${horse.height}cm`     : "—", icon: "📏" },
+                        { label: "Tuổi",   value: horse.birthYear ? `${currentYear - horse.birthYear}t` : (horse.age ? `${horse.age}t` : "—"), icon: "🎂" },
+                        { label: "Cân nặng", value: (horse.weightKg || horse.weight) ? `${horse.weightKg || horse.weight}kg` : "—", icon: "⚖️" },
                       ].map(({ label, value, icon }) => (
                         <div key={label} className="bg-gray-50 rounded-xl p-2.5 text-center border border-gray-100">
                           <span className="text-sm block mb-0.5">{icon}</span>
@@ -442,8 +463,7 @@ export default function HorsesPage() {
                       >
                         <option value="Active">🟢 Hoạt động</option>
                         <option value="Injured">🔴 Bị thương</option>
-                        <option value="Retired">⚫ Đã nghỉ</option>
-                        <option value="Training">🟡 Đang luyện tập</option>
+                        <option value="Inactive">⚫ Không hoạt động</option>
                       </select>
                       {statusLoading === horse.horseId && <Loader2 size={12} className="animate-spin text-[#D4AF37] shrink-0" />}
                     </div>

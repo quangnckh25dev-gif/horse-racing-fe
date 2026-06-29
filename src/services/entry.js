@@ -12,6 +12,9 @@ export const entryService = {
   cancelEntry: (raceId, entryId) =>
     api.delete(`/races/${raceId}/entries/${entryId}`),
 
+  // GET /api/entries/mine/approved — only approved entries (for jockey invitation dropdown)
+  getMyApprovedEntries: () => api.get("/entries/mine/approved"),
+
   // GET /api/jockeys — list all jockeys for owner invitation dropdown
   getJockeys: () => api.get("/jockeys"),
 };

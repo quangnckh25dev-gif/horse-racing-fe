@@ -1,11 +1,21 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   User, Lock, Eye, EyeOff, Loader2, AlertCircle,
-  Mail, Phone, Type, CheckCircle2,
+  Mail, Phone, Type, CheckCircle2, ShieldCheck,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+
+const ROLE_OPTIONS = [
+  { value: "", label: "-- Chọn vai trò của bạn --" },
+  { value: "HorseOwner",      label: "Chủ ngựa" },
+  { value: "Jockey",          label: "Nài ngựa (Jockey)" },
+  { value: "Referee",         label: "Trọng tài" },
+  { value: "Spectator",       label: "Khán giả" },
+  { value: "OrganizerHead",   label: "Trưởng ban tổ chức" },
+  { value: "OrganizerMember", label: "Thành viên ban tổ chức" },
+];
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -14,6 +24,7 @@ export default function RegisterPage() {
     fullName: "",
     email: "",
     phone: "",
+    roleName: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +53,7 @@ export default function RegisterPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (!formData.roleName) { setErrorMsg("Vui lòng chọn vai trò của bạn."); return; }
     setIsLoading(true);
     setErrorMsg(""); setSuccessMsg("");
     try {
@@ -53,7 +65,12 @@ export default function RegisterPage() {
       const result = await response.json();
       if (response.ok) {
         setSuccessMsg("Đăng ký thành công! Đang chuyển hướng...");
-        setTimeout(() => { window.location.href = "/login"; }, 1500);
+        if (result.data?.accessToken) {
+          localStorage.setItem("accessToken", result.data.accessToken);
+          setTimeout(() => { window.location.href = "/profile"; }, 1200);
+        } else {
+          setTimeout(() => { window.location.href = "/login"; }, 1500);
+        }
       } else {
         setErrorMsg(result.message || "Có lỗi xảy ra, vui lòng thử lại.");
       }
@@ -224,6 +241,27 @@ export default function RegisterPage() {
                 <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#D4AF37] transition-colors" size={16} />
                 <Input id="phone" type="tel" placeholder="0901234567" className={inputCls}
                   value={formData.phone} onChange={handleChange} />
+              </div>
+            </div>
+
+            {/* Role */}
+            <div className="space-y-1.5 group">
+              <Label htmlFor="roleName" className="text-gray-500 text-xs font-semibold uppercase tracking-widest group-focus-within:text-[#D4AF37] transition-colors">
+                Vai trò <span className="text-red-400">*</span>
+              </Label>
+              <div className="relative">
+                <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#D4AF37] transition-colors z-10" size={16} />
+                <select
+                  id="roleName"
+                  value={formData.roleName}
+                  onChange={(e) => { setFormData({ ...formData, roleName: e.target.value }); if (errorMsg) setErrorMsg(""); }}
+                  required
+                  className="w-full pl-11 h-11 bg-white border border-gray-200 text-gray-900 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] transition-all duration-300 appearance-none cursor-pointer"
+                >
+                  {ROLE_OPTIONS.map((r) => (
+                    <option key={r.value} value={r.value} disabled={r.value === ""}>{r.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 

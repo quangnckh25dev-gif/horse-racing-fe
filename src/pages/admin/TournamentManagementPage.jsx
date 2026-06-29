@@ -11,11 +11,21 @@ import { Label } from "../../components/ui/label";
 import { tournamentService } from "../../services/tournament";
 
 const STATUS_CONFIG = {
-  Draft:     { label: "Nháp",         cls: "bg-gray-800/60 text-gray-300 border-gray-700/50",           strip: "from-gray-500/30 to-gray-500/5",  dot: "bg-gray-400" },
-  Open:      { label: "Mở đăng ký",   cls: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",   strip: "from-blue-500/30 to-blue-500/5",  dot: "bg-blue-400" },
-  Ongoing:   { label: "Đang diễn ra", cls: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", strip: "from-[#D4AF37]/30 to-[#D4AF37]/5", dot: "bg-[#D4AF37]" },
-  Finished:  { label: "Kết thúc",     cls: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",  strip: "from-green-500/30 to-green-500/5", dot: "bg-green-400" },
-  Cancelled: { label: "Đã hủy",       cls: "bg-red-500/20 text-red-300 border-red-500/40",                         strip: "from-red-500/20 to-red-500/5",     dot: "bg-red-400" },
+  Draft:     { label: "Nháp",         cls: "bg-gray-50 text-gray-600 border-gray-200",           strip: "from-gray-400/20 to-gray-400/5",    dot: "bg-gray-400" },
+  Open:      { label: "Mở đăng ký",   cls: "bg-blue-50 text-blue-700 border-blue-200",           strip: "from-blue-400/20 to-blue-400/5",    dot: "bg-blue-500" },
+  Ongoing:   { label: "Đang diễn ra", cls: "bg-amber-50 text-amber-700 border-amber-200",        strip: "from-amber-400/20 to-amber-400/5",  dot: "bg-amber-500" },
+  Finished:  { label: "Kết thúc",     cls: "bg-green-50 text-green-700 border-green-200",        strip: "from-green-400/20 to-green-400/5",  dot: "bg-green-500" },
+  Cancelled: { label: "Đã hủy",       cls: "bg-red-50 text-red-600 border-red-200",              strip: "from-red-400/20 to-red-400/5",      dot: "bg-red-500" },
+};
+
+const STATUS_TRANSITIONS = {
+  Draft:    [{ to: "Open",      label: "Mở đăng ký",   cls: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100" }],
+  Open:     [{ to: "Ongoing",   label: "Bắt đầu",       cls: "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100" },
+             { to: "Cancelled", label: "Hủy giải",      cls: "bg-red-50 border-red-200 text-red-600 hover:bg-red-100" }],
+  Ongoing:  [{ to: "Finished",  label: "Kết thúc giải", cls: "bg-green-50 border-green-200 text-green-700 hover:bg-green-100" },
+             { to: "Cancelled", label: "Hủy giải",      cls: "bg-red-50 border-red-200 text-red-600 hover:bg-red-100" }],
+  Finished:  [],
+  Cancelled: [],
 };
 
 const EMPTY_FORM = {
@@ -35,6 +45,7 @@ export default function TournamentManagementPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState("");
+  const [statusLoading, setStatusLoading] = useState("");
 
   const fetchAll = async () => {
     setIsLoading(true); setErrorMsg("");
@@ -103,6 +114,20 @@ export default function TournamentManagementPage() {
     }
   };
 
+  const handleChangeStatus = async (tournamentId, newStatus) => {
+    setStatusLoading(tournamentId + "_" + newStatus);
+    try {
+      await tournamentService.changeStatus(tournamentId, newStatus);
+      setTournaments((prev) =>
+        prev.map((t) => t.tournamentId === tournamentId ? { ...t, status: newStatus } : t)
+      );
+    } catch (err) {
+      setErrorMsg(err.message || "Thay đổi trạng thái thất bại.");
+    } finally {
+      setStatusLoading("");
+    }
+  };
+
   return (
     <AdminLayout title="Quản lý giải đấu">
 
@@ -119,9 +144,9 @@ export default function TournamentManagementPage() {
               </div>
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Admin</span>
             </div>
-            <h1 className="text-2xl font-black text-white leading-tight">Quản lý giải đấu</h1>
+            <h1 className="text-2xl font-black text-gray-900 leading-tight">Quản lý giải đấu</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <span className="stat-pill"><span className="text-white font-bold">{tournaments.length}</span> giải đấu</span>
+              <span className="stat-pill"><span className="text-gray-900 font-bold">{tournaments.length}</span> giải đấu</span>
               {tournaments.filter(t => t.status === "Ongoing").length > 0 && (
                 <span className="stat-pill text-yellow-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" />
@@ -145,23 +170,23 @@ export default function TournamentManagementPage() {
 
       <div className="p-6">
         {errorMsg && (
-          <div className="mb-5 flex items-center gap-2 p-4 rounded-xl bg-red-950/30 border border-red-900/50 text-red-300 text-sm">
-            <AlertCircle size={14} className="shrink-0 text-red-400" /> {errorMsg}
+          <div className="mb-5 flex items-center gap-2 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+            <AlertCircle size={14} className="shrink-0 text-red-500" /> {errorMsg}
           </div>
         )}
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-52 shimmer rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />
+              <div key={i} className="h-52 bg-gray-100 animate-pulse rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />
             ))}
           </div>
         ) : tournaments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-20 h-20 rounded-2xl bg-[#D4AF37]/5 border border-[#D4AF37]/10 flex items-center justify-center mb-4 animate-float">
-              <Trophy size={32} className="text-[#D4AF37]/30" />
+            <div className="w-20 h-20 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mb-4">
+              <Trophy size={32} className="text-amber-300" />
             </div>
-            <p className="text-white font-semibold mb-1">Chưa có giải đấu nào</p>
+            <p className="text-gray-800 font-semibold mb-1">Chưa có giải đấu nào</p>
             <p className="text-gray-500 text-sm mb-4">Tạo giải đấu đầu tiên để bắt đầu mùa giải</p>
             <Button onClick={openCreate} className="bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold btn-gold-glow">
               <Plus size={15} className="mr-2" /> Tạo giải đấu
@@ -171,10 +196,11 @@ export default function TournamentManagementPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {tournaments.map((t, idx) => {
               const s = STATUS_CONFIG[t.status] || STATUS_CONFIG.Draft;
+              const transitions = STATUS_TRANSITIONS[t.status] || [];
               return (
                 <div
                   key={t.tournamentId}
-                  className="group relative bg-[#0d1117] border border-gray-800/60 rounded-xl overflow-hidden card-hover flex flex-col animate-fade-in-up"
+                  className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md flex flex-col animate-fade-in-up transition-shadow"
                   style={{ animationDelay: `${idx * 60}ms` }}
                 >
                   {/* Top status strip */}
@@ -183,46 +209,66 @@ export default function TournamentManagementPage() {
                   <div className="p-5 flex flex-col flex-1">
                     <div className="flex items-start justify-between mb-3">
                       <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${s.cls}`}>
-                        {t.status === "Ongoing" && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" />}
+                        {t.status === "Ongoing" && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
                         {s.label}
                       </span>
                       <div className="flex gap-1">
                         <button onClick={() => openEdit(t)}
-                          className="p-1.5 text-gray-600 hover:text-[#D4AF37] transition-colors rounded-lg hover:bg-[#D4AF37]/5">
+                          className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50">
                           <Pencil size={13} />
                         </button>
                         <button onClick={() => handleDelete(t.tournamentId)}
-                          className="p-1.5 text-gray-600 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/5">
+                          className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50">
                           <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
 
-                    <h3 className="text-white font-bold text-base mb-3 leading-tight flex-1">
+                    <h3 className="text-gray-900 font-bold text-base mb-3 leading-tight flex-1">
                       {t.tournamentName}
                     </h3>
 
-                    <div className="space-y-2 mb-4">
+                    <div className="space-y-1.5 mb-4">
                       {t.location && (
                         <div className="flex items-center gap-2 text-gray-500 text-xs">
-                          <MapPin size={11} className="shrink-0 text-gray-600" />
+                          <MapPin size={11} className="shrink-0 text-gray-400" />
                           <span className="truncate">{t.location}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2 text-gray-500 text-xs">
-                        <Calendar size={11} className="shrink-0 text-gray-600" />
+                        <Calendar size={11} className="shrink-0 text-gray-400" />
                         <span>{t.startDate?.slice(0, 10)} → {t.endDate?.slice(0, 10)}</span>
                       </div>
                       {t.prizeFund > 0 && (
-                        <div className="flex items-center gap-2 text-[#D4AF37] text-xs font-bold neon-gold">
+                        <div className="flex items-center gap-2 text-amber-600 text-xs font-bold">
                           <Trophy size={11} className="shrink-0" />
                           {formatVND(t.prizeFund)}
                         </div>
                       )}
                     </div>
 
+                    {/* Status transition buttons */}
+                    {transitions.length > 0 && (
+                      <div className="flex gap-2 mb-3 flex-wrap">
+                        {transitions.map((tr) => {
+                          const busy = statusLoading === t.tournamentId + "_" + tr.to;
+                          return (
+                            <button
+                              key={tr.to}
+                              onClick={() => handleChangeStatus(t.tournamentId, tr.to)}
+                              disabled={!!statusLoading}
+                              className={`flex-1 min-w-0 flex items-center justify-center gap-1 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-50 ${tr.cls}`}
+                            >
+                              {busy ? <Loader2 size={11} className="animate-spin" /> : null}
+                              {tr.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     <button onClick={() => navigate(`/admin/tournaments/${t.tournamentId}`)}
-                      className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-gray-700/60 text-gray-400 hover:text-[#D4AF37] hover:border-[#D4AF37]/30 text-xs transition-all mt-auto group-hover:border-[#D4AF37]/20">
+                      className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 text-xs transition-all mt-auto">
                       Quản lý chi tiết <ChevronRight size={12} />
                     </button>
                   </div>
@@ -235,16 +281,16 @@ export default function TournamentManagementPage() {
 
       {/* ── Modal Create / Edit ── */}
       {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
-          <div className="bg-[#0d1117] border border-gray-800/60 rounded-2xl w-full max-w-lg shadow-2xl animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg shadow-2xl animate-scale-in">
             <div className="h-0.5 w-full rounded-t-2xl bg-gradient-to-r from-[#D4AF37] to-transparent" />
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/60">
-              <h2 className="text-lg font-bold text-white">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900">
                 {modal === "create" ? "Tạo giải đấu mới" : "Chỉnh sửa giải đấu"}
               </h2>
               <button
                 onClick={() => setModal(null)}
-                className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors"
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
               >
                 ×
               </button>
@@ -252,65 +298,65 @@ export default function TournamentManagementPage() {
 
             <form onSubmit={handleSave} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               {formError && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-950/50 border border-red-900 text-red-200 text-sm">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
                   <AlertCircle size={14} className="shrink-0" /> {formError}
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <Label className="text-gray-400 text-xs font-semibold uppercase tracking-widest">
+                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">
                   Tên giải đấu *
                 </Label>
                 <Input
                   value={form.tournamentName}
                   onChange={(e) => setForm({ ...form, tournamentName: e.target.value })}
                   placeholder="VD: Giải Đua Mùa Hè 2026"
-                  className="h-10 bg-[#0A0E1A]/80 border-gray-700 text-white focus-visible:ring-[#D4AF37]"
+                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-gray-400 text-xs font-semibold uppercase tracking-widest">
+                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">
                   Địa điểm
                 </Label>
                 <Input
                   value={form.location}
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
                   placeholder="VD: Hồ Chí Minh"
-                  className="h-10 bg-[#0A0E1A]/80 border-gray-700 text-white focus-visible:ring-[#D4AF37]"
+                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-gray-400 text-xs font-semibold uppercase tracking-widest">
+                  <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">
                     Ngày bắt đầu *
                   </Label>
                   <Input
                     type="date"
                     value={form.startDate}
                     onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                    className="h-10 bg-[#0A0E1A]/80 border-gray-700 text-white focus-visible:ring-[#D4AF37]"
+                    className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
                     required
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-gray-400 text-xs font-semibold uppercase tracking-widest">
+                  <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">
                     Ngày kết thúc *
                   </Label>
                   <Input
                     type="date"
                     value={form.endDate}
                     onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                    className="h-10 bg-[#0A0E1A]/80 border-gray-700 text-white focus-visible:ring-[#D4AF37]"
+                    className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-gray-400 text-xs font-semibold uppercase tracking-widest">
+                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">
                   Tổng giải thưởng (VNĐ)
                 </Label>
                 <Input
@@ -319,12 +365,12 @@ export default function TournamentManagementPage() {
                   value={form.prizeFund}
                   onChange={(e) => setForm({ ...form, prizeFund: e.target.value })}
                   placeholder="0"
-                  className="h-10 bg-[#0A0E1A]/80 border-gray-700 text-white focus-visible:ring-[#D4AF37]"
+                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-gray-400 text-xs font-semibold uppercase tracking-widest">
+                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">
                   Mô tả
                 </Label>
                 <textarea
@@ -332,7 +378,7 @@ export default function TournamentManagementPage() {
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="Mô tả về giải đấu..."
                   rows={3}
-                  className="w-full rounded-md bg-[#0A0E1A]/80 border border-gray-700 text-white text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] resize-none"
+                  className="w-full rounded-md bg-white border border-gray-200 text-gray-900 text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] resize-none placeholder:text-gray-400"
                 />
               </div>
 
@@ -340,7 +386,7 @@ export default function TournamentManagementPage() {
                 <button
                   type="button"
                   onClick={() => setModal(null)}
-                  className="flex-1 h-10 rounded-lg border border-gray-700 text-gray-400 hover:text-white text-sm transition-colors"
+                  className="flex-1 h-10 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-800 hover:border-gray-300 text-sm transition-colors"
                 >
                   Hủy
                 </button>

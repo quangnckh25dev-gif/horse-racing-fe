@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { User, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { User, Lock, Eye, EyeOff, Loader2, AlertCircle, Wrench, Clock } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [failedCount, setFailedCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [maintenanceUntil, setMaintenanceUntil] = useState(null);
 
   // Tạo ra 40 hạt bụi vàng với vị trí và thời gian rơi ngẫu nhiên
   const particles = useMemo(() => {
@@ -47,20 +48,41 @@ export default function LoginPage() {
       const result = await authService.login(formData);
       const { accessToken, user } = result.data;
       setFailedCount(0);
+      setMaintenanceUntil(null);
       login(user, accessToken, rememberMe);
-      window.location.href = "/dashboard";
+      window.location.href = "/races";
     } catch (err) {
       const msg = err.message || "";
-      const isLocked = msg.toLowerCase().includes("khoa") || msg.toLowerCase().includes("lock");
-      if (isLocked) {
-        setFailedCount(5);
-        setErrorMsg("Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần.");
+      const isMaintenance =
+        err.status === 503 ||
+        msg.toLowerCase().includes("bảo trì") ||
+        msg.toLowerCase().includes("maintenance");
+
+      if (isMaintenance) {
+        // Lấy thời gian bảo trì từ response hoặc gọi endpoint public
+        let until = err.data?.maintenanceUntil || err.data?.data?.maintenanceUntil || null;
+        if (!until) {
+          try {
+            const res = await fetch("http://localhost:8080/api/admin/configs/MAINTENANCE_UNTIL");
+            const json = await res.json();
+            until = json.data?.value || json.value || null;
+          } catch { /* ignore */ }
+        }
+        setMaintenanceUntil(until || "");
+        setErrorMsg("");
       } else {
-        setFailedCount((prev) => {
-          const next = Math.min(prev + 1, 5);
-          setErrorMsg(`Sai tài khoản hoặc mật khẩu. (Lần ${next}/5)`);
-          return next;
-        });
+        const isLocked = msg.toLowerCase().includes("khoa") || msg.toLowerCase().includes("lock");
+        if (isLocked) {
+          setFailedCount(5);
+          setErrorMsg("Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần.");
+        } else {
+          setFailedCount((prev) => {
+            const next = Math.min(prev + 1, 5);
+            setErrorMsg(`Sai tài khoản hoặc mật khẩu. (Lần ${next}/5)`);
+            return next;
+          });
+        }
+        setMaintenanceUntil(null);
       }
     } finally {
       setIsLoading(false);
@@ -148,6 +170,24 @@ export default function LoginPage() {
               Đăng nhập để quản lý hồ sơ và tham gia thi đấu
             </p>
           </div>
+
+          {maintenanceUntil !== null && (
+            <div className="mb-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1.5">
+                <Wrench size={16} className="text-amber-600" />
+                <span className="text-amber-800 font-bold text-sm">Hệ thống đang bảo trì</span>
+              </div>
+              {maintenanceUntil ? (
+                <div className="flex items-center justify-center gap-1.5 text-amber-700 text-xs">
+                  <Clock size={12} />
+                  <span>Dự kiến hoàn thành: <strong>{maintenanceUntil}</strong></span>
+                </div>
+              ) : (
+                <p className="text-amber-600 text-xs">Vui lòng quay lại sau</p>
+              )}
+              <p className="text-amber-500 text-xs mt-2">Chỉ tài khoản Quản trị viên có thể đăng nhập trong thời gian này.</p>
+            </div>
+          )}
 
           {errorMsg && (
             <div className="mb-6 flex items-center gap-3 p-3.5 rounded-lg bg-red-950/50 border border-red-900 text-red-200 text-sm animate-pulse">

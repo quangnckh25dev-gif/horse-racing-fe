@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
-import { Zap, LogIn, Calendar, BarChart2 } from "lucide-react";
+import { Zap, LogIn, Calendar, BarChart2, LayoutDashboard } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function PublicLayout({ children }) {
+  const { isAuthenticated } = useAuth();
   return (
     <div className="min-h-screen font-sans" style={{ background: "#FAFAF5" }}>
       {/* ── Fixed Nav ── */}
@@ -38,15 +40,26 @@ export default function PublicLayout({ children }) {
 
         {/* Auth actions */}
         <div className="flex items-center gap-3">
-          <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">
-            Đăng nhập
-          </Link>
-          <Link
-            to="/register"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold btn-gold"
-          >
-            <LogIn size={13} /> Tham gia
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold btn-gold"
+            >
+              <LayoutDashboard size={13} /> Vào Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">
+                Đăng nhập
+              </Link>
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold btn-gold"
+              >
+                <LogIn size={13} /> Tham gia
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -66,9 +79,15 @@ export default function PublicLayout({ children }) {
           </div>
           <p className="text-gray-400 text-xs">Nền tảng quản lý đua ngựa chuyên nghiệp tại Việt Nam</p>
           <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-400">
-            <Link to="/login" className="hover:text-[#D4AF37] transition-colors">Đăng nhập</Link>
-            <span>·</span>
-            <Link to="/register" className="hover:text-[#D4AF37] transition-colors">Đăng ký</Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard" className="hover:text-[#D4AF37] transition-colors">Dashboard</Link>
+            ) : (
+              <>
+                <Link to="/login" className="hover:text-[#D4AF37] transition-colors">Đăng nhập</Link>
+                <span>·</span>
+                <Link to="/register" className="hover:text-[#D4AF37] transition-colors">Đăng ký</Link>
+              </>
+            )}
           </div>
         </div>
       </footer>

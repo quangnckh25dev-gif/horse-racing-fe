@@ -10,6 +10,7 @@ import ChangePasswordPage from "./pages/ChangePasswordPage";
 import PublicLayout from "./components/layout/PublicLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 import PublicRacesPage from "./pages/public/PublicRacesPage";
+import LandingPage from "./pages/LandingPage";
 
 // Admin pages
 import DashboardPage from "./pages/admin/DashboardPage";
@@ -77,7 +78,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* ── Public (no auth required) ───────────────────── */}
-          <Route path="/" element={<Navigate to="/races" replace />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/races" element={<PublicLayout><PublicRacesPage /></PublicLayout>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />

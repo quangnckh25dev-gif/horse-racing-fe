@@ -1,14 +1,18 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  Calendar, Clock, Zap, CheckCircle2, XCircle,
-  Trophy, Users, TrendingUp, Star, LogIn, ChevronRight, LayoutDashboard,
+  Calendar, Clock, Zap, CheckCircle2, XCircle, Trophy, Users,
+  TrendingUp, Star, ChevronRight, AlertCircle, Loader2,
 } from "lucide-react";
 import { spectatorService } from "../../services/spectator";
+import { leaderboardService } from "../../services/leaderboard";
 import { useLenis } from "../../hooks/useLenis";
 import { useAuth } from "../../context/AuthContext";
+import { SbCard } from "@/components/sb/Card";
+import { SbButton } from "@/components/sb/Button";
+import { SbBadge } from "@/components/sb/Badge";
 
-/* ── Scroll reveal helper component ───────────────────────── */
+/* ── Scroll reveal ── */
 function Reveal({ children, className = "", delay = "" }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -21,151 +25,130 @@ function Reveal({ children, className = "", delay = "" }) {
     io.observe(el);
     return () => io.disconnect();
   }, []);
-  return (
-    <div ref={ref} className={`scroll-reveal ${delay} ${className}`}>
-      {children}
-    </div>
-  );
+  return <div ref={ref} className={`scroll-reveal ${delay} ${className}`}>{children}</div>;
 }
 
-/* ── Status config ─────────────────────────────────────────── */
+/* ── Status config ── */
 const STATUS = {
-  Scheduled:        { label: "Sắp diễn ra",  cls: "bg-blue-100 text-blue-700 border-blue-200",    bar: "bg-blue-400",   borderCls: "border-l-blue-glow",   icon: Clock },
-  RegistrationOpen: { label: "Mở đăng ký",   cls: "bg-purple-100 text-purple-700 border-purple-200", bar: "bg-purple-400", borderCls: "border-l-purple-glow", icon: Calendar },
-  Ongoing:          { label: "Đang diễn ra", cls: "bg-amber-100 text-amber-700 border-amber-200",  bar: "bg-amber-400",  borderCls: "border-l-gold-glow",   icon: Zap, live: true },
-  Finished:         { label: "Đã kết thúc",  cls: "bg-green-100 text-green-700 border-green-200",  bar: "bg-green-400",  borderCls: "border-l-green-glow",  icon: CheckCircle2 },
-  Cancelled:        { label: "Đã huỷ",       cls: "bg-red-100 text-red-600 border-red-200",        bar: "bg-red-400",    borderCls: "border-l-red-glow",    icon: XCircle },
+  Scheduled:        { label: "Sắp diễn ra",  variant: "sched", bar: "bg-sb-info",    live: false, icon: Clock },
+  RegistrationOpen: { label: "Mở đăng ký",   variant: "open",  bar: "bg-sb-emerald", live: false, icon: Calendar },
+  Ongoing:          { label: "Đang diễn ra", variant: "live",  bar: "bg-sb-live",    live: true,  icon: Zap },
+  Finished:         { label: "Đã kết thúc",  variant: "fin",   bar: "bg-sb-tx-3",    live: false, icon: CheckCircle2 },
+  Cancelled:        { label: "Đã huỷ",       variant: "lose",  bar: "bg-sb-lose",    live: false, icon: XCircle },
 };
 
-/* ── Race card ─────────────────────────────────────────────── */
+/* ── Race card ── */
 function RaceCard({ race, index }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { el.classList.add("revealed"); io.disconnect(); } },
-      { threshold: 0.06, rootMargin: "0px 0px -30px 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+  const { isAuthenticated, role } = useAuth();
+  const navigate = useNavigate();
+  const [noPermMsg, setNoPermMsg] = useState(null);
+
+  const handleBetClick = () => {
+    if (!isAuthenticated) { navigate("/login"); return; }
+    if (role === "Spectator") { navigate("/spectator/betting"); return; }
+    setNoPermMsg("Bạn không có quyền đặt cược");
+    setTimeout(() => setNoPermMsg(null), 3000);
+  };
+  const handleResultClick = () => {
+    if (!isAuthenticated) { navigate("/login"); return; }
+    if (role === "Spectator") { navigate("/spectator/schedule"); return; }
+    setNoPermMsg("Bạn không có quyền xem kết quả");
+    setTimeout(() => setNoPermMsg(null), 3000);
+  };
 
   const cfg = STATUS[race.status] || STATUS.Scheduled;
   const Icon = cfg.icon;
-  const delayMap = ["", "sr-delay-1", "sr-delay-2", "sr-delay-3"];
+  const delayMap = ["", "sr-delay-1", "sr-delay-2"];
   const delay = delayMap[index % 3] || "";
 
-  const fmtDate = (d) => d
-    ? new Date(d).toLocaleDateString("vi-VN", { weekday: "short", day: "2-digit", month: "2-digit" })
-    : "—";
-  const fmtTime = (d) => d
-    ? new Date(d).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
-    : "";
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString("vi-VN", { weekday: "short", day: "2-digit", month: "2-digit" }) : "—";
+  const fmtTime = (d) => d ? new Date(d).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "";
 
   return (
-    <div
-      ref={ref}
-      className={`scroll-reveal ${delay} bg-white rounded-2xl border border-gray-100 ${cfg.borderCls} card-hover overflow-hidden`}
-      style={{ boxShadow: "0 2px 14px rgba(0,0,0,0.06)" }}
-    >
-      {/* Color bar */}
-      <div className={`h-1 w-full ${cfg.bar} opacity-60`} />
+    <Reveal delay={delay}>
+      <SbCard className="overflow-hidden transition hover:-translate-y-0.5 hover:border-sb-border-2">
+        <div className={`h-1 w-full ${cfg.bar} opacity-70`} />
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sb-tx font-extrabold text-sm leading-snug line-clamp-2">
+                {race.raceName || race.name || "Vòng đua"}
+              </h3>
+              {race.tournamentName && (
+                <p className="text-[11px] text-sb-tx-3 mt-1 flex items-center gap-1 truncate">
+                  <Trophy size={10} className="shrink-0" /> {race.tournamentName}
+                </p>
+              )}
+            </div>
+            <SbBadge variant={cfg.variant} live={cfg.live} className="shrink-0">
+              <Icon size={9} /> {cfg.label}
+            </SbBadge>
+          </div>
 
-      <div className="p-5">
-        {/* Title + status */}
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-gray-900 font-bold text-sm leading-snug line-clamp-2">
-              {race.raceName || race.name || "Vòng đua"}
-            </h3>
-            {race.tournamentName && (
-              <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1 truncate">
-                <Trophy size={10} className="shrink-0" /> {race.tournamentName}
-              </p>
+          <div className="space-y-1.5 mb-4">
+            <div className="flex items-center gap-2 text-xs text-sb-tx-2">
+              <Calendar size={11} className="text-sb-tx-3 shrink-0" />
+              {fmtDate(race.startTime || race.raceDate)}
+              {fmtTime(race.startTime || race.raceDate) && (
+                <span className="text-sb-tx-3">· {fmtTime(race.startTime || race.raceDate)}</span>
+              )}
+            </div>
+            {race.distance && (
+              <div className="flex items-center gap-2 text-xs text-sb-tx-2">
+                <TrendingUp size={11} className="text-sb-tx-3 shrink-0" /> Cự ly {race.distance}m
+              </div>
+            )}
+            {race.totalEntries !== undefined && (
+              <div className="flex items-center gap-2 text-xs text-sb-tx-2">
+                <Users size={11} className="text-sb-tx-3 shrink-0" /> {race.totalEntries} ngựa tham gia
+              </div>
             )}
           </div>
-          <span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${cfg.cls}`}>
-            {cfg.live && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-dot" />}
-            <Icon size={9} />
-            {cfg.label}
-          </span>
-        </div>
 
-        {/* Info */}
-        <div className="space-y-1.5 mb-4">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Calendar size={11} className="text-gray-400 shrink-0" />
-            {fmtDate(race.startTime || race.raceDate)}
-            {fmtTime(race.startTime || race.raceDate) && (
-              <span className="text-gray-400">· {fmtTime(race.startTime || race.raceDate)}</span>
-            )}
-          </div>
-          {race.distance && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <TrendingUp size={11} className="text-gray-400 shrink-0" />
-              Cự ly {race.distance}m
+          {race.prizePool && (
+            <div className="mb-4 px-3 py-2 rounded-xl bg-sb-gold-soft border border-sb-gold-bd flex items-center gap-2">
+              <Star size={11} className="text-sb-gold-2 shrink-0" />
+              <span className="text-xs font-bold text-sb-gold-2">
+                {typeof race.prizePool === "number" ? `${race.prizePool.toLocaleString("vi-VN")} ₫` : race.prizePool}
+              </span>
             </div>
           )}
-          {race.totalEntries !== undefined && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <Users size={11} className="text-gray-400 shrink-0" />
-              {race.totalEntries} ngựa tham gia
+
+          {noPermMsg && (
+            <div className="mb-2 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-xs">
+              <AlertCircle size={12} className="shrink-0" /> {noPermMsg}
             </div>
           )}
+
+          <SbButton
+            variant={race.status === "Finished" ? "ghost" : "bet"}
+            size="sm"
+            className="w-full"
+            onClick={race.status === "Finished" ? handleResultClick : handleBetClick}
+          >
+            {race.status === "Finished" ? "Xem kết quả"
+              : race.status === "Ongoing" ? <><Zap size={12} /> Đặt cược LIVE</>
+              : "Đặt cược"}
+          </SbButton>
         </div>
-
-        {/* Prize */}
-        {race.prizePool && (
-          <div className="mb-4 px-3 py-2 rounded-xl bg-amber-50 border border-amber-100 flex items-center gap-2">
-            <Star size={11} className="text-[#D4AF37] shrink-0" />
-            <span className="text-xs font-semibold text-amber-700">
-              {typeof race.prizePool === "number"
-                ? `${race.prizePool.toLocaleString("vi-VN")} VNĐ`
-                : race.prizePool}
-            </span>
-          </div>
-        )}
-
-        {/* CTA */}
-        <Link
-          to="/login"
-          className={`flex items-center justify-center gap-1.5 w-full h-9 rounded-xl text-xs font-bold transition-all ${
-            race.status === "Ongoing"
-              ? "btn-gold"
-              : race.status === "Finished"
-              ? "bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100"
-              : "btn-gold"
-          }`}
-        >
-          {race.status === "Finished" ? (
-            "Xem kết quả"
-          ) : race.status === "Ongoing" ? (
-            <><Zap size={12} /> Đặt cược LIVE</>
-          ) : (
-            <><LogIn size={12} /> Đặt cược</>
-          )}
-        </Link>
-      </div>
-    </div>
+      </SbCard>
+    </Reveal>
   );
 }
 
-/* ── Skeleton card ─────────────────────────────────────────── */
+/* ── Skeleton ── */
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{ boxShadow: "0 2px 14px rgba(0,0,0,0.04)" }}>
-      <div className="h-1 rounded-full shimmer mb-5" />
-      <div className="h-4 w-3/4 rounded-lg shimmer mb-2" />
-      <div className="h-3 w-1/2 rounded-lg shimmer mb-4" />
-      <div className="h-3 w-full rounded-lg shimmer mb-2" />
-      <div className="h-3 w-2/3 rounded-lg shimmer mb-4" />
-      <div className="h-9 rounded-xl shimmer" />
-    </div>
+    <SbCard className="p-5">
+      <div className="h-4 w-3/4 rounded-lg bg-sb-s3 animate-pulse mb-3" />
+      <div className="h-3 w-1/2 rounded-lg bg-sb-s3 animate-pulse mb-4" />
+      <div className="h-3 w-full rounded-lg bg-sb-s3 animate-pulse mb-2" />
+      <div className="h-3 w-2/3 rounded-lg bg-sb-s3 animate-pulse mb-4" />
+      <div className="h-9 rounded-xl bg-sb-s3 animate-pulse" />
+    </SbCard>
   );
 }
 
-/* ── Filter tabs ────────────────────────────────────────────── */
 const FILTERS = [
   { key: "all",              label: "Tất cả" },
   { key: "Ongoing",          label: "Đang diễn ra" },
@@ -174,7 +157,7 @@ const FILTERS = [
   { key: "Finished",         label: "Kết thúc" },
 ];
 
-/* ── Page ───────────────────────────────────────────────────── */
+/* ── Page ── */
 export default function PublicRacesPage() {
   useLenis();
   const { isAuthenticated } = useAuth();
@@ -183,11 +166,27 @@ export default function PublicRacesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
+  const [lbTab, setLbTab] = useState("jockey");
+  const [jockeys, setJockeys] = useState([]);
+  const [horses, setHorses] = useState([]);
+  const [lbLoading, setLbLoading] = useState(true);
+  const [lbError, setLbError] = useState("");
+
   useEffect(() => {
     spectatorService.getRaces()
       .then((res) => setRaces(res.data || []))
       .catch(() => setRaces([]))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    Promise.all([
+      leaderboardService.getGlobalJockeyLeaderboard(),
+      leaderboardService.getGlobalHorseLeaderboard(),
+    ])
+      .then(([jRes, hRes]) => { setJockeys(jRes.data || []); setHorses(hRes.data || []); })
+      .catch((e) => setLbError(e.message || "Không thể tải bảng xếp hạng"))
+      .finally(() => setLbLoading(false));
   }, []);
 
   const filtered = filter === "all" ? races : races.filter((r) => r.status === filter);
@@ -196,164 +195,188 @@ export default function PublicRacesPage() {
     upcoming: races.filter((r) => ["Scheduled", "RegistrationOpen"].includes(r.status)).length,
     Finished: races.filter((r) => r.status === "Finished").length,
   };
+  const lbData = lbTab === "jockey" ? jockeys : horses;
+  const nameKey = lbTab === "jockey" ? "jockeyName" : "horseName";
 
   return (
     <>
-      {/* ── Hero ────────────────────────────────────────────── */}
+      {/* ── Hero (dark) ── */}
       <section
-        className="relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #FDFCF7 0%, #FAF8F0 60%, #F5F0E0 100%)", minHeight: 440 }}
+        className="relative overflow-hidden border-b border-sb-border"
+        style={{
+          background:
+            "radial-gradient(900px 380px at 80% -10%, rgba(16,185,129,.14), transparent 60%)," +
+            "radial-gradient(700px 340px at 8% 110%, rgba(244,183,64,.08), transparent 60%), #0B0F14",
+        }}
       >
-        {/* Grain / noise texture */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.035] mix-blend-multiply"
+          className="absolute right-0 top-0 h-full w-[55%] hidden lg:block pointer-events-none opacity-[0.14]"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: "repeat",
-            backgroundSize: "180px 180px",
+            backgroundImage: "url('/bg-horse.png')",
+            backgroundSize: "cover", backgroundPosition: "center",
+            WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,.7) 40%, #000 100%)",
+            maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,.7) 40%, #000 100%)",
           }}
         />
-
-        {/* Horse image — right-side decoration */}
-        <div className="absolute right-0 top-0 h-full w-[55%] hidden lg:block pointer-events-none" style={{ opacity: 0.18 }}>
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: "url('/bg-horse.png')",
-              WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.9) 100%)",
-              maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.9) 100%)",
-            }}
-          />
-        </div>
-
-        <div className="absolute inset-0 bg-dot-grid opacity-50 pointer-events-none" />
-        <div className="absolute right-0 top-0 w-[600px] h-[500px] bg-amber-300/[0.07] rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute -left-32 bottom-0 w-96 h-96 bg-purple-300/[0.04] rounded-full blur-[120px] pointer-events-none" />
-
-        <div className="relative z-10 max-w-5xl mx-auto px-6 py-20 flex flex-col items-start">
-          {/* Live badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700 mb-7 animate-bounce-in">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 py-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sb-emerald-soft border border-sb-emerald-bd text-xs font-bold text-sb-emerald-ink mb-6">
             {counts.Ongoing > 0
-              ? <><span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-dot" /> {counts.Ongoing} cuộc đua đang diễn ra</>
-              : <><Calendar size={11} /> Lịch thi đấu đua ngựa Việt Nam</>
-            }
+              ? <><span className="w-1.5 h-1.5 rounded-full bg-sb-live live-dot" /> {counts.Ongoing} cuộc đua đang diễn ra</>
+              : <><Calendar size={11} /> Lịch thi đấu đua ngựa Việt Nam</>}
           </div>
-
-          <h1 className="text-5xl md:text-6xl font-black tracking-tight text-gray-900 mb-5 animate-fade-in-up leading-[1.1]">
-            Đua Ngựa
-            <br />
-            <span className="text-gold-gradient">Việt Nam</span>
+          <h1 className="text-5xl md:text-6xl font-black tracking-tight text-sb-tx mb-5 leading-[1.05]">
+            Đua Ngựa<br />
+            <span className="bg-gradient-to-r from-sb-gold-2 to-sb-gold bg-clip-text text-transparent">Việt Nam</span>
           </h1>
-          <p className="text-gray-500 text-lg mb-9 animate-fade-in-up stagger-2 leading-relaxed max-w-lg">
+          <p className="text-sb-tx-2 text-lg mb-8 max-w-lg leading-relaxed">
             Theo dõi lịch thi đấu real-time, kết quả và đặt cược trực tuyến — không cần đăng nhập để xem.
           </p>
-
-          <div className="flex items-center gap-3 animate-fade-in-up stagger-3">
+          <div className="flex items-center gap-3">
             {isAuthenticated ? (
-              <Link to="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-gold font-bold text-sm">
-                <LayoutDashboard size={15} /> Vào Dashboard
-              </Link>
+              <Link to="/dashboard"><SbButton variant="bet">Vào Dashboard</SbButton></Link>
             ) : (
               <>
-                <Link to="/register" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-gold font-bold text-sm">
-                  Tham gia ngay <ChevronRight size={15} />
-                </Link>
-                <Link to="/login" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white hover:border-amber-200 hover:bg-amber-50 text-sm font-semibold text-gray-700 transition-all">
-                  Đăng nhập
-                </Link>
+                <Link to="/register"><SbButton variant="bet">Tham gia ngay <ChevronRight size={15} /></SbButton></Link>
+                <Link to="/login"><SbButton variant="ghost">Đăng nhập</SbButton></Link>
               </>
             )}
           </div>
         </div>
       </section>
 
-      {/* ── Stats strip ──────────────────────────────────────── */}
-      <div className="bg-white border-y border-gray-100" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-3 divide-x divide-gray-100">
-            {[
-              { label: "Đang diễn ra", value: counts.Ongoing,  bg: "bg-amber-50",  text: "text-amber-600" },
-              { label: "Sắp diễn ra",  value: counts.upcoming,  bg: "bg-blue-50",   text: "text-blue-600" },
-              { label: "Đã kết thúc",  value: counts.Finished, bg: "bg-green-50",  text: "text-green-600" },
-            ].map((s) => (
-              <div key={s.label} className="px-6 py-5 flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl ${s.bg} flex items-center justify-center`}>
-                  <span className={`text-xl font-black ${s.text}`}>{loading ? "—" : s.value}</span>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 font-medium">{s.label}</p>
-                  <p className="text-[10px] text-gray-300">cuộc đua</p>
-                </div>
+      {/* ── Stats strip ── */}
+      <div className="bg-sb-s1 border-b border-sb-border">
+        <div className="max-w-5xl mx-auto px-6 grid grid-cols-3 divide-x divide-sb-border">
+          {[
+            { label: "Đang diễn ra", value: counts.Ongoing,  cls: "bg-sb-live/10 text-sb-live" },
+            { label: "Sắp diễn ra",  value: counts.upcoming, cls: "bg-sb-info/10 text-sb-info" },
+            { label: "Đã kết thúc",  value: counts.Finished, cls: "bg-sb-emerald-soft text-sb-emerald-ink" },
+          ].map((s) => (
+            <div key={s.label} className="px-6 py-5 flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${s.cls}`}>
+                <span className="text-xl font-black tabular-nums">{loading ? "—" : s.value}</span>
               </div>
-            ))}
-          </div>
+              <div>
+                <p className="text-xs text-sb-tx-2 font-semibold">{s.label}</p>
+                <p className="text-[10px] text-sb-tx-3">cuộc đua</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* ── Race list ────────────────────────────────────────── */}
+      {/* ── Race list ── */}
       <section className="max-w-5xl mx-auto px-6 py-12">
-        {/* Filter tabs */}
         <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-1">
           {FILTERS.map((f) => {
             const count = f.key === "all" ? races.length : races.filter((r) => r.status === f.key).length;
+            const active = filter === f.key;
             return (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                  filter === f.key
-                    ? "bg-[#D4AF37] text-[#111] shadow-[0_0_16px_rgba(212,175,55,0.35)]"
-                    : "bg-white border border-gray-200 text-gray-500 hover:border-amber-200 hover:text-amber-700 hover:bg-amber-50"
-                }`}
-              >
-                {f.label}
-                {filter !== f.key && <span className="ml-1.5 text-xs opacity-60">{count}</span>}
+              <button key={f.key} onClick={() => setFilter(f.key)}
+                className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition ${
+                  active
+                    ? "bg-sb-emerald text-[#04241B] shadow-[0_4px_16px_rgba(16,185,129,.3)]"
+                    : "bg-sb-s1 border border-sb-border text-sb-tx-2 hover:border-sb-emerald hover:text-sb-emerald"
+                }`}>
+                {f.label}{!active && <span className="ml-1.5 text-xs opacity-60">{count}</span>}
               </button>
             );
           })}
         </div>
 
-        {/* Cards */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-24">
-            <Trophy size={44} className="text-gray-200 mx-auto mb-4" />
-            <p className="text-gray-400 text-sm">Không có cuộc đua nào</p>
+            <Trophy size={44} className="text-sb-tx-3 mx-auto mb-4 opacity-40" />
+            <p className="text-sb-tx-3 text-sm">Không có cuộc đua nào</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((race, i) => (
-              <RaceCard key={race.raceId || i} race={race} index={i} />
-            ))}
+            {filtered.map((race, i) => <RaceCard key={race.raceId || i} race={race} index={i} />)}
           </div>
         )}
+      </section>
 
-        {/* Login / Dashboard CTA */}
-        {!loading && races.length > 0 && !isAuthenticated && (
-          <Reveal className="mt-14 text-center">
-            <div
-              className="inline-block px-10 py-7 rounded-2xl bg-white border border-amber-100"
-              style={{ boxShadow: "0 4px 24px rgba(212,175,55,0.1)" }}
-            >
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Trophy size={18} className="text-[#D4AF37]" />
-                <p className="text-gray-800 font-bold text-sm">Sẵn sàng đặt cược?</p>
+      {/* ── Leaderboard ── */}
+      <section className="max-w-5xl mx-auto px-6 pb-16">
+        <Reveal>
+          <SbCard>
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-sb-border flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-sb-gold-soft border border-sb-gold-bd flex items-center justify-center">
+                  <Trophy size={16} className="text-sb-gold-2" />
+                </div>
+                <div>
+                  <h2 className="text-sb-tx font-extrabold text-sm">Bảng xếp hạng</h2>
+                  <p className="text-sb-tx-3 text-[11px]">Top nài ngựa và ngựa đua xuất sắc nhất</p>
+                </div>
               </div>
-              <p className="text-gray-400 text-xs mb-5">Đăng nhập để theo dõi và đặt cược real-time</p>
-              <div className="flex items-center justify-center gap-3">
-                <Link to="/login" className="px-5 py-2.5 rounded-xl btn-gold text-sm font-bold">
-                  Đăng nhập ngay
-                </Link>
-                <Link to="/register" className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:border-amber-200 hover:bg-amber-50 transition-all">
-                  Tạo tài khoản
-                </Link>
+              <div className="flex bg-sb-s2 rounded-xl p-1 border border-sb-border">
+                {[{ id: "jockey", label: "🏇 Nài ngựa" }, { id: "horse", label: "🐴 Ngựa đua" }].map((t) => (
+                  <button key={t.id} onClick={() => setLbTab(t.id)}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+                      lbTab === t.id ? "bg-sb-emerald-soft text-sb-emerald-ink" : "text-sb-tx-2 hover:text-sb-tx"
+                    }`}>
+                    {t.label}
+                  </button>
+                ))}
               </div>
             </div>
-          </Reveal>
-        )}
+
+            {lbLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 size={24} className="animate-spin text-sb-emerald" />
+              </div>
+            ) : lbError ? (
+              <div className="flex items-center gap-2 p-4 m-4 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
+                <AlertCircle size={14} /> {lbError}
+              </div>
+            ) : lbData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-sb-tx-3">
+                <Trophy size={36} className="mb-3 opacity-30" />
+                <p className="text-sm font-semibold text-sb-tx-2">Chưa có dữ liệu xếp hạng</p>
+                <p className="text-xs mt-1">Dữ liệu sẽ xuất hiện sau khi có kết quả đua</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-sb-s2 border-b border-sb-border">
+                      <th className="text-left px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest w-12">#</th>
+                      <th className="text-left px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">
+                        {lbTab === "jockey" ? "Nài ngựa" : "Ngựa đua"}
+                      </th>
+                      <th className="text-center px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">Thắng</th>
+                      <th className="text-center px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">Điểm</th>
+                      <th className="text-center px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">Số cuộc</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lbData.slice(0, 10).map((item, idx) => (
+                      <tr key={idx} className="border-b border-sb-border hover:bg-white/5 transition">
+                        <td className="px-5 py-3">
+                          {idx < 3
+                            ? <span className="text-lg">{["🥇", "🥈", "🥉"][idx]}</span>
+                            : <span className="text-sb-tx-3 font-bold tabular-nums">{idx + 1}</span>}
+                        </td>
+                        <td className="px-5 py-3">
+                          <p className="text-sb-tx font-semibold">{item[nameKey] || "—"}</p>
+                          {item.ownerName && <p className="text-sb-tx-3 text-xs">🏠 {item.ownerName}</p>}
+                        </td>
+                        <td className="px-5 py-3 text-center"><span className="text-sb-emerald-ink font-bold tabular-nums">{item.totalWins ?? "—"}</span></td>
+                        <td className="px-5 py-3 text-center"><span className="text-sb-gold-2 font-bold tabular-nums">{item.totalPoints ?? "—"}</span></td>
+                        <td className="px-5 py-3 text-center"><span className="text-sb-tx-2 tabular-nums">{item.totalRaces ?? "—"}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SbCard>
+        </Reveal>
       </section>
     </>
   );

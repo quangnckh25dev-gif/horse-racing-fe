@@ -1,0 +1,81 @@
+/* ============================================================
+   Landing / Hero — Sportsbook dark (scoped: mọi class prefix lp-)
+   Không đụng theme gold hiện tại của app.
+   ============================================================ */
+.lp{
+  position:fixed;inset:0;overflow:hidden;
+  --lp-emerald:#10B981;--lp-emerald-2:#34D399;--lp-gold:#F4B740;--lp-gold-2:#FBCF5E;--lp-live:#FB4E4E;
+  --lp-tx:#F4F7FB;--lp-tx2:#C3CCDA;--lp-tx3:#8A97A8;
+  --lp-mono:"SFMono","Menlo","Consolas",monospace;
+  --lp-sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-family:var(--lp-sans);color:var(--lp-tx);background:#0B0F14;z-index:1;
+}
+
+/* ── Background media ── */
+.lp-bg,.lp-bgimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.lp-bgfallback{position:absolute;inset:0;z-index:0;background:linear-gradient(120deg,#10201A,#0B0F14 60%)}
+.lp-scrim{position:absolute;inset:0;z-index:1;background:
+  linear-gradient(90deg,rgba(6,9,13,.92) 0%,rgba(6,9,13,.6) 42%,rgba(6,9,13,.25) 100%),
+  linear-gradient(180deg,rgba(6,9,13,.6) 0%,rgba(6,9,13,0) 30%,rgba(6,9,13,.4) 78%,rgba(6,9,13,.92) 100%)}
+.lp-grain{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(1000px 420px at 78% -10%,rgba(16,185,129,.14),transparent 60%)}
+
+/* ── Top bar ── */
+.lp-topbar{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:22px clamp(20px,6vw,88px)}
+.lp-brand{display:flex;align-items:center;gap:11px}
+.lp-logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--lp-emerald-2),#0B7A5A);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 6px 20px rgba(16,185,129,.4)}
+.lp-bt{font-size:14px;font-weight:800;letter-spacing:.02em}
+.lp-bs{font-size:9.5px;color:var(--lp-tx3);font-weight:700;letter-spacing:.22em;text-transform:uppercase;margin-top:1px}
+.lp-nav{display:flex;gap:6px}
+.lp-nav button{font-size:12px;font-weight:700;color:var(--lp-tx2);background:none;border:0;font-family:inherit;padding:8px 13px;border-radius:9px;transition:.15s;cursor:pointer}
+.lp-nav button:hover{color:#fff;background:rgba(255,255,255,.08)}
+@media(max-width:680px){.lp-nav{display:none}}
+
+/* ── Hero content ── */
+.lp-hero{position:relative;z-index:5;height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 clamp(20px,6vw,88px)}
+.lp-kicker{font-family:var(--lp-mono);font-size:12px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--lp-emerald-2);margin-bottom:16px;text-shadow:0 2px 12px rgba(0,0,0,.6);opacity:0;animation:lp-up .9s .15s cubic-bezier(.2,.7,.2,1) forwards}
+.lp-title{font-size:clamp(44px,9vw,116px);font-weight:800;letter-spacing:-.04em;line-height:.9;text-wrap:balance;max-width:13ch;text-shadow:0 6px 40px rgba(0,0,0,.6)}
+.lp-title span{display:block;opacity:0;transform:translateY(20px);animation:lp-up 1s cubic-bezier(.16,1,.3,1) forwards}
+.lp-title span:nth-child(1){animation-delay:.3s}
+.lp-title span:nth-child(2){animation-delay:.42s}
+.lp-title .lp-g{background:linear-gradient(100deg,var(--lp-gold-2),var(--lp-gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lp-sub{margin-top:22px;font-size:clamp(14px,1.6vw,18px);color:var(--lp-tx2);max-width:44ch;line-height:1.55;text-shadow:0 2px 14px rgba(0,0,0,.7);opacity:0;animation:lp-fade 1s 1s forwards}
+.lp-cta{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;opacity:0;transform:translateY(14px);animation:lp-up .9s 1.15s cubic-bezier(.2,.7,.2,1) forwards}
+.lp-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;border-radius:12px;padding:14px 24px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:.16s}
+.lp-btn-bet{background:linear-gradient(180deg,var(--lp-emerald-2),var(--lp-emerald));color:#04241B;box-shadow:0 10px 30px rgba(16,185,129,.45)}
+.lp-btn-bet:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.lp-btn-ghost{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);backdrop-filter:blur(6px)}
+.lp-btn-ghost:hover{border-color:var(--lp-emerald);color:var(--lp-emerald-2)}
+
+@keyframes lp-up{to{opacity:1;transform:none}}
+@keyframes lp-fade{to{opacity:1}}
+
+/* ── Auth modal ── */
+.lp-ov{position:absolute;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(6,9,13,.72);backdrop-filter:blur(8px);animation:lp-fade .25s}
+.lp-modal{width:100%;max-width:412px;background:linear-gradient(180deg,#141C28,#101620);border:1px solid #2C3849;border-radius:18px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.6);position:relative;animation:lp-pop .3s cubic-bezier(.2,.9,.3,1);max-height:92vh;overflow:auto}
+@keyframes lp-pop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+.lp-x{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:8px;border:1px solid #2C3849;background:#1A2230;color:#9AA7B8;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lp-x:hover{color:#fff;border-color:#3A4859}
+.lp-mlogo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#34D399,#0B7A5A);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.lp-modal h3{font-size:19px;font-weight:800;letter-spacing:-.02em;margin:0}
+.lp-msub{font-size:12.5px;color:#6B7889;margin:3px 0 16px}
+.lp-mtabs{display:flex;background:#1A2230;border:1px solid #2C3849;border-radius:11px;padding:3px;gap:3px;margin-bottom:16px}
+.lp-mtabs button{flex:1;border:0;background:transparent;color:#9AA7B8;font-family:inherit;font-size:13px;font-weight:800;padding:9px;border-radius:8px;cursor:pointer;transition:.15s}
+.lp-mtabs button[data-on="true"]{background:#10B981;color:#04241B}
+.lp-form{display:flex;flex-direction:column;gap:12px}
+.lp-field{display:flex;flex-direction:column;gap:5px}
+.lp-field label{font-size:11px;font-weight:700;color:#9AA7B8}
+.lp-field input,.lp-field select{background:#0B0F14;border:1px solid #2C3849;border-radius:9px;color:#EAEEF4;font-family:inherit;font-size:13.5px;padding:11px 12px;width:100%}
+.lp-field input:focus,.lp-field select:focus{outline:0;border-color:#10B981}
+.lp-field input::placeholder{color:#4A5568}
+.lp-frow{display:flex;gap:10px}.lp-frow .lp-field{flex:1;min-width:0}
+.lp-mrow{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.lp-mrow label{display:flex;align-items:center;gap:7px;color:#9AA7B8;cursor:pointer}
+.lp-mrow a{color:#34D399;text-decoration:none;cursor:pointer}
+.lp-mbtn{margin-top:4px;border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;background:linear-gradient(180deg,#34D399,#10B981);color:#04241B;box-shadow:0 6px 20px rgba(16,185,129,.35)}
+.lp-mbtn:hover{filter:brightness(1.07)}
+.lp-mswitch{text-align:center;font-size:12.5px;color:#6B7889;margin-top:2px}
+.lp-mswitch a{color:#34D399;font-weight:700;cursor:pointer}
+.lp-mnote{font-size:11.5px;color:#FBCF5E;background:#3A2E11;border:1px solid #4A3A15;border-radius:8px;padding:9px 11px;margin-bottom:14px}
+
+@media(prefers-reduced-motion:reduce){.lp *{animation-duration:.01ms!important}}

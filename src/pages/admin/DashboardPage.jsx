@@ -4,7 +4,7 @@ import {
   Users, UserCheck, Trophy, Calendar, CheckCircle2,
   HardHat, Loader2, AlertCircle, RefreshCw, TrendingUp,
   Clock, Target, Flag, Star, Mail, PawPrint, Award,
-  ChevronRight, Zap, BarChart2, Wallet, DollarSign,
+  ChevronRight, Zap, BarChart2, Wallet, DollarSign, Home,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { adminService } from "../../services/admin";
@@ -85,6 +85,12 @@ function RoleDashboard({ user, role, navigate }) {
               Xin chào, <span className="text-gold-gradient">{user?.fullName || user?.username}</span>
             </h2>
             <p className="text-gray-300 text-sm mt-1">{ROLE_TAGLINE[role] || "Chào mừng trở lại hệ thống."}</p>
+            <button
+              onClick={() => navigate("/races")}
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white/80 hover:text-white text-xs font-medium transition-all"
+            >
+              <Home size={12} /> Quay về trang chủ
+            </button>
           </div>
         </div>
 
@@ -240,12 +246,20 @@ export default function DashboardPage() {
                   </h2>
                   <p className="text-gray-300 text-sm">Tổng quan hệ thống quản lý giải đua ngựa.</p>
                 </div>
-                <button
-                  onClick={() => navigate("/admin/tournaments")}
-                  className="btn-gold flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold shrink-0"
-                >
-                  Quản lý giải đấu <ChevronRight size={15} />
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => navigate("/races")}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white/80 hover:text-white text-sm font-medium transition-all"
+                  >
+                    <Home size={14} /> Trang chủ
+                  </button>
+                  <button
+                    onClick={() => navigate("/admin/tournaments")}
+                    className="btn-gold flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold"
+                  >
+                    Quản lý giải đấu <ChevronRight size={15} />
+                  </button>
+                </div>
               </div>
             </div>
 

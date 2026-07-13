@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [infoMsg, setInfoMsg] = useState("");
   const [failedCount, setFailedCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const [maintenanceUntil, setMaintenanceUntil] = useState(null);
@@ -43,6 +44,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg("");
+    setInfoMsg("");
 
     try {
       const result = await authService.login(formData);
@@ -53,13 +55,51 @@ export default function LoginPage() {
       window.location.href = "/races";
     } catch (err) {
       const msg = err.message || "";
+      const msgLower = msg.toLowerCase();
+
+      // Debug: xem BE trả về gì
+      console.error("[Login Error] status:", err.status, "| message:", msg, "| data:", err.data);
+
       const isMaintenance =
         err.status === 503 ||
-        msg.toLowerCase().includes("bảo trì") ||
-        msg.toLowerCase().includes("maintenance");
+        msgLower.includes("bảo trì") ||
+        msgLower.includes("maintenance");
+
+      const isPending =
+        err.status === 403 ||
+        msgLower.includes("pending") ||
+        msgLower.includes("disabled") ||
+        msgLower.includes("not enabled") ||
+        msgLower.includes("not active") ||
+        msgLower.includes("not approved") ||
+        msgLower.includes("chờ duyệt") ||
+        msgLower.includes("chưa duyệt") ||
+        msgLower.includes("chưa được duyệt") ||
+        msgLower.includes("chưa kích hoạt") ||
+        msgLower.includes("chưa được kích hoạt") ||
+        msgLower.includes("chưa được phê duyệt") ||
+        msgLower.includes("chưa phê duyệt") ||
+        msgLower.includes("đang chờ") ||
+        msgLower.includes("chờ phê duyệt") ||
+        msgLower.includes("chờ xét duyệt");
+
+      const isLockedTooMany =
+        msgLower.includes("quá nhiều") ||
+        msgLower.includes("too many") ||
+        msgLower.includes("attempts");
+
+      const isBadCredentials =
+        msgLower.includes("bad credentials") ||
+        msgLower.includes("incorrect") ||
+        msgLower.includes("invalid") ||
+        msgLower.includes("unauthorized") ||
+        msgLower.includes("sai mật khẩu") ||
+        msgLower.includes("không đúng") ||
+        msgLower.includes("không chính xác") ||
+        msgLower.includes("không tìm thấy") ||
+        msgLower.includes("not found");
 
       if (isMaintenance) {
-        // Lấy thời gian bảo trì từ response hoặc gọi endpoint public
         let until = err.data?.maintenanceUntil || err.data?.data?.maintenanceUntil || null;
         if (!until) {
           try {
@@ -70,18 +110,29 @@ export default function LoginPage() {
         }
         setMaintenanceUntil(until || "");
         setErrorMsg("");
+        setInfoMsg("");
+      } else if (isLockedTooMany || msgLower.includes("lock")) {
+        setFailedCount(5);
+        setErrorMsg("Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần.");
+        setInfoMsg("");
+        setMaintenanceUntil(null);
+      } else if (isBadCredentials) {
+        setFailedCount((prev) => {
+          const next = Math.min(prev + 1, 5);
+          setErrorMsg(`Sai tài khoản hoặc mật khẩu. (Lần ${next}/5)`);
+          return next;
+        });
+        setInfoMsg("");
+        setMaintenanceUntil(null);
+      } else if (isPending) {
+        setInfoMsg("Tài khoản của bạn đang chờ Admin phê duyệt. Vui lòng kiên nhẫn chờ đợi.");
+        setErrorMsg("");
+        setFailedCount(0);
+        setMaintenanceUntil(null);
       } else {
-        const isLocked = msg.toLowerCase().includes("khoa") || msg.toLowerCase().includes("lock");
-        if (isLocked) {
-          setFailedCount(5);
-          setErrorMsg("Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần.");
-        } else {
-          setFailedCount((prev) => {
-            const next = Math.min(prev + 1, 5);
-            setErrorMsg(`Sai tài khoản hoặc mật khẩu. (Lần ${next}/5)`);
-            return next;
-          });
-        }
+        // Fallback: không rõ lý do — hiện message gốc từ BE để debug
+        setErrorMsg(msg || "Đăng nhập thất bại. Vui lòng thử lại.");
+        setInfoMsg("");
         setMaintenanceUntil(null);
       }
     } finally {
@@ -186,6 +237,13 @@ export default function LoginPage() {
                 <p className="text-amber-600 text-xs">Vui lòng quay lại sau</p>
               )}
               <p className="text-amber-500 text-xs mt-2">Chỉ tài khoản Quản trị viên có thể đăng nhập trong thời gian này.</p>
+            </div>
+          )}
+
+          {infoMsg && (
+            <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+              <Clock size={16} className="text-amber-500 shrink-0 mt-0.5" />
+              <span>{infoMsg}</span>
             </div>
           )}
 

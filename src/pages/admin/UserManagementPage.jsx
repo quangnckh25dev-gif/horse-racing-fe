@@ -7,7 +7,7 @@ import { adminService } from "../../services/admin";
 import { useAuth } from "../../context/AuthContext";
 import AdminLayout from "../../components/layout/AdminLayout";
 
-const ROLES = ["Admin", "OrganizerHead", "OrganizerMember", "HorseOwner", "Jockey", "Referee", "Spectator"];
+const ROLES = ["OrganizerHead", "OrganizerMember", "HorseOwner", "Jockey", "Referee", "Spectator"];
 
 const ROLE_STYLE = {
   Admin:           "bg-red-50 text-red-600 border-red-200",
@@ -132,12 +132,12 @@ export default function UserManagementPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user, idx) => (
+                    {users.map((user, idx) => {
+                      const isAdmin = user.roleName === "Admin";
+                      return (
                       <tr
                         key={user.userId}
-                        className={`border-b border-gray-100 transition-colors hover:bg-blue-50/40 ${
-                          idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
-                        }`}
+                        className={`border-b border-gray-100 transition-colors ${isAdmin ? "bg-red-50/30" : `hover:bg-blue-50/40 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}`}
                       >
                         <td className="px-4 py-3 text-sm font-semibold text-gray-900">{user.username}</td>
                         <td className="px-4 py-3 text-sm text-gray-600">{user.fullName}</td>
@@ -157,18 +157,24 @@ export default function UserManagementPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <select
-                            value={pendingRole[user.userId] ?? user.roleName}
-                            onChange={(e) => handleRoleChange(user.userId, e.target.value)}
-                            className="bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
-                          >
-                            {ROLES.map((r) => (
-                              <option key={r} value={r}>{r}</option>
-                            ))}
-                          </select>
+                          {isAdmin ? (
+                            <span className="text-xs text-red-400 italic font-medium">Tài khoản cố định</span>
+                          ) : (
+                            <select
+                              value={pendingRole[user.userId] ?? user.roleName}
+                              onChange={(e) => handleRoleChange(user.userId, e.target.value)}
+                              className="bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+                            >
+                              {ROLES.map((r) => (
+                                <option key={r} value={r}>{r}</option>
+                              ))}
+                            </select>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          {successId === user.userId ? (
+                          {isAdmin ? (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-500 border border-red-200">Admin</span>
+                          ) : successId === user.userId ? (
                             <CheckCircle2 size={20} className="text-green-500 mx-auto" />
                           ) : (
                             <Button
@@ -188,7 +194,8 @@ export default function UserManagementPage() {
                           )}
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

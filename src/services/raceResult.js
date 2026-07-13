@@ -10,6 +10,7 @@ export const raceResultService = {
     api.put(`/races/${raceId}/results/${resultId}`, data),
 
   // ── Violations ────────────────────────────────────────────
+  getViolationOptions: () => api.get("/violations/options"),
   getViolations: (raceId) => api.get(`/races/${raceId}/violations`),
   addViolation: (raceId, data) => api.post(`/races/${raceId}/violations`, data),
   updateViolation: (violationId, data) =>

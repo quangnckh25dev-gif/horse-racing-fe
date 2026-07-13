@@ -39,6 +39,28 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    /* ── Sportsbook tokens (theme mới) → tạo utility bg-sb-*, text-sb-*, border-sb-* ── */
+    --color-sb-bg: var(--sb-bg);
+    --color-sb-s1: var(--sb-s1);
+    --color-sb-s2: var(--sb-s2);
+    --color-sb-s3: var(--sb-s3);
+    --color-sb-border: var(--sb-border);
+    --color-sb-border-2: var(--sb-border-2);
+    --color-sb-tx: var(--sb-tx);
+    --color-sb-tx-2: var(--sb-tx-2);
+    --color-sb-tx-3: var(--sb-tx-3);
+    --color-sb-emerald: var(--sb-emerald);
+    --color-sb-emerald-ink: var(--sb-emerald-ink);
+    --color-sb-emerald-soft: var(--sb-emerald-soft);
+    --color-sb-emerald-bd: var(--sb-emerald-bd);
+    --color-sb-gold: var(--sb-gold);
+    --color-sb-gold-2: var(--sb-gold-2);
+    --color-sb-gold-soft: var(--sb-gold-soft);
+    --color-sb-gold-bd: var(--sb-gold-bd);
+    --color-sb-win: var(--sb-win);
+    --color-sb-lose: var(--sb-lose);
+    --color-sb-live: var(--sb-live);
+    --color-sb-info: var(--sb-info);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -115,6 +137,24 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ── Sportsbook design tokens — dùng cho các màn ĐÃ convert (dual light/dark) ── */
+:root{
+  --sb-bg:#F6F8FB; --sb-s1:#FFFFFF; --sb-s2:#F1F5F9; --sb-s3:#E8EEF4;
+  --sb-border:#E3E9F0; --sb-border-2:#CFD8E3;
+  --sb-tx:#0F172A; --sb-tx-2:#4A5568; --sb-tx-3:#8A97A8;
+  --sb-emerald:#10B981; --sb-emerald-ink:#047857; --sb-emerald-soft:#E7F7F0; --sb-emerald-bd:#A7E3CC;
+  --sb-gold:#E0A62A; --sb-gold-2:#B07D12; --sb-gold-soft:#FBF2DA; --sb-gold-bd:#E7CE8A;
+  --sb-win:#16A34A; --sb-lose:#DC2626; --sb-live:#EF4444; --sb-info:#2563EB;
+}
+.dark{
+  --sb-bg:#0B0F14; --sb-s1:#121822; --sb-s2:#1A2230; --sb-s3:#232E3E;
+  --sb-border:#28323F; --sb-border-2:#334155;
+  --sb-tx:#EAEEF4; --sb-tx-2:#9AA7B8; --sb-tx-3:#5F6B7C;
+  --sb-emerald:#10B981; --sb-emerald-ink:#34D399; --sb-emerald-soft:#0E3A2E; --sb-emerald-bd:#14543F;
+  --sb-gold:#F4B740; --sb-gold-2:#FBCF5E; --sb-gold-soft:#3A2E11; --sb-gold-bd:#4A3A15;
+  --sb-win:#22C55E; --sb-lose:#F04D4D; --sb-live:#FB4E4E; --sb-info:#3B9EF5;
 }
 
 @layer base {

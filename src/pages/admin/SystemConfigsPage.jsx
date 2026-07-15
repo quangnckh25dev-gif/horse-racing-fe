@@ -61,10 +61,10 @@ export default function SystemConfigsPage() {
             <div className="w-7 h-7 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
               <Settings size={14} className="text-[#D4AF37]" />
             </div>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Admin</span>
+            <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Admin</span>
           </div>
           <h1 className="text-2xl font-black text-white leading-tight">Cấu hình hệ thống</h1>
-          <p className="text-gray-500 text-sm mt-1">Quản lý các thông số cấu hình toàn cục</p>
+          <p className="text-sb-tx-3 text-sm mt-1">Quản lý các thông số cấu hình toàn cục</p>
         </div>
       </div>
 
@@ -82,7 +82,7 @@ export default function SystemConfigsPage() {
 
         <div className="flex justify-end">
           <button onClick={load}
-            className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-gray-700/60 rounded-xl text-gray-400 hover:text-white text-sm transition-all">
+            className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all">
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
           </button>
         </div>
@@ -93,7 +93,7 @@ export default function SystemConfigsPage() {
           </div>
         ) : configs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Settings size={28} className="text-gray-700 mx-auto mb-3" />
+            <Settings size={28} className="text-sb-tx-2 mx-auto mb-3" />
             <p className="text-white font-semibold">Chưa có cấu hình nào</p>
           </div>
         ) : (
@@ -103,7 +103,7 @@ export default function SystemConfigsPage() {
                 <Settings size={12} className="text-[#D4AF37]" />
               </div>
               <h3 className="font-bold text-sm text-white">Danh sách cấu hình</h3>
-              <span className="ml-auto text-xs text-gray-500">{configs.length} mục</span>
+              <span className="ml-auto text-xs text-sb-tx-3">{configs.length} mục</span>
             </div>
 
             <div className="divide-y divide-white/[0.04]">
@@ -111,11 +111,11 @@ export default function SystemConfigsPage() {
                 const key = cfg.configKey || cfg.key;
                 const isEditing = editing === key;
                 return (
-                  <div key={key || i} className="flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors">
+                  <div key={key || i} className="flex items-center gap-4 px-5 py-4 hover:bg-sb-s2 transition-colors">
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-semibold text-sm font-mono">{key}</p>
                       {cfg.description && (
-                        <p className="text-gray-500 text-xs mt-0.5">{cfg.description}</p>
+                        <p className="text-sb-tx-3 text-xs mt-0.5">{cfg.description}</p>
                       )}
                     </div>
 
@@ -124,7 +124,7 @@ export default function SystemConfigsPage() {
                         <input
                           value={editVal}
                           onChange={(e) => setEditVal(e.target.value)}
-                          className="h-8 w-36 rounded-lg bg-white border border-gray-200 text-gray-900 text-sm px-2.5 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
+                          className="h-8 w-36 rounded-lg bg-sb-s1 border border-sb-border text-sb-tx text-sm px-2.5 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === "Enter") handleSave(cfg);
@@ -136,7 +136,7 @@ export default function SystemConfigsPage() {
                           {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
                         </button>
                         <button onClick={cancelEdit}
-                          className="h-8 w-8 rounded-lg bg-white border border-gray-200 hover:border-gray-300 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                          className="h-8 w-8 rounded-lg bg-sb-s1 border border-sb-border hover:border-sb-border-2 flex items-center justify-center text-sb-tx-3 hover:text-sb-tx-2 transition-colors">
                           <X size={12} />
                         </button>
                       </div>
@@ -146,7 +146,7 @@ export default function SystemConfigsPage() {
                           {cfg.configValue ?? cfg.value ?? "—"}
                         </span>
                         <button onClick={() => startEdit(cfg)}
-                          className="h-8 w-8 rounded-lg bg-white/[0.04] border border-gray-700 hover:border-[#D4AF37]/40 hover:text-[#D4AF37] flex items-center justify-center text-gray-500 transition-colors">
+                          className="h-8 w-8 rounded-lg bg-sb-s2 border border-sb-border hover:border-[#D4AF37]/40 hover:text-[#D4AF37] flex items-center justify-center text-sb-tx-3 transition-colors">
                           <Edit2 size={12} />
                         </button>
                       </div>

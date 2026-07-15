@@ -363,11 +363,12 @@ export default function PublicRacesPage() {
                             : <span className="text-sb-tx-3 font-bold tabular-nums">{idx + 1}</span>}
                         </td>
                         <td className="px-5 py-3">
-                          <p className="text-sb-tx font-semibold">{item[nameKey] || "—"}</p>
+                          {/* BE trả { name, points } — giữ fallback tên cũ cho chắc */}
+                          <p className="text-sb-tx font-semibold">{item.name || item[nameKey] || "—"}</p>
                           {item.ownerName && <p className="text-sb-tx-3 text-xs">🏠 {item.ownerName}</p>}
                         </td>
                         <td className="px-5 py-3 text-center"><span className="text-sb-emerald-ink font-bold tabular-nums">{item.totalWins ?? "—"}</span></td>
-                        <td className="px-5 py-3 text-center"><span className="text-sb-gold-2 font-bold tabular-nums">{item.totalPoints ?? "—"}</span></td>
+                        <td className="px-5 py-3 text-center"><span className="text-sb-gold-2 font-bold tabular-nums">{item.points ?? item.totalPoints ?? "—"}</span></td>
                         <td className="px-5 py-3 text-center"><span className="text-sb-tx-2 tabular-nums">{item.totalRaces ?? "—"}</span></td>
                       </tr>
                     ))}

@@ -13,25 +13,25 @@ import { tournamentService } from "../../services/tournament";
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  Draft:     { label: "Nháp",         cls: "bg-gray-50 text-gray-600 border-gray-200" },
-  Open:      { label: "Mở đăng ký",   cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  Ongoing:   { label: "Đang diễn ra", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  Finished:  { label: "Kết thúc",     cls: "bg-green-50 text-green-700 border-green-200" },
-  Cancelled: { label: "Đã hủy",       cls: "bg-red-50 text-red-600 border-red-200" },
+  Draft:     { label: "Nháp",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
+  Open:      { label: "Mở đăng ký",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30" },
+  Ongoing:   { label: "Đang diễn ra", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
+  Finished:  { label: "Kết thúc",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd" },
+  Cancelled: { label: "Đã hủy",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30" },
 };
 
 const RACE_STATUS_CONFIG = {
-  Scheduled:        { label: "Đã lên lịch",  cls: "bg-gray-50 text-gray-600 border-gray-200" },
-  RegistrationOpen: { label: "Mở ĐK ngựa",   cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  Ongoing:          { label: "Đang diễn ra", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  Finished:         { label: "Kết thúc",     cls: "bg-green-50 text-green-700 border-green-200" },
-  Cancelled:        { label: "Đã hủy",       cls: "bg-red-50 text-red-600 border-red-200" },
+  Scheduled:        { label: "Đã lên lịch",  cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
+  RegistrationOpen: { label: "Mở ĐK ngựa",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30" },
+  Ongoing:          { label: "Đang diễn ra", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
+  Finished:         { label: "Kết thúc",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd" },
+  Cancelled:        { label: "Đã hủy",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30" },
 };
 
 const STATUS_TRANSITIONS = {
-  Draft:    [{ label: "Mở đăng ký",    next: "Open",     cls: "bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700" }],
-  Open:     [{ label: "Bắt đầu giải",  next: "Ongoing",  cls: "bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700" }],
-  Ongoing:  [{ label: "Kết thúc giải", next: "Finished", cls: "bg-green-50 hover:bg-green-100 border border-green-200 text-green-700" }],
+  Draft:    [{ label: "Mở đăng ký",    next: "Open",     cls: "bg-sb-info/10 hover:bg-sb-info/20 border border-sb-info/30 text-sb-info" }],
+  Open:     [{ label: "Bắt đầu giải",  next: "Ongoing",  cls: "bg-sb-gold-soft hover:bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2" }],
+  Ongoing:  [{ label: "Kết thúc giải", next: "Finished", cls: "bg-sb-emerald-soft hover:bg-sb-emerald-soft border border-sb-emerald-bd text-sb-emerald-ink" }],
   Finished: [],
   Cancelled: [],
 };
@@ -291,7 +291,7 @@ export default function TournamentDetailPage() {
 
   if (!tournament) return (
     <AdminLayout title="Chi tiết giải đấu">
-      <div className="p-6 text-gray-400">{errorMsg || "Không tìm thấy giải đấu."}</div>
+      <div className="p-6 text-sb-tx-3">{errorMsg || "Không tìm thấy giải đấu."}</div>
     </AdminLayout>
   );
 
@@ -313,19 +313,19 @@ export default function TournamentDetailPage() {
         <div className="flex items-start gap-3 mb-6 flex-wrap">
           <button
             onClick={() => navigate("/admin/tournaments")}
-            className="text-gray-500 hover:text-[#D4AF37] transition-colors mt-1 shrink-0"
+            className="text-sb-tx-3 hover:text-[#D4AF37] transition-colors mt-1 shrink-0"
           >
             <ArrowLeft size={20} />
           </button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl font-bold text-gray-900 truncate">{tournament.tournamentName}</h1>
+              <h1 className="text-xl font-bold text-sb-tx truncate">{tournament.tournamentName}</h1>
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${statusCfg.cls}`}>
                 {statusCfg.label}
               </span>
             </div>
             {tournament.location && (
-              <p className="text-gray-400 text-sm mt-0.5">{tournament.location}</p>
+              <p className="text-sb-tx-3 text-sm mt-0.5">{tournament.location}</p>
             )}
           </div>
           {/* Status transition buttons */}
@@ -344,7 +344,7 @@ export default function TournamentDetailPage() {
               <button
                 onClick={() => handleChangeStatus("Cancelled")}
                 disabled={isChangingStatus}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition-all"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sb-lose/10 hover:bg-sb-lose/20 border border-sb-lose/30 text-sb-lose transition-all"
               >
                 Hủy giải
               </button>
@@ -353,13 +353,13 @@ export default function TournamentDetailPage() {
         </div>
 
         {errorMsg && (
-          <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+          <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
             <AlertCircle size={14} className="shrink-0" /> {errorMsg}
           </div>
         )}
 
         {/* ── Tabs ── */}
-        <div className="flex border-b border-gray-200 mb-6 gap-1">
+        <div className="flex border-b border-sb-border mb-6 gap-1">
           {TABS.map((tab) => (
             <button
               key={tab.key}
@@ -367,7 +367,7 @@ export default function TournamentDetailPage() {
               className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${
                 activeTab === tab.key
                   ? "border-[#D4AF37] text-[#D4AF37]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  : "border-transparent text-sb-tx-3 hover:text-sb-tx-2"
               }`}
             >
               <tab.icon size={14} /> {tab.label}
@@ -381,56 +381,56 @@ export default function TournamentDetailPage() {
         {activeTab === "info" && (
           <form onSubmit={handleSaveInfo} className="max-w-xl space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Tên giải đấu</Label>
+              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tên giải đấu</Label>
               <Input
                 value={infoForm.tournamentName}
                 onChange={(e) => setInfoForm({ ...infoForm, tournamentName: e.target.value })}
-                className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 required
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Địa điểm</Label>
+              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Địa điểm</Label>
               <Input
                 value={infoForm.location}
                 onChange={(e) => setInfoForm({ ...infoForm, location: e.target.value })}
-                className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Ngày bắt đầu</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Ngày bắt đầu</Label>
                 <Input
                   type="date" value={infoForm.startDate}
                   onChange={(e) => setInfoForm({ ...infoForm, startDate: e.target.value })}
-                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                  className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Ngày kết thúc</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Ngày kết thúc</Label>
                 <Input
                   type="date" value={infoForm.endDate}
                   onChange={(e) => setInfoForm({ ...infoForm, endDate: e.target.value })}
-                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                  className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Tổng giải thưởng (VNĐ)</Label>
+              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tổng giải thưởng (VNĐ)</Label>
               <Input
                 type="number" min="0" value={infoForm.prizeFund}
                 onChange={(e) => setInfoForm({ ...infoForm, prizeFund: e.target.value })}
                 placeholder="0"
-                className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Mô tả</Label>
+              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Mô tả</Label>
               <textarea
                 value={infoForm.description}
                 onChange={(e) => setInfoForm({ ...infoForm, description: e.target.value })}
                 rows={3}
-                className="w-full rounded-md bg-white border border-gray-200 text-gray-900 text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] resize-none placeholder:text-gray-400"
+                className="w-full rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] resize-none placeholder:text-sb-tx-3"
               />
             </div>
             <Button
@@ -453,7 +453,7 @@ export default function TournamentDetailPage() {
         {activeTab === "rounds" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <p className="text-gray-400 text-sm">
+              <p className="text-sb-tx-3 text-sm">
                 <span className="text-[#D4AF37] font-semibold">{rounds.length}</span> vòng đấu
               </p>
               <Button
@@ -468,29 +468,29 @@ export default function TournamentDetailPage() {
             </div>
 
             {rounds.length === 0 ? (
-              <div className="text-center py-16 text-gray-400">
-                <Flag size={40} className="mx-auto mb-3 text-gray-300" />
-                <p className="text-gray-500">Chưa có vòng đấu nào. Thêm vòng đấu đầu tiên!</p>
+              <div className="text-center py-16 text-sb-tx-3">
+                <Flag size={40} className="mx-auto mb-3 text-sb-tx-3" />
+                <p className="text-sb-tx-3">Chưa có vòng đấu nào. Thêm vòng đấu đầu tiên!</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {rounds.map((r) => (
                   <div
                     key={r.roundId}
-                    className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
+                    className="flex items-center gap-4 bg-sb-s1 border border-sb-border rounded-xl p-4 shadow-sm"
                   >
-                    <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 font-bold text-sm shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-sb-gold-soft border border-sb-gold-bd flex items-center justify-center text-sb-gold-2 font-bold text-sm shrink-0">
                       {r.roundOrder}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-gray-900 font-medium">{r.roundName}</p>
+                      <p className="text-sb-tx font-medium">{r.roundName}</p>
                       {(r.startDate || r.endDate) && (
-                        <p className="text-gray-500 text-xs mt-0.5">
+                        <p className="text-sb-tx-3 text-xs mt-0.5">
                           {r.startDate?.slice(0, 10)} → {r.endDate?.slice(0, 10)}
                         </p>
                       )}
                       {r.description && (
-                        <p className="text-gray-400 text-xs mt-0.5 truncate">{r.description}</p>
+                        <p className="text-sb-tx-3 text-xs mt-0.5 truncate">{r.description}</p>
                       )}
                     </div>
                     <div className="flex gap-1 shrink-0">
@@ -508,13 +508,13 @@ export default function TournamentDetailPage() {
                             },
                           });
                         }}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded"
+                        className="p-1.5 text-sb-tx-3 hover:text-sb-info hover:bg-sb-info/10 transition-colors rounded"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => handleDeleteRound(r.roundId)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors rounded"
+                        className="p-1.5 text-sb-tx-3 hover:text-sb-lose hover:bg-sb-lose/10 transition-colors rounded"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -532,7 +532,7 @@ export default function TournamentDetailPage() {
         {activeTab === "races" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <p className="text-gray-400 text-sm">
+              <p className="text-sb-tx-3 text-sm">
                 <span className="text-[#D4AF37] font-semibold">{races.length}</span> cuộc đua
               </p>
               <Button
@@ -544,17 +544,17 @@ export default function TournamentDetailPage() {
             </div>
 
             {races.length === 0 ? (
-              <div className="text-center py-16 text-gray-500">
+              <div className="text-center py-16 text-sb-tx-3">
                 <Calendar size={40} className="mx-auto mb-3" />
                 <p>Chưa có cuộc đua nào. Thêm cuộc đua đầu tiên!</p>
               </div>
             ) : (
-              <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <div className="rounded-xl border border-sb-border overflow-hidden shadow-sm">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
+                    <tr className="bg-sb-s2 border-b border-sb-border">
                       {["Tên cuộc đua","Vòng","Ngày thi","Trạng thái","Đường đua","Trọng tài",""].map((h) => (
-                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">
                           {h}
                         </th>
                       ))}
@@ -566,13 +566,13 @@ export default function TournamentDetailPage() {
                       return (
                         <tr
                           key={race.raceId}
-                          className={`border-b border-gray-100 hover:bg-blue-50/30 transition-colors ${
-                            idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                          className={`border-b border-sb-border hover:bg-sb-info/10/30 transition-colors ${
+                            idx % 2 === 0 ? "bg-sb-s1" : "bg-sb-s2/50"
                           }`}
                         >
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{race.raceName}</td>
-                          <td className="px-4 py-3 text-sm text-gray-500">{round?.roundName || "—"}</td>
-                          <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                          <td className="px-4 py-3 text-sm font-medium text-sb-tx">{race.raceName}</td>
+                          <td className="px-4 py-3 text-sm text-sb-tx-3">{round?.roundName || "—"}</td>
+                          <td className="px-4 py-3 text-sm text-sb-tx-3 whitespace-nowrap">
                             {race.raceDate?.slice(0, 16).replace("T", " ")}
                           </td>
                           <td className="px-4 py-3">
@@ -585,13 +585,13 @@ export default function TournamentDetailPage() {
                               );
                             })()}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-500">
+                          <td className="px-4 py-3 text-sm text-sb-tx-3">
                             {race.trackType}{race.trackLength ? ` (${race.trackLength}m)` : ""}
                           </td>
                           <td className="px-4 py-3">
                             <button
                               onClick={() => openRefModal(race)}
-                              className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 transition-colors"
+                              className="flex items-center gap-1 text-xs text-sb-tx-3 hover:text-sb-info transition-colors"
                             >
                               <Users size={13} />
                               {race.referees?.length || 0} trọng tài
@@ -619,13 +619,13 @@ export default function TournamentDetailPage() {
                                     },
                                   });
                                 }}
-                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded"
+                                className="p-1.5 text-sb-tx-3 hover:text-sb-info hover:bg-sb-info/10 transition-colors rounded"
                               >
                                 <Pencil size={14} />
                               </button>
                               <button
                                 onClick={() => handleDeleteRace(race.raceId)}
-                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors rounded"
+                                className="p-1.5 text-sb-tx-3 hover:text-sb-lose hover:bg-sb-lose/10 transition-colors rounded"
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -645,65 +645,65 @@ export default function TournamentDetailPage() {
       {/* ══ ROUND MODAL ══════════════════════════════════════════════════════════ */}
       {roundModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="text-base font-bold text-gray-900">
+          <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-sb-border">
+              <h2 className="text-base font-bold text-sb-tx">
                 {roundModal.mode === "create" ? "Thêm vòng đấu" : "Sửa vòng đấu"}
               </h2>
-              <button onClick={() => setRoundModal(null)} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
+              <button onClick={() => setRoundModal(null)} className="text-sb-tx-3 hover:text-sb-tx-2 text-2xl leading-none">×</button>
             </div>
             <form onSubmit={handleSaveRound} className="p-5 space-y-3">
               {roundFormErr && (
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
                   <AlertCircle size={13} /> {roundFormErr}
                 </div>
               )}
               <div className="space-y-1.5">
-                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Tên vòng đấu *</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tên vòng đấu *</Label>
                 <Input
                   value={roundModal.data.roundName}
                   onChange={(e) => setRoundModal((p) => ({ ...p, data: { ...p.data, roundName: e.target.value } }))}
                   placeholder="VD: Vòng loại"
-                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                  className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Thứ tự</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Thứ tự</Label>
                 <Input
                   type="number" min="1"
                   value={roundModal.data.roundOrder}
                   onChange={(e) => setRoundModal((p) => ({ ...p, data: { ...p.data, roundOrder: e.target.value } }))}
-                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                  className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Từ ngày</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Từ ngày</Label>
                   <Input
                     type="date" value={roundModal.data.startDate}
                     onChange={(e) => setRoundModal((p) => ({ ...p, data: { ...p.data, startDate: e.target.value } }))}
-                    className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                    className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Đến ngày</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Đến ngày</Label>
                   <Input
                     type="date" value={roundModal.data.endDate}
                     onChange={(e) => setRoundModal((p) => ({ ...p, data: { ...p.data, endDate: e.target.value } }))}
-                    className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                    className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Mô tả</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Mô tả</Label>
                 <Input
                   value={roundModal.data.description}
                   onChange={(e) => setRoundModal((p) => ({ ...p, data: { ...p.data, description: e.target.value } }))}
-                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                  className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setRoundModal(null)} className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-800 text-sm transition-colors">Hủy</button>
+                <button type="button" onClick={() => setRoundModal(null)} className="flex-1 h-9 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Hủy</button>
                 <Button type="submit" disabled={isSavingRound} className="flex-1 h-9 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm">
                   {isSavingRound ? <Loader2 size={14} className="animate-spin" /> : "Lưu"}
                 </Button>
@@ -716,127 +716,127 @@ export default function TournamentDetailPage() {
       {/* ══ RACE MODAL ═══════════════════════════════════════════════════════════ */}
       {raceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="text-base font-bold text-gray-900">
+          <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-sb-border">
+              <h2 className="text-base font-bold text-sb-tx">
                 {raceModal.mode === "create" ? "Thêm cuộc đua" : "Sửa cuộc đua"}
               </h2>
-              <button onClick={() => setRaceModal(null)} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
+              <button onClick={() => setRaceModal(null)} className="text-sb-tx-3 hover:text-sb-tx-2 text-2xl leading-none">×</button>
             </div>
             <form onSubmit={handleSaveRace} className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
               {raceFormErr && (
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
                   <AlertCircle size={13} /> {raceFormErr}
                 </div>
               )}
               <div className="space-y-1.5">
-                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Tên cuộc đua *</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tên cuộc đua *</Label>
                 <Input
                   value={raceModal.data.raceName}
                   onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, raceName: e.target.value } }))}
                   placeholder="VD: Race Opening"
-                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                  className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Vòng đấu</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Vòng đấu</Label>
                   <select
                     value={raceModal.data.roundId}
                     onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, roundId: e.target.value } }))}
-                    className="w-full h-10 rounded-md bg-white border border-gray-200 text-gray-900 text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
+                    className="w-full h-10 rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
                   >
                     <option value="">— Không gắn vòng —</option>
                     {rounds.map((r) => <option key={r.roundId} value={r.roundId}>{r.roundName}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Ngày thi đấu *</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Ngày thi đấu *</Label>
                   <Input
                     type="datetime-local"
                     value={raceModal.data.raceDate}
                     onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, raceDate: e.target.value } }))}
-                    className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                    className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Loại đường đua</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Loại đường đua</Label>
                   <select
                     value={raceModal.data.trackType}
                     onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, trackType: e.target.value } }))}
-                    className="w-full h-10 rounded-md bg-white border border-gray-200 text-gray-900 text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
+                    className="w-full h-10 rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
                   >
                     {TRACK_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Chiều dài (m)</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Chiều dài (m)</Label>
                   <Input
                     type="number" min="0"
                     value={raceModal.data.trackLength}
                     onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, trackLength: e.target.value } }))}
                     placeholder="VD: 1200"
-                    className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                    className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Số ngựa tối đa</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Số ngựa tối đa</Label>
                 <Input
                   type="number" min="1"
                   value={raceModal.data.maxParticipants}
                   onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, maxParticipants: e.target.value } }))}
                   placeholder="VD: 10"
-                  className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                  className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {[["prizeFirst","Giải 1 (VNĐ)"],["prizeSecond","Giải 2 (VNĐ)"],["prizeThird","Giải 3 (VNĐ)"]].map(([field, lbl]) => (
                   <div key={field} className="space-y-1.5">
-                    <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">{lbl}</Label>
+                    <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">{lbl}</Label>
                     <Input
                       type="number" min="0"
                       value={raceModal.data[field]}
                       onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, [field]: e.target.value } }))}
                       placeholder="0"
-                      className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                      className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                     />
                   </div>
                 ))}
               </div>
 
               {/* B3: Thời gian mở / đóng cổng đăng ký */}
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-3">
+              <div className="rounded-lg border border-sb-gold-bd bg-sb-gold-soft p-3 space-y-3">
                 <p className="text-[#D4AF37] text-xs font-semibold uppercase tracking-widest">
                   Cổng đăng ký ngựa &amp; dự đoán (B3)
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Mở cổng lúc</Label>
+                    <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Mở cổng lúc</Label>
                     <Input
                       type="datetime-local"
                       value={raceModal.data.registrationOpen}
                       onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, registrationOpen: e.target.value } }))}
-                      className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                      className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-gray-500 text-xs font-semibold uppercase tracking-widest">Đóng cổng lúc</Label>
+                    <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Đóng cổng lúc</Label>
                     <Input
                       type="datetime-local"
                       value={raceModal.data.registrationClose}
                       onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, registrationClose: e.target.value } }))}
-                      className="h-10 bg-white border-gray-200 text-gray-900 focus-visible:ring-[#D4AF37] focus-visible:border-[#D4AF37]"
+                      className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                     />
                   </div>
                 </div>
-                <p className="text-gray-500 text-xs">Khi đến giờ mở, hệ thống tự chuyển status → RegistrationOpen (B5)</p>
+                <p className="text-sb-tx-3 text-xs">Khi đến giờ mở, hệ thống tự chuyển status → RegistrationOpen (B5)</p>
               </div>
 
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setRaceModal(null)} className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-800 text-sm transition-colors">Hủy</button>
+                <button type="button" onClick={() => setRaceModal(null)} className="flex-1 h-9 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Hủy</button>
                 <Button type="submit" disabled={isSavingRace} className="flex-1 h-9 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm">
                   {isSavingRace ? <Loader2 size={14} className="animate-spin" /> : "Lưu"}
                 </Button>
@@ -849,30 +849,30 @@ export default function TournamentDetailPage() {
       {/* ══ REFEREE MODAL ════════════════════════════════════════════════════════ */}
       {refModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-sb-border">
               <div>
-                <h2 className="text-base font-bold text-gray-900">Phân công trọng tài</h2>
-                <p className="text-gray-500 text-xs mt-0.5">{refModal.raceName}</p>
+                <h2 className="text-base font-bold text-sb-tx">Phân công trọng tài</h2>
+                <p className="text-sb-tx-3 text-xs mt-0.5">{refModal.raceName}</p>
               </div>
-              <button onClick={() => setRefModal(null)} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
+              <button onClick={() => setRefModal(null)} className="text-sb-tx-3 hover:text-sb-tx-2 text-2xl leading-none">×</button>
             </div>
             <div className="p-5 space-y-4">
               {/* Danh sách đã phân công */}
               <div className="space-y-2">
-                <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest">
+                <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">
                   Đã phân công ({refModal.assigned.length})
                 </p>
                 {refModal.assigned.length === 0 ? (
-                  <p className="text-gray-400 text-sm">Chưa có trọng tài nào.</p>
+                  <p className="text-sb-tx-3 text-sm">Chưa có trọng tài nào.</p>
                 ) : (
                   refModal.assigned.map((ref) => (
-                    <div key={ref.refereeId} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                    <div key={ref.refereeId} className="flex items-center justify-between bg-sb-s2 border border-sb-border rounded-lg px-3 py-2">
                       <div>
-                        <p className="text-gray-900 text-sm font-medium">{ref.fullName || ref.refereeName}</p>
-                        <p className="text-gray-500 text-xs">{ref.role}</p>
+                        <p className="text-sb-tx text-sm font-medium">{ref.fullName || ref.refereeName}</p>
+                        <p className="text-sb-tx-3 text-xs">{ref.role}</p>
                       </div>
-                      <button onClick={() => handleRemoveRef(ref.refereeId)} className="text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => handleRemoveRef(ref.refereeId)} className="text-sb-tx-3 hover:text-sb-lose transition-colors">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -881,10 +881,10 @@ export default function TournamentDetailPage() {
               </div>
 
               {/* Form thêm trọng tài */}
-              <div className="border-t border-gray-100 pt-4">
-                <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-3">Thêm trọng tài</p>
+              <div className="border-t border-sb-border pt-4">
+                <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-3">Thêm trọng tài</p>
                 {refErr && (
-                  <div className="mb-3 flex items-center gap-2 p-2.5 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+                  <div className="mb-3 flex items-center gap-2 p-2.5 rounded-lg bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
                     <AlertCircle size={13} /> {refErr}
                   </div>
                 )}
@@ -892,7 +892,7 @@ export default function TournamentDetailPage() {
                   <select
                     value={refForm.refereeId}
                     onChange={(e) => setRefForm({ ...refForm, refereeId: e.target.value })}
-                    className="flex-1 h-9 rounded-md bg-white border border-gray-200 text-gray-900 text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
+                    className="flex-1 h-9 rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
                   >
                     <option value="">Chọn trọng tài...</option>
                     {refereeList
@@ -907,7 +907,7 @@ export default function TournamentDetailPage() {
                   <select
                     value={refForm.role}
                     onChange={(e) => setRefForm({ ...refForm, role: e.target.value })}
-                    className="w-28 h-9 rounded-md bg-white border border-gray-200 text-gray-900 text-sm px-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
+                    className="w-28 h-9 rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
                   >
                     {REF_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                   </select>

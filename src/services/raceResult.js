@@ -22,4 +22,13 @@ export const raceResultService = {
   getMinutes: (raceId) => api.get(`/races/${raceId}/minutes`),
   createMinutes: (raceId, data) => api.post(`/races/${raceId}/minutes`, data),
   updateMinutes: (raceId, data) => api.put(`/races/${raceId}/minutes`, data),
+  // Gửi biên bản cho toàn bộ Owner (sp_SendMinutesToOwners)
+  sendMinutes: (raceId) => api.post(`/races/${raceId}/minutes/send`, {}),
+  // Bàn giao kết quả + biên bản cho Ban tổ chức duyệt
+  handoff: (raceId) => api.post(`/races/${raceId}/minutes/handoff`, {}),
+
+  // ── Điều khiển trạng thái đua (Trọng tài là người DUY NHẤT đổi) ──
+  // PATCH /races/{id}/status: Scheduled/RegistrationOpen → Ongoing → Finished
+  changeRaceStatus: (raceId, status) =>
+    api.patch(`/races/${raceId}/status`, { status }),
 };

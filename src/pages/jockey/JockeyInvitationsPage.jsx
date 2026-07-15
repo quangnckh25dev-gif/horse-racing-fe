@@ -47,37 +47,37 @@ export default function JockeyInvitationsPage() {
     <AdminLayout title="Lời mời thi đấu">
 
       {/* ── Page Header ── */}
-      <div className="relative p-6 pb-5 border-b border-gray-100 bg-white overflow-hidden">
+      <div className="relative p-6 pb-5 border-b border-sb-border bg-sb-s1 overflow-hidden">
         <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.05] select-none pointer-events-none">🏇</div>
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center">
-                <Mail size={14} className="text-purple-600" />
+              <div className="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center">
+                <Mail size={14} className="text-purple-400" />
               </div>
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Nài ngựa</span>
+              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Nài ngựa</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 leading-tight">Lời mời thi đấu</h1>
+            <h1 className="text-2xl font-black text-sb-tx leading-tight">Lời mời thi đấu</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               {pending.length > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-50 border border-yellow-200 text-yellow-700 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2 text-xs font-semibold">
                   <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse inline-block" /> {pending.length} chờ phản hồi
                 </span>
               )}
               {accepted.length > 0 && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-sb-emerald-soft border border-sb-emerald-bd text-sb-emerald-ink text-xs font-semibold">
                   {accepted.length} đã chấp nhận
                 </span>
               )}
               {declined.length > 0 && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-xs font-semibold">
                   {declined.length} đã từ chối
                 </span>
               )}
             </div>
           </div>
           <button onClick={fetchInvitations}
-            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 text-sm transition-all shrink-0">
+            className="flex items-center gap-2 px-3 py-2 bg-sb-s1 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-info hover:border-blue-300 hover:bg-sb-info/10 text-sm transition-all shrink-0">
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
           </button>
         </div>
@@ -88,17 +88,17 @@ export default function JockeyInvitationsPage() {
         {/* ── Mini stats ── */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: "Chờ phản hồi", count: pending.length,  icon: Clock,        bg: "bg-yellow-50", border: "border-yellow-200", cls: "text-yellow-600" },
-            { label: "Đã chấp nhận", count: accepted.length, icon: CheckCircle2, bg: "bg-green-50",  border: "border-green-200",  cls: "text-green-600" },
-            { label: "Đã từ chối",   count: declined.length, icon: XCircle,      bg: "bg-red-50",    border: "border-red-200",    cls: "text-red-600"   },
+            { label: "Chờ phản hồi", count: pending.length,  icon: Clock,        bg: "bg-sb-gold-soft", border: "border-sb-gold-bd", cls: "text-sb-gold-2" },
+            { label: "Đã chấp nhận", count: accepted.length, icon: CheckCircle2, bg: "bg-sb-emerald-soft",  border: "border-sb-emerald-bd",  cls: "text-sb-emerald-ink" },
+            { label: "Đã từ chối",   count: declined.length, icon: XCircle,      bg: "bg-sb-lose/10",    border: "border-sb-lose/30",    cls: "text-sb-lose"   },
           ].map(({ label, count, icon: Icon, bg, border, cls }) => (
-            <div key={label} className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+            <div key={label} className="flex items-center gap-3 p-4 rounded-xl border border-sb-border bg-sb-s1 shadow-sm hover:shadow-md transition-shadow">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg} border ${border}`}>
                 <Icon size={16} className={cls} />
               </div>
               <div>
                 <p className={`text-2xl font-black leading-none ${cls}`}>{count}</p>
-                <p className="text-gray-500 text-xs mt-0.5">{label}</p>
+                <p className="text-sb-tx-3 text-xs mt-0.5">{label}</p>
               </div>
             </div>
           ))}
@@ -106,7 +106,7 @@ export default function JockeyInvitationsPage() {
 
         {/* ── Error ── */}
         {error && (
-          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+          <div className="flex items-center gap-3 p-4 bg-sb-lose/10 border border-sb-lose/30 rounded-xl text-sb-lose text-sm">
             <AlertCircle size={15} /> {error}
           </div>
         )}
@@ -115,7 +115,7 @@ export default function JockeyInvitationsPage() {
         {loading ? (
           <div className="space-y-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-28 bg-gray-100 animate-pulse rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />
+              <div key={i} className="h-28 bg-sb-s2 animate-pulse rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />
             ))}
           </div>
         ) : (
@@ -125,8 +125,8 @@ export default function JockeyInvitationsPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Clock size={14} className="text-yellow-500" />
-                  <h2 className="text-gray-700 font-bold text-sm uppercase tracking-wider">Chờ phản hồi</h2>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200 font-bold">{pending.length}</span>
+                  <h2 className="text-sb-tx-2 font-bold text-sm uppercase tracking-wider">Chờ phản hồi</h2>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-sb-gold-soft text-sb-gold-2 border border-sb-gold-bd font-bold">{pending.length}</span>
                 </div>
 
                 {pending.map((inv, idx) => {
@@ -137,43 +137,43 @@ export default function JockeyInvitationsPage() {
                   return (
                     <div
                       key={invId}
-                      className="relative bg-white border border-yellow-200 border-l-4 border-l-yellow-400 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow animate-fade-in-up"
+                      className="relative bg-sb-s1 border border-sb-gold-bd border-l-4 border-l-yellow-400 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow animate-fade-in-up"
                       style={{ animationDelay: `${idx * 60}ms` }}
                     >
                       <div className="p-5">
                         <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                           {/* Owner avatar */}
-                          <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
-                            <span className="text-amber-600 font-black text-lg">{initials}</span>
+                          <div className="w-12 h-12 rounded-xl bg-sb-gold-soft border border-sb-gold-bd flex items-center justify-center shrink-0">
+                            <span className="text-sb-gold-2 font-black text-lg">{initials}</span>
                           </div>
 
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2 mb-2">
                               <div>
-                                <p className="text-gray-900 font-bold">
-                                  <span className="text-amber-600">{inv.raceName || `Vòng đua #${inv.raceId}`}</span>
+                                <p className="text-sb-tx font-bold">
+                                  <span className="text-sb-gold-2">{inv.raceName || `Vòng đua #${inv.raceId}`}</span>
                                 </p>
-                                <p className="text-gray-500 text-xs mt-0.5">Chủ ngựa: {inv.ownerName || inv.ownerId}</p>
+                                <p className="text-sb-tx-3 text-xs mt-0.5">Chủ ngựa: {inv.ownerName || inv.ownerId}</p>
                               </div>
-                              <span className="text-[10px] px-2 py-1 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200 font-bold shrink-0">
+                              <span className="text-[10px] px-2 py-1 rounded-full bg-sb-gold-soft text-sb-gold-2 border border-sb-gold-bd font-bold shrink-0">
                                 Chờ phản hồi
                               </span>
                             </div>
 
                             <div className="flex items-center gap-3 flex-wrap mb-4">
                               {inv.horseName && (
-                                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-600 text-xs font-medium">🐴 {inv.horseName}</span>
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs font-medium">🐴 {inv.horseName}</span>
                               )}
                               {inv.raceDate && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-600 text-xs font-medium">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs font-medium">
                                   <Flag size={9} /> {new Date(inv.raceDate).toLocaleDateString("vi-VN")}
                                 </span>
                               )}
                             </div>
 
                             {inv.note && (
-                              <p className="text-gray-500 text-xs italic mb-4 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                              <p className="text-sb-tx-3 text-xs italic mb-4 px-3 py-2 bg-sb-s2 rounded-lg border border-sb-border">
                                 "{inv.note}"
                               </p>
                             )}
@@ -183,7 +183,7 @@ export default function JockeyInvitationsPage() {
                               <button
                                 onClick={() => handleRespond(invId, "Accepted")}
                                 disabled={busy}
-                                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-50 border border-green-300 text-green-700 hover:bg-green-100 hover:border-green-400 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-sb-emerald-soft border border-green-300 text-sb-emerald-ink hover:bg-sb-emerald-soft hover:border-green-400 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
                               >
                                 {actionLoading === invId + "_Accepted"
                                   ? <Loader2 size={15} className="animate-spin" />
@@ -194,7 +194,7 @@ export default function JockeyInvitationsPage() {
                               <button
                                 onClick={() => handleRespond(invId, "Declined")}
                                 disabled={busy}
-                                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-sb-lose/10 border border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20 hover:border-red-300 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
                               >
                                 {actionLoading === invId + "_Declined"
                                   ? <Loader2 size={15} className="animate-spin" />
@@ -216,9 +216,9 @@ export default function JockeyInvitationsPage() {
             {responded.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 size={14} className="text-gray-400" />
-                  <h2 className="text-gray-500 font-bold text-sm uppercase tracking-wider">Đã phản hồi</h2>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-50 border border-gray-200 text-gray-500 font-bold">{responded.length}</span>
+                  <CheckCircle2 size={14} className="text-sb-tx-3" />
+                  <h2 className="text-sb-tx-3 font-bold text-sm uppercase tracking-wider">Đã phản hồi</h2>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-3 font-bold">{responded.length}</span>
                 </div>
 
                 {responded.map((inv, idx) => {
@@ -228,29 +228,29 @@ export default function JockeyInvitationsPage() {
                   return (
                     <div
                       key={invId}
-                      className={`flex items-center gap-4 p-4 rounded-xl border bg-white shadow-sm animate-fade-in-up ${
-                        isAccepted ? "border-green-100" : "border-gray-100"
+                      className={`flex items-center gap-4 p-4 rounded-xl border bg-sb-s1 shadow-sm animate-fade-in-up ${
+                        isAccepted ? "border-green-100" : "border-sb-border"
                       }`}
                       style={{ animationDelay: `${idx * 40}ms` }}
                     >
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
                         isAccepted
-                          ? "bg-green-50 border-green-200 text-green-600"
-                          : "bg-red-50 border-red-200 text-red-600"
+                          ? "bg-sb-emerald-soft border-sb-emerald-bd text-sb-emerald-ink"
+                          : "bg-sb-lose/10 border-sb-lose/30 text-sb-lose"
                       }`}>
                         {isAccepted ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-gray-800 text-sm font-semibold truncate">{inv.raceName || `Vòng đua #${inv.raceId}`}</p>
-                        <p className="text-gray-500 text-xs">
+                        <p className="text-sb-tx text-sm font-semibold truncate">{inv.raceName || `Vòng đua #${inv.raceId}`}</p>
+                        <p className="text-sb-tx-3 text-xs">
                           {inv.horseName && `🐴 ${inv.horseName}`}
                           {inv.ownerName && ` • ${inv.ownerName}`}
                         </p>
                       </div>
                       <span className={`text-[10px] px-2.5 py-1 rounded-full border font-bold shrink-0 ${
                         isAccepted
-                          ? "bg-green-50 text-green-700 border-green-200"
-                          : "bg-red-50 text-red-600 border-red-200"
+                          ? "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd"
+                          : "bg-sb-lose/10 text-sb-lose border-sb-lose/30"
                       }`}>
                         {isAccepted ? "Đã chấp nhận" : "Đã từ chối"}
                       </span>
@@ -263,11 +263,11 @@ export default function JockeyInvitationsPage() {
             {/* ── Empty state ── */}
             {invitations.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center mb-4">
+                <div className="w-20 h-20 rounded-2xl bg-purple-500/10 border border-purple-100 flex items-center justify-center mb-4">
                   <Mail size={32} className="text-purple-300" />
                 </div>
-                <p className="text-gray-700 font-semibold mb-1">Chưa có lời mời nào</p>
-                <p className="text-gray-500 text-sm">Các chủ ngựa sẽ gửi lời mời thi đấu cho bạn tại đây</p>
+                <p className="text-sb-tx-2 font-semibold mb-1">Chưa có lời mời nào</p>
+                <p className="text-sb-tx-3 text-sm">Các chủ ngựa sẽ gửi lời mời thi đấu cho bạn tại đây</p>
               </div>
             )}
           </>

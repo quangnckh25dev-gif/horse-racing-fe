@@ -1,20 +1,24 @@
 import { api } from "./api";
 
 export const tournamentService = {
-  // ── Tournaments ──────────────────────────────────────────
+  // ── Admin: chỉ xem + duyệt (không tạo/sửa/xoá) ────────────
   getAll: () => api.get("/admin/tournaments"),
   getById: (id) => api.get(`/admin/tournaments/${id}`),
-  create: (data) => api.post("/admin/tournaments", data),
-  update: (id, data) => api.put(`/admin/tournaments/${id}`, data),
-  delete: (id) => api.delete(`/admin/tournaments/${id}`),
   changeStatus: (id, status) =>
     api.put(`/admin/tournaments/${id}/status`, { status }),
 
-  // ── Rounds ───────────────────────────────────────────────
+  // ── Organizer: tạo / sửa / gửi duyệt ──────────────────────
+  getMine: () => api.get("/organizer/tournaments"),
+  getMineById: (id) => api.get(`/organizer/tournaments/${id}`),
+  create: (data) => api.post("/organizer/tournaments", data),
+  update: (id, data) => api.put(`/organizer/tournaments/${id}`, data),
+  submitForApproval: (id) => api.put(`/organizer/tournaments/${id}/submit`, {}),
+
+  // ── Rounds (Organizer) ────────────────────────────────────
   createRound: (tournamentId, data) =>
-    api.post(`/admin/tournaments/${tournamentId}/rounds`, data),
-  updateRound: (roundId, data) => api.put(`/admin/rounds/${roundId}`, data),
-  deleteRound: (roundId) => api.delete(`/admin/rounds/${roundId}`),
+    api.post(`/organizer/tournaments/${tournamentId}/rounds`, data),
+  updateRound: (roundId, data) => api.put(`/organizer/rounds/${roundId}`, data),
+  deleteRound: (roundId) => api.delete(`/organizer/rounds/${roundId}`),
 
   // ── Races ────────────────────────────────────────────────
   createRace: (data) => api.post("/organizer/races", data),
@@ -28,7 +32,7 @@ export const tournamentService = {
   removeReferee: (raceId, refereeId) =>
     api.delete(`/organizer/races/${raceId}/referees/${refereeId}`),
 
-  // ── Public tournament endpoints (GET /api/tournaments) ───
-  getPublicTournaments: () => api.get("/tournaments"),
+  // ── Public ───────────────────────────────────────────────
   getPublicTournamentById: (id) => api.get(`/tournaments/${id}`),
+  getPublicRounds: (id) => api.get(`/tournaments/${id}/rounds`),
 };

@@ -10,10 +10,5 @@ export const spectatorService = {
   // ── Race schedule detail ──────────────────────────────────
   getRaceSchedule: (raceId) => api.get(`/races/${raceId}/schedule`),
 
-  // ── Predictions ───────────────────────────────────────────
-  makePrediction: (raceId, data) =>
-    api.post(`/races/${raceId}/predictions`, data),
-  updatePrediction: (raceId, data) =>
-    api.put(`/races/${raceId}/predictions`, data),
-  getPredictionHistory: () => api.get("/predictions/history"),
+  // ⚠️ Prediction đã BỎ — Prediction = Bet (xem services/bet.js)
 };

@@ -3,6 +3,14 @@ const BASE_URL = "http://localhost:8080/api";
 const getToken = () =>
   localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
 
+// Token hỏng/hết hạn → dọn phiên + đưa về login
+const clearSession = () => {
+  ["accessToken", "refreshToken", "user"].forEach((k) => {
+    localStorage.removeItem(k);
+    sessionStorage.removeItem(k);
+  });
+};
+
 const request = async (endpoint, options = {}) => {
   const token = getToken();
   const headers = {
@@ -11,15 +19,26 @@ const request = async (endpoint, options = {}) => {
     ...options.headers,
   };
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
 
-  const json = await response.json();
+  // Body có thể không phải JSON (vd 500 trả HTML) → parse an toàn
+  let json;
+  try {
+    json = await response.json();
+  } catch {
+    json = null;
+  }
 
   if (!response.ok) {
-    const error = new Error(json.message || "Có lỗi xảy ra");
+    if (response.status === 401) {
+      clearSession();
+      // Hết phiên / đăng xuất → về trang chủ (có popup đăng nhập), không nhảy /login
+      const p = window.location.pathname;
+      if (p !== "/" && !p.startsWith("/login")) {
+        window.location.href = "/";
+      }
+    }
+    const error = new Error(json?.message || `Lỗi ${response.status}`);
     error.status = response.status;
     error.data = json;
     throw error;

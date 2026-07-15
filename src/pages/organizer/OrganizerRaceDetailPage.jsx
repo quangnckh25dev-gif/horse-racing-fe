@@ -29,18 +29,18 @@ const TABS = [
   { id: "results",  label: "Kết quả",   icon: Trophy },
 ];
 
-const selectCls = "w-full bg-[#070B14] border border-gray-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
-const inputCls  = "w-full bg-[#070B14] border border-gray-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all resize-none";
-const labelCls  = "block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5";
+const selectCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
+const inputCls  = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all resize-none";
+const labelCls  = "block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5";
 
 function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
-      <div className="bg-[#0d1117] border border-gray-800/60 rounded-2xl w-full max-w-md shadow-2xl animate-scale-in">
+      <div className="bg-[#0d1117] border border-sb-border rounded-2xl w-full max-w-md shadow-2xl animate-scale-in">
         <div className="h-0.5 w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }} />
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border">
           <h3 className="text-white font-bold">{title}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s1/5 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -67,15 +67,15 @@ function InfoTab({ race }) {
   return (
     <div className="space-y-4">
       {/* Status badge at top */}
-      <div className="flex items-center gap-3 p-4 bg-white/[0.02] rounded-xl border border-gray-800/60">
+      <div className="flex items-center gap-3 p-4 bg-sb-s2 rounded-xl border border-sb-border">
         <div className="flex items-center gap-2">
-          <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full border flex items-center gap-1.5 ${statusCfg.color || "bg-gray-500/20 text-gray-300 border-gray-600/40"}`}>
+          <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full border flex items-center gap-1.5 ${statusCfg.color || "bg-gray-500/20 text-sb-tx-3 border-gray-600/40"}`}>
             {race.status === "Ongoing" && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" />}
             {statusCfg.label || race.status}
           </span>
         </div>
         {race.tournamentName && (
-          <span className="text-gray-400 text-sm flex items-center gap-1.5">
+          <span className="text-sb-tx-3 text-sm flex items-center gap-1.5">
             <Trophy size={12} className="text-[#D4AF37]" /> {race.tournamentName}
           </span>
         )}
@@ -84,8 +84,8 @@ function InfoTab({ race }) {
       {/* Info grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {infoCards.map(({ icon, label, value, accent }) => (
-          <div key={label} className="bg-white/[0.02] border border-gray-800/60 rounded-xl p-4 card-hover">
-            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+          <div key={label} className="bg-sb-s2 border border-sb-border rounded-xl p-4 card-hover">
+            <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
               <span>{icon}</span> {label}
             </p>
             <p className={`text-sm font-semibold ${accent ? "neon-gold" : "text-white"}`}
@@ -98,9 +98,9 @@ function InfoTab({ race }) {
 
       {/* Description */}
       {race.description && (
-        <div className="bg-white/[0.02] border border-gray-800/60 rounded-xl p-4">
-          <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2">📝 Mô tả</p>
-          <p className="text-gray-300 text-sm leading-relaxed">{race.description}</p>
+        <div className="bg-sb-s2 border border-sb-border rounded-xl p-4">
+          <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-2">📝 Mô tả</p>
+          <p className="text-sb-tx-3 text-sm leading-relaxed">{race.description}</p>
         </div>
       )}
     </div>
@@ -166,8 +166,12 @@ function RefereesTab({ raceId }) {
     }
   };
 
+  // Danh sách đã phân công chỉ trả refereeId → tra tên/email từ danh sách trọng tài
+  const refById = {};
+  allReferees.forEach((r) => { refById[r.refereeId] = r; });
+
   const unassignedReferees = allReferees.filter(
-    (r) => !assigned.find((a) => a.refereeId === r.userId || a.refereeId === r.id)
+    (r) => !assigned.find((a) => a.refereeId === r.refereeId)
   );
 
   if (loading) return (
@@ -181,7 +185,7 @@ function RefereesTab({ raceId }) {
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
 
       <div className="flex items-center justify-between">
-        <p className="text-gray-400 text-sm"><span className="text-white font-bold">{assigned.length}</span> trọng tài được phân công</p>
+        <p className="text-sb-tx-3 text-sm"><span className="text-white font-bold">{assigned.length}</span> trọng tài được phân công</p>
         <button onClick={() => setShowAssign(true)}
           className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm transition-colors btn-gold-glow">
           <Plus size={14} /> Phân công
@@ -194,31 +198,33 @@ function RefereesTab({ raceId }) {
             <ShieldCheck size={22} className="text-[#D4AF37]/30" />
           </div>
           <p className="text-white font-semibold text-sm mb-1">Chưa có trọng tài nào</p>
-          <p className="text-gray-500 text-xs">Bấm "Phân công" để thêm trọng tài vào vòng đua</p>
+          <p className="text-sb-tx-3 text-xs">Bấm "Phân công" để thêm trọng tài vào vòng đua</p>
         </div>
       ) : (
         <div className="space-y-2.5">
           {assigned.map((ref, idx) => {
             const roleKey = ref.role || ref.refereeRole || "AssistantReferee";
-            const roleCfg = ROLE_LABELS[roleKey] || { label: roleKey, color: "text-gray-400 bg-white/5 border-gray-700" };
-            const name = ref.fullName || ref.username || "Unknown";
-            const initials = name[0].toUpperCase();
+            const roleCfg = ROLE_LABELS[roleKey] || { label: roleKey, color: "text-sb-tx-3 bg-sb-s1/5 border-sb-border" };
+            const info = refById[ref.refereeId] || {};
+            const name = info.fullName || info.username || ref.fullName || `Trọng tài #${ref.refereeId}`;
+            const email = info.email;
+            const initials = (name[0] || "T").toUpperCase();
             return (
               <div key={ref.refereeId || ref.id || idx}
-                className="group flex items-center gap-4 bg-white/[0.02] border border-gray-800/60 rounded-xl p-4 card-hover animate-fade-in-up"
+                className="group flex items-center gap-4 bg-sb-s2 border border-sb-border rounded-xl p-4 card-hover animate-fade-in-up"
                 style={{ animationDelay: `${idx * 50}ms` }}>
                 <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center shrink-0">
                   <span className="text-[#D4AF37] font-black">{initials}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-semibold text-sm">{name}</p>
-                  {ref.email && <p className="text-gray-500 text-xs mt-0.5">{ref.email}</p>}
+                  {email && <p className="text-sb-tx-3 text-xs mt-0.5">{email}</p>}
                 </div>
                 <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${roleCfg.color}`}>
                   {roleCfg.label}
                 </span>
                 <button onClick={() => handleRemove(ref.refereeId || ref.id)}
-                  className="p-2 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-red-950/20">
+                  className="p-2 text-sb-tx-2 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-red-950/20">
                   <Trash2 size={14} />
                 </button>
               </div>
@@ -235,7 +241,7 @@ function RefereesTab({ raceId }) {
               <select value={assignForm.refereeId} onChange={(e) => setAssignForm((p) => ({ ...p, refereeId: e.target.value }))} required className={selectCls}>
                 <option value="">-- Chọn trọng tài --</option>
                 {unassignedReferees.map((r) => (
-                  <option key={r.userId || r.id} value={r.userId || r.id}>
+                  <option key={r.refereeId} value={r.refereeId}>
                     {r.fullName || r.username}
                   </option>
                 ))}
@@ -251,7 +257,7 @@ function RefereesTab({ raceId }) {
             </div>
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setShowAssign(false)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-700/60 text-gray-400 hover:text-white text-sm transition-colors">Huỷ</button>
+                className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Huỷ</button>
               <button type="submit" disabled={formLoading}
                 className="flex-1 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
                 {formLoading && <Loader2 size={14} className="animate-spin" />} Phân công
@@ -328,11 +334,11 @@ function EntriesTab({ raceId }) {
 
       {entries.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-14 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-gray-800 flex items-center justify-center mb-3 animate-float">
+          <div className="w-14 h-14 rounded-2xl bg-sb-s1/[0.03] border border-sb-border flex items-center justify-center mb-3 animate-float">
             <span className="text-3xl">🐴</span>
           </div>
           <p className="text-white font-semibold text-sm mb-1">Chưa có đội tham gia</p>
-          <p className="text-gray-500 text-xs">Các đội sẽ hiển thị sau khi đăng ký</p>
+          <p className="text-sb-tx-3 text-xs">Các đội sẽ hiển thị sau khi đăng ký</p>
         </div>
       ) : (
         <div className="space-y-2.5">
@@ -343,11 +349,11 @@ function EntriesTab({ raceId }) {
 
             return (
               <div key={entry.entryId}
-                className={`group flex items-center gap-4 bg-white/[0.02] border rounded-xl p-4 card-hover animate-fade-in-up
-                  ${isPending ? "border-yellow-500/20 border-l-gold-glow" : isApproved ? "border-green-500/15 border-l-green-glow" : "border-gray-800/60"}`}
+                className={`group flex items-center gap-4 bg-sb-s2 border rounded-xl p-4 card-hover animate-fade-in-up
+                  ${isPending ? "border-yellow-500/20 border-l-gold-glow" : isApproved ? "border-green-500/15 border-l-green-glow" : "border-sb-border"}`}
                 style={{ animationDelay: `${idx * 50}ms` }}>
                 {/* Horse avatar */}
-                <div className="w-11 h-11 rounded-xl bg-white/[0.03] border border-gray-800 flex items-center justify-center shrink-0 text-xl">
+                <div className="w-11 h-11 rounded-xl bg-sb-s1/[0.03] border border-sb-border flex items-center justify-center shrink-0 text-xl">
                   🐴
                 </div>
 
@@ -359,7 +365,7 @@ function EntriesTab({ raceId }) {
                     {entry.jockeyName ? (
                       <span className="stat-pill">🏇 {entry.jockeyName}</span>
                     ) : (
-                      <span className="text-gray-600 text-xs italic">Chưa có jockey</span>
+                      <span className="text-sb-tx-2 text-xs italic">Chưa có jockey</span>
                     )}
                   </div>
                 </div>
@@ -374,7 +380,7 @@ function EntriesTab({ raceId }) {
                     </button>
                   ) : (
                     <span className={`text-[10px] font-bold px-2.5 py-1.5 rounded-full border ${
-                      isApproved ? "bg-green-500/15 text-green-300 border-green-500/30" : "bg-gray-500/15 text-gray-400 border-gray-500/30"
+                      isApproved ? "bg-green-500/15 text-green-300 border-green-500/30" : "bg-gray-500/15 text-sb-tx-3 border-gray-500/30"
                     }`}>
                       {isApproved ? "✓ Đã duyệt" : entry.status}
                     </span>
@@ -428,7 +434,8 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
     }
   };
 
-  const isHead = role === "OrganizerHead";
+  // 1 role Organizer duy nhất — được duyệt/công bố kết quả
+  const isHead = role === "Organizer";
   const sorted = [...results].sort((a, b) => (a.position || 99) - (b.position || 99));
 
   if (loading) return (
@@ -439,7 +446,7 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
 
   const PODIUM = [
     { pos: 1, icon: "🥇", bg: "from-[#D4AF37]/20 to-[#D4AF37]/5", border: "border-[#D4AF37]/30", text: "text-[#D4AF37] neon-gold" },
-    { pos: 2, icon: "🥈", bg: "from-gray-400/20 to-gray-400/5",   border: "border-gray-400/30",   text: "text-gray-300" },
+    { pos: 2, icon: "🥈", bg: "from-gray-400/20 to-gray-400/5",   border: "border-gray-400/30",   text: "text-sb-tx-3" },
     { pos: 3, icon: "🥉", bg: "from-amber-700/20 to-amber-700/5", border: "border-amber-700/30",  text: "text-amber-500" },
   ];
 
@@ -449,8 +456,8 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
 
       {/* OrganizerHead actions */}
       {isHead && race?.status === "Finished" && (
-        <div className="flex items-center gap-3 flex-wrap p-4 bg-white/[0.02] border border-gray-800/60 rounded-xl">
-          <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mr-auto">Thao tác kết quả</p>
+        <div className="flex items-center gap-3 flex-wrap p-4 bg-sb-s2 border border-sb-border rounded-xl">
+          <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mr-auto">Thao tác kết quả</p>
           <button onClick={() => handleAction("approve")} disabled={!!actionLoading}
             className="flex items-center gap-2 px-4 py-2 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-xl text-sm font-bold transition-all disabled:opacity-60">
             {actionLoading === "approve" ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
@@ -475,7 +482,7 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
             <Trophy size={22} className="text-[#D4AF37]/30" />
           </div>
           <p className="text-white font-semibold text-sm mb-1">Chưa có kết quả</p>
-          <p className="text-gray-500 text-xs">Trọng tài chưa nhập kết quả vòng đua</p>
+          <p className="text-sb-tx-3 text-xs">Trọng tài chưa nhập kết quả vòng đua</p>
         </div>
       ) : (
         <>
@@ -489,8 +496,8 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
                   <div key={pos} className={`bg-gradient-to-br ${bg} border ${border} rounded-xl p-4 text-center`}>
                     <div className="text-3xl mb-2">{icon}</div>
                     <p className={`text-base font-black ${text}`}>{r.horseName || (r.horseId ? `Ngựa #${r.horseId}` : "Chưa có")}</p>
-                    <p className="text-gray-500 text-xs mt-1">🏇 {r.jockeyName || "Chưa có jockey"}</p>
-                    {r.finishTime && <p className="text-gray-400 text-xs mt-1">⏱ {r.finishTime}</p>}
+                    <p className="text-sb-tx-3 text-xs mt-1">🏇 {r.jockeyName || "Chưa có jockey"}</p>
+                    {r.finishTime && <p className="text-sb-tx-3 text-xs mt-1">⏱ {r.finishTime}</p>}
                   </div>
                 );
               })}
@@ -501,20 +508,20 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
           <div className="space-y-2">
             {sorted.map((r, idx) => (
               <div key={r.resultId || r.entryId}
-                className="flex items-center gap-4 bg-white/[0.02] border border-gray-800/60 rounded-xl p-4 animate-fade-in-up"
+                className="flex items-center gap-4 bg-sb-s2 border border-sb-border rounded-xl p-4 animate-fade-in-up"
                 style={{ animationDelay: `${idx * 40}ms` }}>
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-sm shrink-0 border ${
                   r.position === 1 ? "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/30" :
-                  r.position === 2 ? "bg-gray-400/20 text-gray-300 border-gray-400/30" :
+                  r.position === 2 ? "bg-gray-400/20 text-sb-tx-3 border-gray-400/30" :
                   r.position === 3 ? "bg-amber-700/20 text-amber-500 border-amber-700/30" :
-                  "bg-white/[0.03] text-gray-500 border-gray-700/40"
+                  "bg-sb-s1/[0.03] text-sb-tx-3 border-sb-border"
                 }`}>
                   {r.position ?? "—"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-semibold text-sm">{r.horseName || (r.horseId ? `Ngựa #${r.horseId}` : "Chưa có")}</p>
                   <div className="flex items-center gap-3 flex-wrap mt-0.5">
-                    <span className="text-gray-500 text-xs">🏇 {r.jockeyName || "Chưa có jockey"}</span>
+                    <span className="text-sb-tx-3 text-xs">🏇 {r.jockeyName || "Chưa có jockey"}</span>
                     {r.finishTime && <span className="stat-pill">⏱ {r.finishTime}</span>}
                   </div>
                 </div>
@@ -522,7 +529,7 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
                     r.status === "Published" ? "bg-green-500/15 text-green-300 border-green-500/30" :
                     r.status === "Approved"  ? "bg-blue-500/15 text-blue-300 border-blue-500/30" :
-                    "bg-gray-500/15 text-gray-400 border-gray-500/30"
+                    "bg-gray-500/15 text-sb-tx-3 border-gray-500/30"
                   }`}>
                     {r.status === "Published" ? "Đã công bố" : r.status === "Approved" ? "Đã duyệt" : r.status}
                   </span>
@@ -535,7 +542,7 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
 
       {showReject && (
         <Modal title="Từ chối kết quả" accentColor="rgb(239,68,68)" onClose={() => setShowReject(false)}>
-          <p className="text-gray-400 text-sm mb-3">Nhập lý do từ chối để trọng tài biết cần chỉnh sửa:</p>
+          <p className="text-sb-tx-3 text-sm mb-3">Nhập lý do từ chối để trọng tài biết cần chỉnh sửa:</p>
           <textarea
             value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
             placeholder="VD: Thiếu thời gian về đích của ngựa số 3..." rows={4}
@@ -543,7 +550,7 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
           />
           <div className="flex gap-3">
             <button onClick={() => setShowReject(false)}
-              className="flex-1 py-2.5 rounded-xl border border-gray-700/60 text-gray-400 hover:text-white text-sm transition-colors">Huỷ</button>
+              className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Huỷ</button>
             <button onClick={() => handleAction("reject", { reason: rejectReason })} disabled={!!actionLoading}
               className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
               {actionLoading === "reject" && <Loader2 size={14} className="animate-spin" />} Từ chối
@@ -592,7 +599,7 @@ export default function OrganizerRaceDetailPage() {
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <button onClick={() => navigate("/organizer/races")}
-              className="flex items-center gap-1.5 text-gray-500 hover:text-[#D4AF37] transition-colors text-xs font-semibold mb-2.5 group">
+              className="flex items-center gap-1.5 text-sb-tx-3 hover:text-[#D4AF37] transition-colors text-xs font-semibold mb-2.5 group">
               <ArrowLeft size={12} className="group-hover:-translate-x-0.5 transition-transform" /> Quay về danh sách
             </button>
             {loading ? (
@@ -602,7 +609,7 @@ export default function OrganizerRaceDetailPage() {
                 <h1 className="text-2xl font-black text-white leading-tight">{race?.raceName || "Vòng đua"}</h1>
                 <div className="flex items-center gap-3 mt-2 flex-wrap">
                   {race?.status && (
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${statusCfg.color || "bg-gray-500/20 text-gray-300 border-gray-600"}`}>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${statusCfg.color || "bg-gray-500/20 text-sb-tx-3 border-gray-600"}`}>
                       {race.status === "Ongoing" && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" />}
                       {statusCfg.label || race.status}
                     </span>
@@ -623,7 +630,7 @@ export default function OrganizerRaceDetailPage() {
             )}
           </div>
           <button onClick={fetchRace}
-            className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-gray-700/60 rounded-xl text-gray-400 hover:text-white text-sm transition-all shrink-0">
+            className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all shrink-0">
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
           </button>
         </div>
@@ -648,13 +655,13 @@ export default function OrganizerRaceDetailPage() {
         ) : !error && (
           <>
             {/* ── Tab bar ── */}
-            <div className="flex gap-1 bg-white/[0.02] p-1 rounded-xl border border-gray-800/60 w-fit flex-wrap">
+            <div className="flex gap-1 bg-sb-s2 p-1 rounded-xl border border-sb-border w-fit flex-wrap">
               {TABS.map((tab) => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                     activeTab === tab.id
                       ? "bg-[#D4AF37] text-[#0A0E1A] shadow-[0_0_14px_rgba(212,175,55,0.25)]"
-                      : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
+                      : "text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s2"
                   }`}>
                   <tab.icon size={13} />
                   {tab.label}
@@ -663,7 +670,7 @@ export default function OrganizerRaceDetailPage() {
             </div>
 
             {/* ── Tab content ── */}
-            <div className="bg-white/[0.015] border border-gray-800/60 rounded-2xl p-5">
+            <div className="bg-sb-s1/[0.015] border border-sb-border rounded-2xl p-5">
               {activeTab === "info"     && <InfoTab race={race} />}
               {activeTab === "referees" && <RefereesTab raceId={raceId} />}
               {activeTab === "entries"  && <EntriesTab raceId={raceId} />}

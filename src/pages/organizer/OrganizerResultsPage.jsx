@@ -26,16 +26,16 @@ const RESULT_STATUS_CONFIG = {
   },
 };
 
-const inputCls = "w-full bg-[#070B14] border border-gray-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.08)] transition-all resize-none";
+const inputCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.08)] transition-all resize-none";
 
 function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
-      <div className="bg-[#0d1117] border border-gray-800/60 rounded-2xl w-full max-w-md shadow-2xl animate-scale-in">
+      <div className="bg-[#0d1117] border border-sb-border rounded-2xl w-full max-w-md shadow-2xl animate-scale-in">
         <div className="h-0.5 w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }} />
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border">
           <h3 className="text-white font-bold">{title}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s1/5 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -127,7 +127,7 @@ export default function OrganizerResultsPage() {
               <div className="w-7 h-7 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
                 <Award size={14} className="text-[#D4AF37]" />
               </div>
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Trưởng ban tổ chức</span>
+              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Trưởng ban tổ chức</span>
             </div>
             <h1 className="text-2xl font-black text-white leading-tight">Duyệt kết quả vòng đua</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
@@ -142,7 +142,7 @@ export default function OrganizerResultsPage() {
             </div>
           </div>
           <button onClick={fetchRaces}
-            className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-gray-700/60 rounded-xl text-gray-400 hover:text-white text-sm transition-all shrink-0">
+            className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all shrink-0">
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
           </button>
         </div>
@@ -164,7 +164,7 @@ export default function OrganizerResultsPage() {
                 </div>
                 <div>
                   <p className={`text-2xl font-black leading-none ${cls}`}>{count}</p>
-                  <p className="text-gray-600 text-[10px] mt-0.5 uppercase tracking-wider">{label}</p>
+                  <p className="text-sb-tx-2 text-[10px] mt-0.5 uppercase tracking-wider">{label}</p>
                 </div>
               </div>
             ))}
@@ -191,7 +191,7 @@ export default function OrganizerResultsPage() {
               <Trophy size={24} className="text-[#D4AF37]/30" />
             </div>
             <p className="text-white font-semibold mb-1">Không có vòng đua nào cần duyệt kết quả</p>
-            <p className="text-gray-500 text-sm">Các vòng đua kết thúc sẽ hiển thị ở đây</p>
+            <p className="text-sb-tx-3 text-sm">Các vòng đua kết thúc sẽ hiển thị ở đây</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -206,7 +206,7 @@ export default function OrganizerResultsPage() {
               return (
                 <div
                   key={race.raceId}
-                  className={`group relative bg-[#0d1117] border border-gray-800/60 rounded-xl overflow-hidden card-hover ${cfg.borderCls} animate-fade-in-up`}
+                  className={`group relative bg-[#0d1117] border border-sb-border rounded-xl overflow-hidden card-hover ${cfg.borderCls} animate-fade-in-up`}
                   style={{ animationDelay: `${idx * 60}ms` }}
                 >
                   <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -225,7 +225,7 @@ export default function OrganizerResultsPage() {
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
                         {race.startTime && (
-                          <span className="flex items-center gap-1 text-gray-500 text-xs">
+                          <span className="flex items-center gap-1 text-sb-tx-3 text-xs">
                             <Flag size={10} /> {new Date(race.startTime).toLocaleDateString("vi-VN")}
                           </span>
                         )}
@@ -241,7 +241,7 @@ export default function OrganizerResultsPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-wrap shrink-0">
                       <button onClick={() => navigate(`/organizer/races/${race.raceId}`)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.03] border border-gray-700/60 text-gray-400 hover:text-white hover:border-gray-600 rounded-xl text-xs transition-all">
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-gray-600 rounded-xl text-xs transition-all">
                         <Eye size={12} /> Chi tiết
                       </button>
 
@@ -278,7 +278,7 @@ export default function OrganizerResultsPage() {
       {/* ── Reject Modal ── */}
       {showReject && (
         <Modal title={`Từ chối kết quả: ${showReject.raceName}`} accentColor="rgb(239,68,68)" onClose={() => setShowReject(null)}>
-          <p className="text-gray-400 text-sm mb-3">Vui lòng nhập lý do từ chối để trọng tài biết cần chỉnh sửa gì:</p>
+          <p className="text-sb-tx-3 text-sm mb-3">Vui lòng nhập lý do từ chối để trọng tài biết cần chỉnh sửa gì:</p>
           <textarea
             value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
             placeholder="VD: Thiếu thời gian về đích của ngựa số 3..." rows={4}
@@ -286,7 +286,7 @@ export default function OrganizerResultsPage() {
           />
           <div className="flex gap-3">
             <button onClick={() => setShowReject(null)}
-              className="flex-1 py-2.5 rounded-xl border border-gray-700/60 text-gray-400 hover:text-white text-sm transition-colors">
+              className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">
               Huỷ
             </button>
             <button onClick={handleReject} disabled={!!actionLoading}

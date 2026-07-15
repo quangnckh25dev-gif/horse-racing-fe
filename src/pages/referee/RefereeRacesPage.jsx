@@ -59,7 +59,7 @@ export default function RefereeRacesPage() {
               <div className="w-7 h-7 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
                 <ClipboardList size={14} className="text-yellow-400" />
               </div>
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Trọng tài</span>
+              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Trọng tài</span>
             </div>
             <h1 className="text-2xl font-black text-white leading-tight">Vòng đua của tôi</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
@@ -73,7 +73,7 @@ export default function RefereeRacesPage() {
             </div>
           </div>
           <button onClick={fetchRaces}
-            className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-gray-700/60 rounded-xl text-gray-400 hover:text-white text-sm transition-all shrink-0">
+            className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all shrink-0">
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
           </button>
         </div>
@@ -95,7 +95,7 @@ export default function RefereeRacesPage() {
               <button key={key} onClick={() => setFilterStatus(key)}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive ? "bg-[#D4AF37] text-[#0A0E1A] shadow-[0_0_12px_rgba(212,175,55,0.3)]"
-                    : "bg-white/[0.03] border border-gray-800/60 text-gray-400 hover:text-white"
+                    : "bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-sb-tx"
                 }`}>
                 {label || cfg?.label || key}
                 {count > 0 && <span className="text-[10px] font-bold bg-black/20 px-1.5 py-0.5 rounded-full">{count}</span>}
@@ -122,19 +122,19 @@ export default function RefereeRacesPage() {
               <Flag size={24} className="text-yellow-500/30" />
             </div>
             <p className="text-white font-semibold mb-1">Không có vòng đua nào</p>
-            <p className="text-gray-500 text-sm">Bạn chưa được phân công vào vòng đua nào</p>
+            <p className="text-sb-tx-3 text-sm">Bạn chưa được phân công vào vòng đua nào</p>
           </div>
         ) : (
           <div className="space-y-3">
             {filtered.map((race, idx) => {
-              const cfg = STATUS_CONFIG[race.status] || { label: race.status, color: "bg-gray-500/20 text-gray-400 border-gray-500/40", borderCls: "border-l-gray-glow", icon: Flag, iconCls: "text-gray-400 bg-white/5" };
+              const cfg = STATUS_CONFIG[race.status] || { label: race.status, color: "bg-gray-500/20 text-sb-tx-3 border-gray-500/40", borderCls: "border-l-gray-glow", icon: Flag, iconCls: "text-sb-tx-3 bg-sb-s1/5" };
               const StatusIcon = cfg.icon;
               const isLive = race.status === "Ongoing";
 
               return (
                 <div
                   key={race.raceId}
-                  className={`group relative bg-[#0d1117] border border-gray-800/60 rounded-xl overflow-hidden card-hover ${cfg.borderCls} animate-fade-in-up`}
+                  className={`group relative bg-[#0d1117] border border-sb-border rounded-xl overflow-hidden card-hover ${cfg.borderCls} animate-fade-in-up`}
                   style={{ animationDelay: `${idx * 50}ms` }}
                 >
                   <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -162,7 +162,7 @@ export default function RefereeRacesPage() {
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
                         {race.startTime && (
-                          <span className="flex items-center gap-1 text-gray-500 text-xs">
+                          <span className="flex items-center gap-1 text-sb-tx-3 text-xs">
                             <Calendar size={10} /> {new Date(race.startTime).toLocaleString("vi-VN")}
                           </span>
                         )}

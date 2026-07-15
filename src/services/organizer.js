@@ -9,8 +9,9 @@ export const organizerService = {
   deleteRace: (raceId) => api.delete(`/organizer/races/${raceId}`),
 
   // ── Race status ───────────────────────────────────────────
+  // Trọng tài mới là người đổi trạng thái đua → BE đặt ở /races/{id}/status
   changeRaceStatus: (raceId, status) =>
-    api.patch(`/organizer/races/${raceId}/status`, { status }),
+    api.patch(`/races/${raceId}/status`, { status }),
 
   // ── Referees ──────────────────────────────────────────────
   getAllReferees: () => api.get("/organizer/referees"),
@@ -25,18 +26,19 @@ export const organizerService = {
   approveEntry: (raceId, entryId, data) =>
     api.patch(`/races/${raceId}/entries/${entryId}/approve`, data),
 
-  // ── Results approval (OrganizerHead only) ─────────────────
+  // ── Results ───────────────────────────────────────────────
   approveResults: (raceId) =>
     api.put(`/organizer/races/${raceId}/results/approve`, {}),
   rejectResults: (raceId, reason) =>
     api.put(`/organizer/races/${raceId}/results/reject`, { reason }),
+  // Chạy sp_PublishRaceResult: xếp hạng → chốt cược → trao thưởng
   publishResults: (raceId) =>
     api.post(`/organizer/races/${raceId}/results/publish`, {}),
 
-  // ── Notification ──────────────────────────────────────────
-  notifyParticipants: (raceId, message) =>
-    api.post(`/organizer/races/${raceId}/notify`, { message }),
+  // ── Gửi biên bản cho toàn bộ Owner ────────────────────────
+  sendMinutesToOwners: (raceId) =>
+    api.post(`/races/${raceId}/minutes/send`, {}),
 
-  // ── Tournaments (view only for organizer) ─────────────────
+  // ── Tournaments của tôi (Organizer) ───────────────────────
   getTournaments: () => api.get("/organizer/tournaments"),
 };

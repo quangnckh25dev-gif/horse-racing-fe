@@ -53,8 +53,11 @@ function ResultsTab({ raceId, entries }) {
 
   useEffect(() => { load(); }, [load]);
 
+  // Chỉ ngựa CÓ jockey mới đủ điều kiện đua → chỉ nhập kết quả cho các entry này
+  const raceable = entries.filter((e) => e.jockeyId || e.jockeyName);
+
   const initForm = () => {
-    const initialForm = entries.map((e, i) => ({
+    const initialForm = raceable.map((e, i) => ({
       entryId: e.entryId,
       horseName: e.horseName || `Ngựa #${e.horseId}`,
       jockeyName: e.jockeyName || "—",
@@ -128,27 +131,54 @@ function ResultsTab({ raceId, entries }) {
           <p className="text-sm">Chưa có kết quả. Hãy nhập kết quả vòng đua.</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {results
-            .sort((a, b) => (a.position || 99) - (b.position || 99))
-            .map((r) => (
-              <div key={r.resultId || r.entryId} className="flex items-center gap-4 bg-[#0A0E1A]/60 rounded-xl p-4">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${
-                  r.position === 1 ? "bg-[#D4AF37]/20 text-[#D4AF37]" :
-                  r.position === 2 ? "bg-gray-400/20 text-sb-tx-3" :
-                  r.position === 3 ? "bg-amber-700/20 text-amber-500" :
-                  "bg-sb-s1/5 text-sb-tx-3"
-                }`}>
-                  {r.position ?? "—"}
-                </div>
-                <div className="flex-1">
-                  <p className="text-white font-medium text-sm">{r.horseName || `Ngựa #${r.horseId}`}</p>
-                  <p className="text-sb-tx-3 text-xs mt-0.5">
-                    Jockey: {r.jockeyName || "—"}{r.finishTime ? ` • Thời gian: ${r.finishTime}` : ""}
-                  </p>
-                </div>
-              </div>
-            ))}
+        <div className="space-y-3">
+          <p className="text-sb-tx-3 text-xs">
+            Hệ thống đã tính: <b className="text-sb-tx-2">Giờ chính thức = Giờ về đích + Phạt</b>. Ngựa DQ/DNF xếp cuối.
+          </p>
+          {/* Bảng kết quả đã tính — hạng · giờ về đích · phạt · giờ chính thức */}
+          <div className="rounded-xl border border-sb-border overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-sm">
+                <thead>
+                  <tr className="bg-sb-s2 border-b border-sb-border text-[10px] uppercase tracking-widest text-sb-tx-3">
+                    <th className="text-left px-4 py-2.5">Hạng</th>
+                    <th className="text-left px-4 py-2.5">Ngựa / Nài</th>
+                    <th className="text-right px-4 py-2.5">Về đích</th>
+                    <th className="text-right px-4 py-2.5">Phạt</th>
+                    <th className="text-right px-4 py-2.5">Chính thức</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results
+                    .map((r) => ({ ...r, pos: r.finishPosition ?? r.position }))
+                    .sort((a, b) => (a.pos || 99) - (b.pos || 99))
+                    .map((r) => {
+                      const dq = r.dq || r.dnf;
+                      return (
+                        <tr key={r.resultId || r.entryId} className={`border-b border-sb-border last:border-0 ${dq ? "bg-red-950/10" : ""}`}>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex w-7 h-7 rounded-full items-center justify-center font-bold text-sm ${
+                              dq ? "bg-red-500/15 text-red-400" :
+                              r.pos === 1 ? "bg-[#D4AF37]/20 text-[#D4AF37]" :
+                              r.pos === 2 ? "bg-gray-400/20 text-sb-tx-2" :
+                              r.pos === 3 ? "bg-amber-700/20 text-amber-500" :
+                              "bg-sb-s2 text-sb-tx-3"
+                            }`}>{dq ? "✕" : (r.pos ?? "—")}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="text-white font-medium">{r.horseName || `Ngựa #${r.horseId}`}</p>
+                            <p className="text-sb-tx-3 text-xs">🏇 {r.jockeyName || "—"}{dq && <span className="text-red-400 ml-1">· {r.dq ? "DQ" : "DNF"}</span>}</p>
+                          </td>
+                          <td className="px-4 py-3 text-right font-mono text-sb-tx-2">{r.finishTime || "—"}</td>
+                          <td className="px-4 py-3 text-right font-mono text-red-300">{r.penaltyTime && Number(String(r.penaltyTime).replace(/[^0-9.]/g,"")) > 0 ? `+${r.penaltyTime}` : "0"}</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-sb-gold-2">{dq ? "LOẠI" : (r.finalTime || r.finishTime || "—")}</td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
@@ -314,7 +344,7 @@ function ViolationsTab({ raceId, entries }) {
               <select value={form.entryId} onChange={(e) => setForm((p) => ({ ...p, entryId: e.target.value }))} required
                 className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]">
                 <option value="">-- Chọn ngựa --</option>
-                {entries.map((e) => <option key={e.entryId} value={e.entryId}>{e.horseName || `Ngựa #${e.horseId}`}</option>)}
+                {entries.filter((e) => e.jockeyId || e.jockeyName).map((e) => <option key={e.entryId} value={e.entryId}>{e.horseName || `Ngựa #${e.horseId}`}</option>)}
               </select>
             </div>
             <div>
@@ -515,16 +545,21 @@ export default function RefereeRaceDetailPage() {
   const [activeTab, setActiveTab] = useState("results");
   const [busy, setBusy] = useState("");
   const [flash, setFlash] = useState("");
+  const [sent, setSent] = useState(false);          // đã gửi biên bản cho Owner
+  const [handedOff, setHandedOff] = useState(false); // đã bàn giao BTC
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [raceRes, entriesRes] = await Promise.all([
+      const [raceRes, entriesRes, minRes] = await Promise.all([
         spectatorService.getRaceById(raceId),
         spectatorService.getRaceEntries(raceId),
+        raceResultService.getMinutes(raceId).catch(() => ({ data: null })),
       ]);
       setRace(raceRes.data);
       setEntries(entriesRes.data || []);
+      // Nếu biên bản đã gửi Owner từ trước → giữ nút khoá kể cả khi reload
+      if (minRes?.data?.sentToOwners) setSent(true);
     } catch (e) {
       setError(e.message || "Không thể tải dữ liệu");
     } finally {
@@ -534,11 +569,13 @@ export default function RefereeRaceDetailPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const doAction = async (key, fn, okMsg) => {
+  const doAction = async (key, fn, okMsg, onOk) => {
+    if (busy) return;              // chặn spam khi đang xử lý
     setBusy(key); setError(""); setFlash("");
     try {
       await fn();
       setFlash(okMsg);
+      if (onOk) onOk();            // đánh dấu đã xong (khoá nút)
       await fetchData();
     } catch (e) {
       setError(e.message || "Thao tác thất bại");
@@ -603,15 +640,17 @@ export default function RefereeRaceDetailPage() {
                   )}
                   {status === "Finished" && (
                     <>
-                      <button onClick={() => doAction("send", () => raceResultService.sendMinutes(raceId), "Đã gửi biên bản cho toàn bộ Owner")}
-                        disabled={!!busy}
-                        className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx font-bold text-sm disabled:opacity-50 transition-colors">
-                        {busy === "send" ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />} Gửi cho Owner
+                      <button onClick={() => doAction("send", () => raceResultService.sendMinutes(raceId), "Đã gửi biên bản cho toàn bộ Owner", () => setSent(true))}
+                        disabled={!!busy || sent}
+                        className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        {busy === "send" ? <Loader2 size={14} className="animate-spin" /> : sent ? <CheckCircle2 size={14} /> : <Mail size={14} />}
+                        {sent ? "Đã gửi Owner" : "Gửi cho Owner"}
                       </button>
-                      <button onClick={() => doAction("handoff", () => raceResultService.handoff(raceId), "Đã bàn giao cho Ban tổ chức")}
-                        disabled={!!busy}
-                        className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-50 hover:opacity-90 transition-opacity">
-                        {busy === "handoff" ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Bàn giao BTC
+                      <button onClick={() => doAction("handoff", () => raceResultService.handoff(raceId), "Đã bàn giao cho Ban tổ chức", () => setHandedOff(true))}
+                        disabled={!!busy || handedOff}
+                        className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity">
+                        {busy === "handoff" ? <Loader2 size={14} className="animate-spin" /> : handedOff ? <CheckCircle2 size={14} /> : <Send size={14} />}
+                        {handedOff ? "Đã bàn giao" : "Bàn giao BTC"}
                       </button>
                     </>
                   )}

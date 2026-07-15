@@ -438,6 +438,16 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
   const isHead = role === "Organizer";
   const sorted = [...results].sort((a, b) => (a.position || 99) - (b.position || 99));
 
+  // Trạng thái duyệt suy từ approvalStatus các kết quả
+  const resStatus = (() => {
+    if (!results || results.length === 0) return "NoResults";
+    const st = results.map((r) => r.approvalStatus || "Pending");
+    if (st.some((s) => s === "Published")) return "Published";
+    if (st.some((s) => s === "Rejected")) return "Rejected";
+    if (st.every((s) => s === "Approved")) return "Approved";
+    return "Pending";
+  })();
+
   if (loading) return (
     <div className="space-y-3">
       {[...Array(5)].map((_, i) => <div key={i} className="h-16 shimmer rounded-xl" />)}
@@ -454,25 +464,44 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
     <div className="space-y-5">
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
 
-      {/* OrganizerHead actions */}
-      {isHead && race?.status === "Finished" && (
+      {/* Thao tác kết quả — hiện nút theo trạng thái duyệt (tránh bấm lại khi đã duyệt/công bố) */}
+      {isHead && race?.status === "Finished" && resStatus !== "NoResults" && (
         <div className="flex items-center gap-3 flex-wrap p-4 bg-sb-s2 border border-sb-border rounded-xl">
           <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mr-auto">Thao tác kết quả</p>
-          <button onClick={() => handleAction("approve")} disabled={!!actionLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-xl text-sm font-bold transition-all disabled:opacity-60">
-            {actionLoading === "approve" ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-            Duyệt kết quả
-          </button>
-          <button onClick={() => setShowReject(true)} disabled={!!actionLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/20 text-red-400 hover:bg-red-600/20 rounded-xl text-sm font-medium transition-all disabled:opacity-60">
-            {actionLoading === "reject" ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
-            Từ chối
-          </button>
-          <button onClick={() => handleAction("publish")} disabled={!!actionLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] rounded-xl text-sm font-bold transition-all disabled:opacity-60 btn-gold-glow">
-            {actionLoading === "publish" ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />}
-            Công bố
-          </button>
+
+          {resStatus === "Pending" && (
+            <>
+              <button onClick={() => handleAction("approve")} disabled={!!actionLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-xl text-sm font-bold transition-all disabled:opacity-60">
+                {actionLoading === "approve" ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                Duyệt kết quả
+              </button>
+              <button onClick={() => setShowReject(true)} disabled={!!actionLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/20 text-red-400 hover:bg-red-600/20 rounded-xl text-sm font-medium transition-all disabled:opacity-60">
+                {actionLoading === "reject" ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+                Từ chối
+              </button>
+            </>
+          )}
+
+          {resStatus === "Approved" && (
+            <button onClick={() => handleAction("publish")} disabled={!!actionLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] rounded-xl text-sm font-bold transition-all disabled:opacity-60 btn-gold-glow">
+              {actionLoading === "publish" ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />}
+              Công bố
+            </button>
+          )}
+
+          {resStatus === "Published" && (
+            <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/30 text-green-300 text-sm font-bold">
+              <Globe size={14} /> Đã công bố
+            </span>
+          )}
+          {resStatus === "Rejected" && (
+            <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm font-bold">
+              <XCircle size={14} /> Đã từ chối · chờ trọng tài sửa
+            </span>
+          )}
         </div>
       )}
 

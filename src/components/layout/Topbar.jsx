@@ -3,6 +3,7 @@ import { Bell, User, ChevronDown, LogOut, KeyRound, Info, CheckCircle2, Trophy, 
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { notificationService } from "../../services/notification";
+import MinutesViewer from "../sb/MinutesViewer";
 
 const ROLE_LABEL = {
   Admin:      "Quản trị viên",
@@ -34,6 +35,9 @@ function formatRelativeTime(dateStr) {
 
 function normalizeNotif(n) {
   const cfg = NOTIF_TYPE_CONFIG[n.notifType] || NOTIF_TYPE_CONFIG.default;
+  const isRaceDoc = n.relatedEntity === "Race" ||
+    /Minutes|Result|Published/i.test(n.notifType || "") ||
+    /biên bản|kết quả/i.test(n.title || "");
   return {
     id: n.notificationId,
     text: n.title || n.body || "Thông báo mới",
@@ -41,6 +45,8 @@ function normalizeNotif(n) {
     unread: !n.isRead,
     icon: cfg.icon,
     iconCls: cfg.cls,
+    // raceId để mở biên bản/kết quả khi bấm vào
+    raceId: isRaceDoc ? (n.relatedEntityId ?? n.relatedEntityID ?? null) : null,
   };
 }
 
@@ -54,6 +60,7 @@ export default function Topbar({ title }) {
   const [notifications, setNotifications] = useState([]);
   const [notifLoaded, setNotifLoaded] = useState(false);
   const [readIds, setReadIds] = useState(new Set());
+  const [viewMinutes, setViewMinutes] = useState(null); // { raceId } khi bấm thông báo biên bản
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -77,9 +84,11 @@ export default function Topbar({ title }) {
     setReadIds(new Set(notifications.map((n) => n.id)));
   };
 
-  const markOneRead = async (id) => {
-    try { await notificationService.markAsRead(id); } catch { /* vẫn đánh dấu ở FE */ }
-    setReadIds((prev) => new Set([...prev, id]));
+  const markOneRead = async (n) => {
+    try { await notificationService.markAsRead(n.id); } catch { /* vẫn đánh dấu ở FE */ }
+    setReadIds((prev) => new Set([...prev, n.id]));
+    // Thông báo về biên bản/kết quả → mở luôn để xem
+    if (n.raceId) { setViewMinutes({ raceId: n.raceId, raceName: n.text }); setBellOpen(false); }
   };
 
   const closeBoth = () => { setDropdownOpen(false); setBellOpen(false); };
@@ -141,7 +150,7 @@ export default function Topbar({ title }) {
                         const isRead = readIds.has(n.id) || !n.unread;
                         const Icon = n.icon;
                         return (
-                          <button key={n.id} onClick={() => markOneRead(n.id)}
+                          <button key={n.id} onClick={() => markOneRead(n)}
                             className={`flex items-start gap-3 w-full px-3 py-2.5 rounded-xl text-left transition-colors border ${
                               isRead
                                 ? "border-transparent hover:bg-sb-s2"
@@ -217,6 +226,13 @@ export default function Topbar({ title }) {
           )}
         </div>
       </div>
+      {viewMinutes && (
+        <MinutesViewer
+          raceId={viewMinutes.raceId}
+          raceName={viewMinutes.raceName}
+          onClose={() => setViewMinutes(null)}
+        />
+      )}
     </header>
   );
 }

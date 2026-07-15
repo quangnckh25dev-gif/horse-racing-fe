@@ -135,19 +135,20 @@ export default function RaceReplay({ raceName, results, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose?.()}>
-      <div className="w-full max-w-3xl rounded-2xl bg-sb-s1 border border-sb-border shadow-2xl shadow-black/50 overflow-hidden">
-        <div className="h-0.5 bg-gradient-to-r from-sb-emerald to-transparent" />
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-sb-border">
+      <div className="w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-sb-s1 border border-sb-border shadow-2xl shadow-black/50 overflow-hidden">
+        <div className="h-0.5 bg-gradient-to-r from-sb-emerald to-transparent shrink-0" />
+        {/* Header cố định — nút đóng luôn thấy dù nhiều ngựa */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-sb-border shrink-0">
           <div>
             <h3 className="text-sb-tx font-bold text-sm">Xem lại đường đua</h3>
             <p className="text-sb-tx-3 text-xs">{raceName || "Race replay"}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s2 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s2 transition-colors shrink-0">
             <X size={16} />
           </button>
         </div>
 
-        <div className="p-4">
+        <div className="p-4 overflow-y-auto">
           {N === 0 ? (
             <div className="py-16 text-center text-sb-tx-3 text-sm">Chưa có kết quả để xem lại.</div>
           ) : (

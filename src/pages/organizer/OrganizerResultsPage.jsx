@@ -6,6 +6,17 @@ import {
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { organizerService } from "../../services/organizer";
+import { raceResultService } from "../../services/raceResult";
+
+// Trạng thái duyệt của cả race suy từ approvalStatus các kết quả (Published > Rejected > Approved > Pending)
+function deriveResultStatus(results) {
+  if (!results || results.length === 0) return "NoResults";
+  const st = results.map((r) => r.approvalStatus || "Pending");
+  if (st.some((s) => s === "Published")) return "Published";
+  if (st.some((s) => s === "Rejected")) return "Rejected";
+  if (st.every((s) => s === "Approved")) return "Approved";
+  return "Pending";
+}
 
 const RESULT_STATUS_CONFIG = {
   Pending:   {
@@ -23,6 +34,10 @@ const RESULT_STATUS_CONFIG = {
   Published: {
     label: "Đã công bố", color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",
     borderCls: "border-l-green-glow", icon: Globe,        iconCls: "text-green-400 bg-green-500/10",
+  },
+  NoResults: {
+    label: "Chờ nhập kết quả", color: "bg-sb-s2 text-sb-tx-3 border-sb-border",
+    borderCls: "", icon: Clock, iconCls: "text-sb-tx-3 bg-sb-s2",
   },
 };
 
@@ -59,7 +74,17 @@ export default function OrganizerResultsPage() {
     try {
       const res = await organizerService.getRaces();
       const finished = (res.data || []).filter((r) => r.status === "Finished");
-      setRaces(finished);
+      // /races không trả trạng thái duyệt → lấy kết quả từng race để biết đã duyệt/công bố chưa
+      const withStatus = await Promise.all(finished.map(async (r) => {
+        try {
+          const rr = await raceResultService.getResults(r.raceId);
+          const results = rr.data || [];
+          return { ...r, resultStatus: deriveResultStatus(results), hasResults: results.length > 0 };
+        } catch {
+          return { ...r, resultStatus: "NoResults", hasResults: false };
+        }
+      }));
+      setRaces(withStatus);
     } catch (e) {
       setError(e.message || "Không thể tải dữ liệu");
     } finally {
@@ -119,7 +144,6 @@ export default function OrganizerResultsPage() {
       {/* ── Page Header Banner ── */}
       <div className="page-header">
         <div className="absolute right-0 top-0 w-72 h-full bg-gradient-to-l from-[#D4AF37]/[0.05] to-transparent pointer-events-none" />
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.08] select-none pointer-events-none animate-float">🏆</div>
 
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -200,7 +224,7 @@ export default function OrganizerResultsPage() {
               const cfg = RESULT_STATUS_CONFIG[resultStatus] || RESULT_STATUS_CONFIG.Pending;
               const StatusIcon = cfg.icon;
               const busy = actionLoading.startsWith(race.raceId);
-              const isPending  = resultStatus === "Pending";
+              const isPending  = resultStatus === "Pending" && race.hasResults;
               const isApproved = resultStatus === "Approved";
 
               return (

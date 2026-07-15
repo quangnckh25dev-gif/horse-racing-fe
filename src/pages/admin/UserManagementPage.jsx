@@ -7,16 +7,16 @@ import { adminService } from "../../services/admin";
 import { useAuth } from "../../context/AuthContext";
 import AdminLayout from "../../components/layout/AdminLayout";
 
-const ROLES = ["OrganizerHead", "OrganizerMember", "HorseOwner", "Jockey", "Referee", "Spectator"];
+// 1 role Organizer duy nhất (đã bỏ OrganizerHead/OrganizerMember)
+const ROLES = ["Organizer", "HorseOwner", "Jockey", "Referee", "Spectator"];
 
 const ROLE_STYLE = {
-  Admin:           "bg-red-50 text-red-600 border-red-200",
-  OrganizerHead:   "bg-amber-50 text-amber-700 border-amber-200",
-  OrganizerMember: "bg-blue-50 text-blue-600 border-blue-200",
-  HorseOwner:      "bg-orange-50 text-orange-600 border-orange-200",
-  Jockey:          "bg-purple-50 text-purple-600 border-purple-200",
-  Referee:         "bg-yellow-50 text-yellow-700 border-yellow-200",
-  Spectator:       "bg-gray-50 text-gray-600 border-gray-200",
+  Admin:      "bg-sb-lose/10 text-sb-lose border-sb-lose/30",
+  Organizer:  "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd",
+  HorseOwner: "bg-orange-500/10 text-orange-400 border-orange-500/30",
+  Jockey:     "bg-purple-500/10 text-purple-400 border-purple-500/30",
+  Referee:    "bg-sb-info/10 text-sb-info border-sb-info/30",
+  Spectator:  "bg-sb-s2 text-sb-tx-2 border-sb-border",
 };
 
 export default function UserManagementPage() {
@@ -78,18 +78,18 @@ export default function UserManagementPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
-                <Shield size={20} className="text-blue-600" />
+              <div className="w-10 h-10 rounded-lg bg-sb-info/10 border border-sb-info/30 flex items-center justify-center">
+                <Shield size={20} className="text-sb-info" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Quản lý người dùng</h1>
-                <p className="text-gray-500 text-sm">Xem và phân quyền tài khoản trong hệ thống</p>
+                <h1 className="text-2xl font-bold text-sb-tx">Quản lý người dùng</h1>
+                <p className="text-sb-tx-3 text-sm">Xem và phân quyền tài khoản trong hệ thống</p>
               </div>
             </div>
             <button
               onClick={fetchUsers}
               disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all text-sm"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-info hover:border-blue-300 hover:bg-sb-info/10 transition-all text-sm"
             >
               <RefreshCw size={15} className={isLoading ? "animate-spin" : ""} />
               Làm mới
@@ -97,38 +97,38 @@ export default function UserManagementPage() {
           </div>
 
           {errorMsg && (
-            <div className="mb-6 flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
-              <AlertCircle size={18} className="text-red-500 shrink-0" />
+            <div className="mb-6 flex items-center gap-3 p-3 rounded-lg bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
+              <AlertCircle size={18} className="text-sb-lose shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {isLoading ? (
             <div className="flex items-center justify-center py-24">
-              <Loader2 size={32} className="animate-spin text-blue-600" />
+              <Loader2 size={32} className="animate-spin text-sb-info" />
             </div>
           ) : users.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-24 text-sb-tx-3">
               <Users size={48} className="mb-4" />
               <p className="text-lg font-medium">Chưa có người dùng nào</p>
             </div>
           ) : (
             <>
-              <div className="mb-4 text-sm text-gray-500">
-                Tổng cộng <span className="text-blue-600 font-semibold">{users.length}</span> tài khoản
+              <div className="mb-4 text-sm text-sb-tx-3">
+                Tổng cộng <span className="text-sb-info font-semibold">{users.length}</span> tài khoản
               </div>
 
-              <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <div className="rounded-xl border border-sb-border overflow-hidden shadow-sm">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Tài khoản</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Họ tên</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Email</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Trạng thái</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Role hiện tại</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Đổi Role</th>
-                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Lưu</th>
+                    <tr className="bg-sb-s2 border-b border-sb-border">
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Tài khoản</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Họ tên</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Email</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Trạng thái</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Role hiện tại</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Đổi Role</th>
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Lưu</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -137,16 +137,16 @@ export default function UserManagementPage() {
                       return (
                       <tr
                         key={user.userId}
-                        className={`border-b border-gray-100 transition-colors ${isAdmin ? "bg-red-50/30" : `hover:bg-blue-50/40 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}`}
+                        className={`border-b border-sb-border transition-colors ${isAdmin ? "bg-sb-lose/10/30" : `hover:bg-sb-info/10/40 ${idx % 2 === 0 ? "bg-sb-s1" : "bg-sb-s2/50"}`}`}
                       >
-                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">{user.username}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{user.fullName}</td>
-                        <td className="px-4 py-3 text-sm text-gray-500">{user.email}</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-sb-tx">{user.username}</td>
+                        <td className="px-4 py-3 text-sm text-sb-tx-2">{user.fullName}</td>
+                        <td className="px-4 py-3 text-sm text-sb-tx-3">{user.email}</td>
                         <td className="px-4 py-3">
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                             user.isApproved
-                              ? "bg-green-50 text-green-700 border-green-200"
-                              : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                              ? "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd"
+                              : "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd"
                           }`}>
                             {user.isApproved ? "Đã duyệt" : "Chờ duyệt"}
                           </span>
@@ -163,7 +163,7 @@ export default function UserManagementPage() {
                             <select
                               value={pendingRole[user.userId] ?? user.roleName}
                               onChange={(e) => handleRoleChange(user.userId, e.target.value)}
-                              className="bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+                              className="bg-sb-s1 border border-sb-border text-sb-tx text-sm rounded-lg px-2 py-1.5 focus:outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-colors"
                             >
                               {ROLES.map((r) => (
                                 <option key={r} value={r}>{r}</option>
@@ -173,7 +173,7 @@ export default function UserManagementPage() {
                         </td>
                         <td className="px-4 py-3 text-center">
                           {isAdmin ? (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-500 border border-red-200">Admin</span>
+                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-sb-lose/10 text-sb-lose border border-sb-lose/30">Admin</span>
                           ) : successId === user.userId ? (
                             <CheckCircle2 size={20} className="text-green-500 mx-auto" />
                           ) : (
@@ -184,7 +184,7 @@ export default function UserManagementPage() {
                               className={`h-8 px-3 text-xs font-semibold border-0 transition-all ${
                                 isDirty(user)
                                   ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-sb-s2 text-sb-tx-3 cursor-not-allowed"
                               }`}
                             >
                               {actionLoading === user.userId ? (

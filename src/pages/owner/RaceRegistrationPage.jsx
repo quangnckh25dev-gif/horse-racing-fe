@@ -16,18 +16,18 @@ const ENTRY_STATUS = {
   Rejected: { label: "Từ chối",   color: "bg-red-500/20 text-red-300 border-red-500/40",          borderCls: "border-l-red-glow",   icon: XCircle },
 };
 
-const selectCls = "w-full bg-[#070B14] border border-gray-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
-const inputCls  = "w-full bg-[#070B14] border border-gray-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
-const labelCls  = "block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5";
+const selectCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
+const inputCls  = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
+const labelCls  = "block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5";
 
 function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
-      <div className="bg-[#0d1117] border border-gray-800/60 rounded-2xl w-full max-w-md shadow-2xl animate-scale-in">
+      <div className="bg-[#0d1117] border border-sb-border rounded-2xl w-full max-w-md shadow-2xl animate-scale-in">
         <div className="h-0.5 w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }} />
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border">
           <h3 className="text-white font-bold">{title}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s1/5 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -146,7 +146,7 @@ export default function RaceRegistrationPage() {
               <div className="w-7 h-7 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
                 <ClipboardList size={14} className="text-orange-400" />
               </div>
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Chủ ngựa</span>
+              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Chủ ngựa</span>
             </div>
             <h1 className="text-2xl font-black text-white leading-tight">Đăng ký thi đấu</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
@@ -160,7 +160,7 @@ export default function RaceRegistrationPage() {
             </div>
           </div>
           <button onClick={loadRaces}
-            className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-gray-700/60 rounded-xl text-gray-400 hover:text-white text-sm transition-all shrink-0">
+            className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all shrink-0">
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
           </button>
         </div>
@@ -168,7 +168,7 @@ export default function RaceRegistrationPage() {
 
       <div className="p-6 space-y-5">
         {/* ── Tab bar ── */}
-        <div className="flex gap-1 bg-white/[0.02] p-1 rounded-xl border border-gray-800/60 w-fit">
+        <div className="flex gap-1 bg-sb-s2 p-1 rounded-xl border border-sb-border w-fit">
           {[
             { id: "upcoming", label: "Vòng đua sắp tới", icon: Flag },
             { id: "entries",  label: "Đăng ký của tôi",  icon: ClipboardList },
@@ -177,7 +177,7 @@ export default function RaceRegistrationPage() {
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                 activeTab === tab.id
                   ? "bg-[#D4AF37] text-[#0A0E1A] shadow-[0_0_14px_rgba(212,175,55,0.25)]"
-                  : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
+                  : "text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s2"
               }`}>
               <tab.icon size={13} /> {tab.label}
             </button>
@@ -203,13 +203,13 @@ export default function RaceRegistrationPage() {
                 <Trophy size={24} className="text-orange-400/30" />
               </div>
               <p className="text-white font-semibold mb-1">Không có vòng đua nào sắp diễn ra</p>
-              <p className="text-gray-500 text-sm">Quay lại sau để xem các vòng đua mới</p>
+              <p className="text-sb-tx-3 text-sm">Quay lại sau để xem các vòng đua mới</p>
             </div>
           ) : (
             <div className="space-y-3">
               {upcomingRaces.map((race, idx) => (
                 <div key={race.raceId}
-                  className="group bg-[#0d1117] border border-gray-800/60 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4 card-hover border-l-blue-glow animate-fade-in-up"
+                  className="group bg-[#0d1117] border border-sb-border rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4 card-hover border-l-blue-glow animate-fade-in-up"
                   style={{ animationDelay: `${idx * 50}ms` }}>
                   <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
                     <Flag size={17} className="text-blue-400" />
@@ -221,7 +221,7 @@ export default function RaceRegistrationPage() {
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
                       {race.startTime && (
-                        <span className="flex items-center gap-1 text-gray-500 text-xs">
+                        <span className="flex items-center gap-1 text-sb-tx-3 text-xs">
                           <Calendar size={10} /> {new Date(race.startTime).toLocaleString("vi-VN")}
                         </span>
                       )}
@@ -250,11 +250,11 @@ export default function RaceRegistrationPage() {
             </div>
           ) : myEntries.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-gray-800 flex items-center justify-center mb-4 animate-float">
-                <ClipboardList size={24} className="text-gray-600" />
+              <div className="w-16 h-16 rounded-2xl bg-sb-s2 border border-sb-border flex items-center justify-center mb-4 animate-float">
+                <ClipboardList size={24} className="text-sb-tx-2" />
               </div>
               <p className="text-white font-semibold mb-1">Chưa có đăng ký nào</p>
-              <p className="text-gray-500 text-sm">Chuyển sang tab "Vòng đua sắp tới" để đăng ký</p>
+              <p className="text-sb-tx-3 text-sm">Chuyển sang tab "Vòng đua sắp tới" để đăng ký</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -266,7 +266,7 @@ export default function RaceRegistrationPage() {
 
                 return (
                   <div key={entry.entryId}
-                    className={`group bg-[#0d1117] border border-gray-800/60 rounded-xl overflow-hidden card-hover ${cfg.borderCls} animate-fade-in-up`}
+                    className={`group bg-[#0d1117] border border-sb-border rounded-xl overflow-hidden card-hover ${cfg.borderCls} animate-fade-in-up`}
                     style={{ animationDelay: `${idx * 50}ms` }}>
                     <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
                       {/* Status icon */}
@@ -291,10 +291,10 @@ export default function RaceRegistrationPage() {
                           {entry.horseName  && <span className="stat-pill">🐴 {entry.horseName}</span>}
                           {entry.jockeyName
                             ? <span className="stat-pill">🏇 {entry.jockeyName}</span>
-                            : <span className="text-gray-600 text-xs italic">Chưa có jockey</span>
+                            : <span className="text-sb-tx-2 text-xs italic">Chưa có jockey</span>
                           }
                           {entry.raceDate && (
-                            <span className="text-gray-500 text-xs">
+                            <span className="text-sb-tx-3 text-xs">
                               📅 {new Date(entry.raceDate).toLocaleDateString("vi-VN")}
                             </span>
                           )}
@@ -346,7 +346,7 @@ export default function RaceRegistrationPage() {
             </div>
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setShowRegister(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-700/60 text-gray-400 hover:text-white text-sm transition-colors">Huỷ</button>
+                className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Huỷ</button>
               <button type="submit" disabled={formLoading || horses.length === 0}
                 className="flex-1 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
                 {formLoading && <Loader2 size={14} className="animate-spin" />} Đăng ký
@@ -359,7 +359,7 @@ export default function RaceRegistrationPage() {
       {/* ── Invite Jockey Modal ── */}
       {showInvite && (
         <Modal title="Mời Jockey" accentColor="rgb(147,51,234)" onClose={() => setShowInvite(null)}>
-          <p className="text-gray-400 text-sm mb-4">
+          <p className="text-sb-tx-3 text-sm mb-4">
             Gửi lời mời Jockey cho đăng ký <span className="text-white font-semibold">{showInvite.raceName || `#${showInvite.raceId}`}</span>
           </p>
           {formError && (
@@ -380,7 +380,7 @@ export default function RaceRegistrationPage() {
             </div>
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setShowInvite(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-700/60 text-gray-400 hover:text-white text-sm transition-colors">Huỷ</button>
+                className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Huỷ</button>
               <button type="submit" disabled={formLoading}
                 className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
                 {formLoading && <Loader2 size={14} className="animate-spin" />}

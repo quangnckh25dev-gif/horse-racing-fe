@@ -30,10 +30,10 @@ const EMPTY_FORM = {
   description: "", maxEntries: "", distance: "", prizePool: "",
 };
 
-const inputCls = "w-full bg-[#070B14] border border-gray-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.08)] transition-all";
+const inputCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.08)] transition-all";
 
 function StatusBadge({ status }) {
-  const cfg = STATUS_CONFIG[status] || { label: status, color: "bg-gray-500/20 text-gray-300 border-gray-500/40" };
+  const cfg = STATUS_CONFIG[status] || { label: status, color: "bg-gray-500/20 text-sb-tx-3 border-gray-500/40" };
   const isLive = status === "Ongoing";
   return (
     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${cfg.color}`}>
@@ -46,11 +46,11 @@ function StatusBadge({ status }) {
 function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
-      <div className="bg-[#0d1117] border border-gray-800/60 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/60 animate-scale-in">
+      <div className="bg-[#0d1117] border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl shadow-black/60 animate-scale-in">
         <div className="h-0.5 w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }} />
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border">
           <h3 className="text-white font-bold">{title}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s1/5 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -65,36 +65,36 @@ function RaceForm({ form, onChange, onSubmit, onCancel, loading, submitLabel }) 
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
-          <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">Tên vòng đua *</label>
+          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Tên vòng đua *</label>
           <input name="raceName" value={form.raceName} onChange={onChange} required className={inputCls} placeholder="VD: Vòng chung kết mùa hè" />
         </div>
         <div>
-          <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">Thời gian bắt đầu *</label>
+          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Thời gian bắt đầu *</label>
           <input name="startTime" type="datetime-local" value={form.startTime} onChange={onChange} required className={inputCls} />
         </div>
         <div>
-          <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">Thời gian kết thúc</label>
+          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Thời gian kết thúc</label>
           <input name="endTime" type="datetime-local" value={form.endTime} onChange={onChange} className={inputCls} />
         </div>
         <div>
-          <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">Cự ly (m)</label>
+          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Cự ly (m)</label>
           <input name="distance" type="number" value={form.distance} onChange={onChange} className={inputCls} placeholder="1600" />
         </div>
         <div>
-          <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">Số tham gia tối đa</label>
+          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Số tham gia tối đa</label>
           <input name="maxEntries" type="number" value={form.maxEntries} onChange={onChange} className={inputCls} placeholder="8" />
         </div>
         <div className="col-span-2">
-          <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">Giải thưởng (VNĐ)</label>
+          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Giải thưởng (VNĐ)</label>
           <input name="prizePool" type="number" value={form.prizePool} onChange={onChange} className={inputCls} placeholder="50000000" />
         </div>
         <div className="col-span-2">
-          <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">Mô tả</label>
+          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Mô tả</label>
           <textarea name="description" value={form.description} onChange={onChange} rows={2} className={inputCls + " resize-none"} />
         </div>
       </div>
       <div className="flex gap-3 pt-1">
-        <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl border border-gray-700/60 text-gray-400 hover:text-white text-sm transition-colors">Huỷ</button>
+        <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Huỷ</button>
         <button type="submit" disabled={loading}
           className="flex-1 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 btn-gold-glow transition-all">
           {loading && <Loader2 size={14} className="animate-spin" />} {submitLabel}
@@ -204,7 +204,7 @@ export default function OrganizerRacesPage() {
               <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                 <Flag size={14} className="text-blue-400" />
               </div>
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Ban tổ chức</span>
+              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Ban tổ chức</span>
             </div>
             <h1 className="text-2xl font-black text-white leading-tight">Quản lý vòng đua</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
@@ -220,7 +220,7 @@ export default function OrganizerRacesPage() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={fetchRaces}
-              className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-gray-700/60 rounded-xl text-gray-400 hover:text-white text-sm transition-all">
+              className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all">
               <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
             </button>
             <button onClick={() => { setFormData(EMPTY_FORM); setFormError(""); setShowCreate(true); }}
@@ -249,11 +249,11 @@ export default function OrganizerRacesPage() {
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive
                     ? "bg-[#D4AF37] text-[#0A0E1A] shadow-[0_0_12px_rgba(212,175,55,0.3)]"
-                    : "bg-white/[0.03] border border-gray-800/60 text-gray-400 hover:text-white hover:border-gray-700"
+                    : "bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-sb-border"
                 }`}>
                 {label || cfg?.label || key}
                 {count > 0 && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${isActive ? "bg-[#0A0E1A]/20" : "bg-white/10"}`}>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${isActive ? "bg-[#0A0E1A]/20" : "bg-sb-s1/10"}`}>
                     {count}
                   </span>
                 )}
@@ -283,22 +283,22 @@ export default function OrganizerRacesPage() {
               <Flag size={24} className="text-blue-500/40" />
             </div>
             <p className="text-white font-semibold mb-1">Chưa có vòng đua nào</p>
-            <p className="text-gray-500 text-sm">Tạo vòng đua đầu tiên để bắt đầu</p>
+            <p className="text-sb-tx-3 text-sm">Tạo vòng đua đầu tiên để bắt đầu</p>
           </div>
         ) : (
           <div className="space-y-3">
             {filtered.map((race, idx) => {
-              const cfg = STATUS_CONFIG[race.status] || { label: race.status, color: "bg-gray-500/20 text-gray-300 border-gray-500/40", borderCls: "border-l-gray-glow", iconCls: "text-gray-400", glow: "" };
+              const cfg = STATUS_CONFIG[race.status] || { label: race.status, color: "bg-gray-500/20 text-sb-tx-3 border-gray-500/40", borderCls: "border-l-gray-glow", iconCls: "text-sb-tx-3", glow: "" };
               const StatusIcon = cfg.icon || Flag;
               return (
                 <div
                   key={race.raceId}
-                  className={`group relative bg-[#0d1117] border border-gray-800/60 rounded-xl overflow-hidden card-hover hover:shadow-lg ${cfg.glow} ${cfg.borderCls} animate-fade-in-up`}
+                  className={`group relative bg-[#0d1117] border border-sb-border rounded-xl overflow-hidden card-hover hover:shadow-lg ${cfg.glow} ${cfg.borderCls} animate-fade-in-up`}
                   style={{ animationDelay: `${idx * 50}ms` }}
                 >
                   <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Left: Icon */}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-white/[0.03] border border-gray-800/60 ${cfg.iconCls}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-sb-s1/[0.03] border border-sb-border ${cfg.iconCls}`}>
                       <StatusIcon size={17} />
                     </div>
 
@@ -310,7 +310,7 @@ export default function OrganizerRacesPage() {
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
                         {race.startTime && (
-                          <span className="flex items-center gap-1 text-gray-500 text-xs">
+                          <span className="flex items-center gap-1 text-sb-tx-3 text-xs">
                             <Clock size={10} /> {new Date(race.startTime).toLocaleString("vi-VN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
                           </span>
                         )}
@@ -337,15 +337,15 @@ export default function OrganizerRacesPage() {
                         </button>
                       )}
                       <button onClick={() => navigate(`/organizer/races/${race.raceId}`)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.03] border border-gray-700/60 text-gray-400 hover:text-white hover:border-gray-600 rounded-xl text-xs transition-all">
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-gray-600 rounded-xl text-xs transition-all">
                         <Eye size={12} /> Chi tiết
                       </button>
                       <button onClick={() => openEdit(race)}
-                        className="p-2 bg-white/[0.03] border border-gray-700/60 text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37]/30 rounded-xl transition-all">
+                        className="p-2 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-[#D4AF37] hover:border-[#D4AF37]/30 rounded-xl transition-all">
                         <Edit2 size={14} />
                       </button>
                       <button onClick={() => { setFormError(""); setShowDelete(race); }}
-                        className="p-2 bg-white/[0.03] border border-gray-700/60 text-gray-500 hover:text-red-400 hover:border-red-900/50 rounded-xl transition-all">
+                        className="p-2 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-red-400 hover:border-red-900/50 rounded-xl transition-all">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -375,12 +375,12 @@ export default function OrganizerRacesPage() {
       {showDelete && (
         <Modal title="Xác nhận xoá" accentColor="rgb(239,68,68)" onClose={() => setShowDelete(null)}>
           {formError && <div className="mb-3 text-red-300 text-sm">{formError}</div>}
-          <p className="text-gray-300 text-sm mb-5">
+          <p className="text-sb-tx-3 text-sm mb-5">
             Bạn có chắc muốn xoá vòng đua <span className="text-white font-bold">"{showDelete.raceName}"</span>?
             Hành động này không thể hoàn tác.
           </p>
           <div className="flex gap-3">
-            <button onClick={() => setShowDelete(null)} className="flex-1 py-2.5 rounded-xl border border-gray-700/60 text-gray-400 hover:text-white text-sm transition-colors">Huỷ</button>
+            <button onClick={() => setShowDelete(null)} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Huỷ</button>
             <button onClick={handleDelete} disabled={formLoading}
               className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
               {formLoading && <Loader2 size={14} className="animate-spin" />} Xoá
@@ -391,10 +391,10 @@ export default function OrganizerRacesPage() {
 
       {showStatus && (
         <Modal title={`Đổi trạng thái vòng đua`} onClose={() => setShowStatus(null)}>
-          <p className="text-gray-500 text-xs mb-1 uppercase tracking-widest font-semibold">Vòng đua</p>
+          <p className="text-sb-tx-3 text-xs mb-1 uppercase tracking-widest font-semibold">Vòng đua</p>
           <p className="text-white font-bold mb-4">{showStatus.raceName}</p>
           <div className="flex items-center gap-2 mb-5">
-            <span className="text-gray-500 text-sm">Hiện tại:</span>
+            <span className="text-sb-tx-3 text-sm">Hiện tại:</span>
             <StatusBadge status={showStatus.status} />
           </div>
           <div className="space-y-2">
@@ -402,9 +402,9 @@ export default function OrganizerRacesPage() {
               const newCfg = STATUS_CONFIG[newStatus];
               return (
                 <button key={newStatus} onClick={() => handleChangeStatus(newStatus)} disabled={formLoading}
-                  className="w-full py-3 px-4 rounded-xl border border-gray-800/60 bg-white/[0.02] text-white hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/5 text-sm font-medium transition-all flex items-center justify-between disabled:opacity-60">
+                  className="w-full py-3 px-4 rounded-xl border border-sb-border bg-sb-s2 text-white hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/5 text-sm font-medium transition-all flex items-center justify-between disabled:opacity-60">
                   <span>Chuyển sang <span className={`font-bold ${newCfg?.iconCls || "text-[#D4AF37]"}`}>{newCfg?.label}</span></span>
-                  {formLoading ? <Loader2 size={14} className="animate-spin text-[#D4AF37]" /> : <Check size={14} className="text-gray-600" />}
+                  {formLoading ? <Loader2 size={14} className="animate-spin text-[#D4AF37]" /> : <Check size={14} className="text-sb-tx-2" />}
                 </button>
               );
             })}

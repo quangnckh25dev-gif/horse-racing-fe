@@ -6,6 +6,7 @@ import {
   Zap, CheckCircle2, XCircle, X, Users,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import RaceReplay from "../../components/sb/RaceReplay";
 import { spectatorService } from "../../services/spectator";
 
 const STATUS_CONFIG = {
@@ -64,6 +65,7 @@ export default function RaceSchedulePage() {
   const [showResults, setShowResults] = useState(null);
   const [results, setResults] = useState([]);
   const [resultsLoading, setResultsLoading] = useState(false);
+  const [replayOpen, setReplayOpen] = useState(false);
 
   const openResults = useCallback(async (race) => {
     setShowResults(race);
@@ -71,7 +73,9 @@ export default function RaceSchedulePage() {
     setResults([]);
     try {
       const res = await spectatorService.getRaceResults(race.raceId);
-      setResults((res.data || []).sort((a, b) => (a.position || 99) - (b.position || 99)));
+      // BE trả finishPosition (finalTime = finishTime + penaltyTime); DQ/DNF về cuối
+      const norm = (r) => ({ ...r, position: r.finishPosition ?? r.position });
+      setResults((res.data || []).map(norm).sort((a, b) => (a.position || 99) - (b.position || 99)));
     } catch {
       setResults([]);
     } finally {
@@ -266,9 +270,9 @@ export default function RaceSchedulePage() {
                     {/* Actions */}
                     <div className="flex items-center gap-2 shrink-0">
                       {(race.status === "Scheduled" || race.status === "RegistrationOpen") && (
-                        <button onClick={() => navigate("/spectator/predictions")}
+                        <button onClick={() => navigate("/spectator/betting")}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded-xl text-xs font-semibold transition-all">
-                          <Star size={11} /> Dự đoán
+                          <Star size={11} /> Đặt cược
                         </button>
                       )}
                       {race.status === "Ongoing" && (
@@ -300,10 +304,18 @@ export default function RaceSchedulePage() {
                 <h3 className="text-white font-bold">{showResults.raceName}</h3>
                 <p className="text-gray-500 text-xs mt-0.5">Kết quả chính thức</p>
               </div>
-              <button onClick={() => setShowResults(null)}
-                className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-2">
+                {results.length > 0 && (
+                  <button onClick={() => setReplayOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sb-emerald text-white text-xs font-bold hover:opacity-90 transition-opacity">
+                    ▶ Xem lại đường đua
+                  </button>
+                )}
+                <button onClick={() => setShowResults(null)}
+                  className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
             </div>
             <div className="p-6 overflow-y-auto">
               {resultsLoading ? (
@@ -357,6 +369,14 @@ export default function RaceSchedulePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {replayOpen && showResults && (
+        <RaceReplay
+          raceName={showResults.raceName}
+          results={results}
+          onClose={() => setReplayOpen(false)}
+        />
       )}
     </AdminLayout>
   );

@@ -22,33 +22,30 @@ const ROLE_FIELDS = {
 };
 
 const ROLE_LABEL = {
-  Admin:           "Quản trị viên",
-  OrganizerHead:   "Trưởng ban tổ chức",
-  OrganizerMember: "Thành viên BTC",
-  HorseOwner:      "Chủ ngựa",
-  Jockey:          "Nài ngựa",
-  Referee:         "Trọng tài",
-  Spectator:       "Khán giả",
+  Admin:      "Quản trị viên",
+  Organizer:  "Ban tổ chức",
+  HorseOwner: "Chủ ngựa",
+  Jockey:     "Nài ngựa",
+  Referee:    "Trọng tài",
+  Spectator:  "Khán giả",
 };
 
 const ROLE_BADGE_CLS = {
-  Admin:           "bg-red-50 text-red-600 border-red-200",
-  OrganizerHead:   "bg-amber-50 text-amber-700 border-amber-200",
-  OrganizerMember: "bg-blue-50 text-blue-600 border-blue-200",
-  HorseOwner:      "bg-orange-50 text-orange-600 border-orange-200",
-  Jockey:          "bg-purple-50 text-purple-600 border-purple-200",
-  Referee:         "bg-yellow-50 text-yellow-700 border-yellow-200",
-  Spectator:       "bg-gray-50 text-gray-600 border-gray-200",
+  Admin:      "bg-sb-lose/10 text-sb-lose border-sb-lose/30",
+  Organizer:  "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd",
+  HorseOwner: "bg-orange-500/10 text-orange-400 border-orange-500/30",
+  Jockey:     "bg-purple-500/10 text-purple-400 border-purple-500/30",
+  Referee:    "bg-sb-info/10 text-sb-info border-sb-info/30",
+  Spectator:  "bg-sb-s2 text-sb-tx-2 border-sb-border",
 };
 
 const ROLE_AVATAR_GRADIENT = {
-  Admin:           "from-red-400 to-rose-500",
-  OrganizerHead:   "from-amber-400 to-amber-500",
-  OrganizerMember: "from-blue-400 to-sky-500",
-  HorseOwner:      "from-orange-400 to-amber-500",
-  Jockey:          "from-purple-400 to-violet-500",
-  Referee:         "from-yellow-400 to-amber-400",
-  Spectator:       "from-gray-400 to-gray-500",
+  Admin:      "from-red-400 to-rose-500",
+  Organizer:  "from-amber-400 to-amber-500",
+  HorseOwner: "from-orange-400 to-amber-500",
+  Jockey:     "from-purple-400 to-violet-500",
+  Referee:    "from-yellow-400 to-amber-400",
+  Spectator:  "from-gray-400 to-gray-500",
 };
 
 export default function ProfilePage() {
@@ -118,20 +115,20 @@ export default function ProfilePage() {
       <div className="p-6 max-w-2xl mx-auto">
 
         {/* ── User info card ── */}
-        <div className="mb-6 flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-2xl shadow-sm">
+        <div className="mb-6 flex items-center gap-4 p-5 bg-sb-s1 border border-sb-border rounded-2xl shadow-sm">
           <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${gradientCls} flex items-center justify-center text-2xl font-black text-white shadow-md`}>
             {(user?.fullName || user?.username || "U")[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-gray-900 font-bold text-lg truncate">{user?.fullName || user?.username}</p>
-            <p className="text-gray-500 text-sm truncate">{user?.email}</p>
-            <span className={`inline-block mt-1.5 text-[10px] px-2.5 py-0.5 rounded-full font-semibold border ${ROLE_BADGE_CLS[role] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
+            <p className="text-sb-tx font-bold text-lg truncate">{user?.fullName || user?.username}</p>
+            <p className="text-sb-tx-3 text-sm truncate">{user?.email}</p>
+            <span className={`inline-block mt-1.5 text-[10px] px-2.5 py-0.5 rounded-full font-semibold border ${ROLE_BADGE_CLS[role] || "bg-sb-s2 text-sb-tx-2 border-sb-border"}`}>
               {ROLE_LABEL[role] || role}
             </span>
           </div>
           {hasProfile && (
             <button onClick={loadProfile} disabled={loading}
-              className="p-2 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all">
+              className="p-2 rounded-xl text-sb-tx-3 hover:text-sb-info hover:bg-sb-info/10 border border-transparent hover:border-blue-100 transition-all">
               <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
             </button>
           )}
@@ -139,28 +136,28 @@ export default function ProfilePage() {
 
         {!hasProfile ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center mb-4">
-              <User size={28} className="text-gray-400" />
+            <div className="w-16 h-16 rounded-2xl bg-sb-s2 border border-sb-border flex items-center justify-center mb-4">
+              <User size={28} className="text-sb-tx-3" />
             </div>
-            <p className="text-gray-700 font-semibold text-base mb-2">Role này chưa có hồ sơ mở rộng</p>
-            <p className="text-gray-500 text-sm">Chỉ Chủ ngựa, Nài ngựa và Trọng tài mới có hồ sơ riêng.</p>
+            <p className="text-sb-tx-2 font-semibold text-base mb-2">Role này chưa có hồ sơ mở rộng</p>
+            <p className="text-sb-tx-3 text-sm">Chỉ Chủ ngựa, Nài ngựa và Trọng tài mới có hồ sơ riêng.</p>
           </div>
         ) : loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 size={28} className="animate-spin text-blue-600" />
+            <Loader2 size={28} className="animate-spin text-sb-info" />
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-5">
             {/* Fields card */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-              <h3 className="text-gray-800 font-bold text-sm mb-4 pb-3 border-b border-gray-100 flex items-center gap-2">
-                <User size={14} className="text-blue-600" />
+            <div className="bg-sb-s1 border border-sb-border rounded-2xl p-5 shadow-sm">
+              <h3 className="text-sb-tx font-bold text-sm mb-4 pb-3 border-b border-sb-border flex items-center gap-2">
+                <User size={14} className="text-sb-info" />
                 Thông tin hồ sơ
               </h3>
               <div className="space-y-4">
                 {fields.map((f) => (
                   <div key={f.key}>
-                    <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+                    <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">
                       {f.label}
                     </label>
                     <input
@@ -169,7 +166,7 @@ export default function ProfilePage() {
                       onChange={(e) => handleChange(f.key, e.target.value)}
                       placeholder={f.placeholder}
                       step={f.step}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all placeholder:text-gray-400 hover:border-gray-300"
+                      className="w-full bg-sb-s1 border border-sb-border rounded-xl px-4 py-2.5 text-sb-tx text-sm focus:outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all placeholder:text-sb-tx-3 hover:border-sb-border-2"
                     />
                   </div>
                 ))}
@@ -177,20 +174,20 @@ export default function ProfilePage() {
             </div>
 
             {!profileExists && (
-              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-sm">
+              <div className="flex items-start gap-2 p-3 bg-sb-info/10 border border-sb-info/30 rounded-xl text-sb-info text-sm">
                 <AlertCircle size={14} className="shrink-0 text-blue-500 mt-0.5" />
                 <span>Hồ sơ chưa có dữ liệu — điền thông tin và nhấn <strong>Lưu hồ sơ</strong> để cập nhật.</span>
               </div>
             )}
 
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+              <div className="flex items-center gap-2 p-3 bg-sb-lose/10 border border-sb-lose/30 rounded-xl text-sb-lose text-sm">
                 <AlertCircle size={14} className="shrink-0" /> {error}
               </div>
             )}
 
             {success && (
-              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+              <div className="flex items-center gap-2 p-3 bg-sb-emerald-soft border border-sb-emerald-bd rounded-xl text-sb-emerald-ink text-sm">
                 <CheckCircle2 size={14} className="shrink-0" /> Hồ sơ đã được lưu thành công!
               </div>
             )}

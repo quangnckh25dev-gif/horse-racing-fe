@@ -26,10 +26,23 @@ const BET_STATUS = {
 // Races that accept bets (open or live)
 const BET_STATUSES = ["Scheduled", "RegistrationOpen", "Ongoing"];
 
+// Thứ tự hiển thị 4 loại cược (BE trả betType: WIN | PLACE | SHOW | EXACT)
+const BET_TYPE_ORDER = ["WIN", "PLACE", "SHOW", "EXACT"];
+const BET_TYPE_FALLBACK = {
+  WIN:   "Về nhất",
+  PLACE: "Vào top 2",
+  SHOW:  "Vào top 3",
+  EXACT: "Đúng hạng",
+};
+
+// BE trả 1 dòng cho mỗi (ngựa × loại cược × hạng đích) → cần key gộp cả 3
+const optKey = (o) => `${o.entryId}-${o.betType}-${o.targetPosition ?? 0}`;
+
 function RaceBetPanel({ race, onBetPlaced }) {
   const [options, setOptions]     = useState([]);
-  const [myBet, setMyBet]         = useState(null);
+  const [myBets, setMyBets]       = useState([]);
   const [loading, setLoading]     = useState(true);
+  const [betType, setBetType]     = useState("WIN");
   const [selected, setSelected]   = useState(null);
   const [amount, setAmount]       = useState("");
   const [placing, setPlacing]     = useState(false);
@@ -47,7 +60,7 @@ function RaceBetPanel({ race, onBetPlaced }) {
         ]);
         if (!alive) return;
         setOptions(optRes.data || []);
-        setMyBet(betRes.data || null);
+        setMyBets(betRes.data || []);
       } catch {
         // silence — may not have bet yet or no options
       } finally {
@@ -58,21 +71,22 @@ function RaceBetPanel({ race, onBetPlaced }) {
   }, [race.raceId]);
 
   const handlePlace = async () => {
-    if (!selected) { setError("Vui lòng chọn con ngựa"); return; }
+    if (!selected) { setError("Vui lòng chọn một kèo cược"); return; }
     const amt = Number(amount);
     if (!amt || amt < 10_000) { setError("Số tiền đặt cược tối thiểu 10,000 VNĐ"); return; }
     setPlacing(true); setError(""); setSuccess("");
     try {
+      // BE tự tính odds — FE chỉ gửi kèo + số tiền
       await betService.placeBet(race.raceId, {
         entryId: selected.entryId,
+        betType: selected.betType,
+        targetPosition: selected.targetPosition ?? null,
         amount: amt,
-        odds: selected.odds,
       });
-      setSuccess(`Đặt cược thành công! ${amt.toLocaleString("vi-VN")} VNĐ vào ${selected.horseName || selected.entryId}`);
+      setSuccess(`Đặt cược thành công! ${amt.toLocaleString("vi-VN")} VNĐ · ${selected.betTypeLabel || BET_TYPE_FALLBACK[selected.betType]} · ${selected.horseName || `#${selected.entryId}`}`);
       setSelected(null); setAmount("");
-      // reload my bet
       const betRes = await betService.getMyBetByRace(race.raceId);
-      setMyBet(betRes.data || null);
+      setMyBets(betRes.data || []);
       onBetPlaced?.();
     } catch (e) {
       setError(e.message || "Đặt cược thất bại. Kiểm tra số dư ví.");
@@ -89,6 +103,11 @@ function RaceBetPanel({ race, onBetPlaced }) {
     );
   }
 
+  // Các loại cược thực sự có kèo, sắp theo thứ tự chuẩn
+  const availableTypes = BET_TYPE_ORDER.filter((t) => options.some((o) => o.betType === t));
+  const activeType = availableTypes.includes(betType) ? betType : availableTypes[0];
+  const shown = options.filter((o) => o.betType === activeType);
+
   return (
     <div className="p-5 border-t border-white/[0.06] space-y-4">
       {error && (
@@ -102,85 +121,112 @@ function RaceBetPanel({ race, onBetPlaced }) {
         </div>
       )}
 
-      {/* Current bet */}
-      {myBet && (
-        <div className="bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-xl p-4">
-          <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest mb-2">Cược của bạn</p>
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <p className="text-white font-semibold text-sm">{myBet.horseName || `Ngựa #${myBet.entryId}`}</p>
-              <p className="text-gray-500 text-xs">
-                {Number(myBet.amount).toLocaleString("vi-VN")} VNĐ · Tỉ lệ {myBet.odds ?? "—"}x
-              </p>
+      {/* Cược đã đặt — được đặt bao nhiêu vé tuỳ ý, miễn đủ tiền */}
+      {myBets.length > 0 && (
+        <div className="bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-xl p-4 space-y-2">
+          <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">
+            Vé cược của bạn ({myBets.length})
+          </p>
+          {myBets.map((bet) => (
+            <div key={bet.betId} className="flex items-center justify-between flex-wrap gap-2 border-t border-[#D4AF37]/10 pt-2 first:border-0 first:pt-0">
+              <div>
+                <p className="text-white font-semibold text-sm">
+                  {bet.horseName || `Ngựa #${bet.entryId}`}
+                  <span className="ml-2 text-[10px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-2 py-0.5 rounded-full">
+                    {bet.betTypeLabel || BET_TYPE_FALLBACK[bet.betType] || bet.betType}
+                    {bet.targetPosition ? ` · hạng ${bet.targetPosition}` : ""}
+                  </span>
+                </p>
+                <p className="text-gray-500 text-xs">
+                  {Number(bet.amount).toLocaleString("vi-VN")} VNĐ · Tỉ lệ {bet.odds ?? "—"}x
+                  {bet.potentialPayout != null && ` · Thắng ${Number(bet.potentialPayout).toLocaleString("vi-VN")} VNĐ`}
+                </p>
+              </div>
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${(BET_STATUS[bet.status] || BET_STATUS.Pending).cls}`}>
+                {(BET_STATUS[bet.status] || BET_STATUS.Pending).label}
+              </span>
             </div>
-            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${(BET_STATUS[myBet.status] || BET_STATUS.Pending).cls}`}>
-              {(BET_STATUS[myBet.status] || BET_STATUS.Pending).label}
-            </span>
-          </div>
+          ))}
         </div>
       )}
 
       {/* Bet options */}
-      {!myBet && (
+      {options.length === 0 ? (
+        <p className="text-gray-500 text-sm text-center py-4">Chưa có lựa chọn cược cho vòng đua này</p>
+      ) : (
         <>
-          {options.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-4">Chưa có lựa chọn cược cho vòng đua này</p>
-          ) : (
-            <>
-              <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest">Chọn con ngựa</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {options.map((opt) => (
-                  <button
-                    key={opt.entryId}
-                    onClick={() => setSelected(opt)}
-                    className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
-                      selected?.entryId === opt.entryId
-                        ? "border-[#D4AF37] bg-[#D4AF37]/10"
-                        : "border-gray-800 bg-white/[0.02] hover:border-gray-600"
-                    }`}
-                  >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border ${
-                      selected?.entryId === opt.entryId
-                        ? "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/40"
-                        : "bg-white/[0.04] text-gray-400 border-gray-700"
-                    }`}>
-                      {opt.laneNumber ?? "—"}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-semibold text-sm ${selected?.entryId === opt.entryId ? "text-[#D4AF37]" : "text-white"}`}>
-                        {opt.horseName || `Entry #${opt.entryId}`}
-                      </p>
-                      {opt.jockeyName && (
-                        <p className="text-gray-500 text-xs truncate">🏇 {opt.jockeyName}</p>
-                      )}
-                    </div>
-                    {opt.odds != null && (
-                      <span className="font-data text-xs font-bold text-[#D4AF37] shrink-0">{opt.odds}x</span>
-                    )}
-                  </button>
-                ))}
-              </div>
+          {/* Loại cược — kèo càng khó trúng, tỉ lệ ăn càng cao */}
+          <div className="flex flex-wrap gap-1.5">
+            {availableTypes.map((t) => {
+              const label = options.find((o) => o.betType === t)?.betTypeLabel || BET_TYPE_FALLBACK[t] || t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => { setBetType(t); setSelected(null); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                    activeType === t
+                      ? "bg-[#D4AF37] text-[#0A0E1A] border-[#D4AF37]"
+                      : "bg-white/[0.02] text-gray-400 border-gray-800 hover:border-gray-600"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
 
-              {selected && (
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="Số tiền cược (VNĐ)"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="flex-1 h-10 rounded-xl bg-[#0A0E1A]/80 border border-gray-700 text-white text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] placeholder:text-gray-600"
-                  />
-                  <button
-                    onClick={handlePlace}
-                    disabled={placing || !amount}
-                    className="px-5 h-10 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-50 flex items-center gap-2 transition-colors shrink-0"
-                  >
-                    {placing ? <Loader2 size={13} className="animate-spin" /> : <DollarSign size={13} />}
-                    Đặt cược
-                  </button>
-                </div>
-              )}
-              {selected && amount && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {shown.map((opt) => {
+              const isOn = selected && optKey(selected) === optKey(opt);
+              return (
+                <button
+                  key={optKey(opt)}
+                  onClick={() => setSelected(opt)}
+                  className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
+                    isOn ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-800 bg-white/[0.02] hover:border-gray-600"
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border ${
+                    isOn ? "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/40" : "bg-white/[0.04] text-gray-400 border-gray-700"
+                  }`}>
+                    {opt.laneNumber ?? "—"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-semibold text-sm ${isOn ? "text-[#D4AF37]" : "text-white"}`}>
+                      {opt.horseName || `Entry #${opt.entryId}`}
+                    </p>
+                    <p className="text-gray-500 text-xs truncate">
+                      {opt.targetPosition ? `🎯 Về đúng hạng ${opt.targetPosition}` : opt.jockeyName ? `🏇 ${opt.jockeyName}` : ""}
+                    </p>
+                  </div>
+                  {opt.odds != null && (
+                    <span className="font-data text-xs font-bold text-[#D4AF37] shrink-0">{opt.odds}x</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {selected && (
+            <>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="Số tiền cược (VNĐ)"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="flex-1 h-10 rounded-xl bg-[#0A0E1A]/80 border border-gray-700 text-white text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] placeholder:text-gray-600"
+                />
+                <button
+                  onClick={handlePlace}
+                  disabled={placing || !amount}
+                  className="px-5 h-10 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-50 flex items-center gap-2 transition-colors shrink-0"
+                >
+                  {placing ? <Loader2 size={13} className="animate-spin" /> : <DollarSign size={13} />}
+                  Đặt cược
+                </button>
+              </div>
+              {amount && (
                 <p className="text-gray-500 text-xs">
                   Tiềm năng thắng:{" "}
                   <span className="text-green-400 font-bold">

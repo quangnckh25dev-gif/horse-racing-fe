@@ -3,8 +3,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   Home, Users, UserCheck, Trophy, LogOut,
   ChevronLeft, ChevronRight,
-  Flag, ClipboardList, Mail, Star, Calendar,
-  Award, PawPrint, Zap, User, BarChart2, Wallet, DollarSign,
+  Flag, ClipboardList, Mail, Calendar,
+  Award, PawPrint, User, BarChart2, Wallet, DollarSign,
   FileText, Settings,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -14,18 +14,17 @@ const MENU_BY_ROLE = {
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
     { label: "Duyệt tài khoản",     icon: UserCheck,     path: "/admin/users/pending" },
     { label: "Quản lý người dùng",  icon: Users,         path: "/admin/users" },
-    { label: "Quản lý giải đấu",    icon: Trophy,        path: "/admin/tournaments" },
+    { label: "Duyệt giải đấu",      icon: Trophy,        path: "/admin/tournaments" },
+    { label: "Nhật ký hệ thống",    icon: FileText,      path: "/admin/audit-logs" },
     { label: "Cấu hình hệ thống",   icon: Settings,      path: "/admin/configs" },
   ],
-  OrganizerHead: [
-    { label: "Dashboard",           icon: Home,          path: "/dashboard" },
-    { label: "Quản lý vòng đua",    icon: Flag,          path: "/organizer/races" },
-    { label: "Duyệt kết quả",       icon: Award,         path: "/organizer/results" },
-  ],
-  OrganizerMember: [
+  // 1 role Organizer duy nhất (đã bỏ OrganizerHead/OrganizerMember)
+  Organizer: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
     { label: "Quản lý vòng đua",    icon: Flag,          path: "/organizer/races" },
     { label: "Phân công trọng tài", icon: ClipboardList, path: "/organizer/referees" },
+    { label: "Duyệt kết quả",       icon: Award,         path: "/organizer/results" },
+    { label: "Hồ sơ cá nhân",       icon: User,          path: "/profile" },
   ],
   HorseOwner: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
@@ -53,14 +52,13 @@ const MENU_BY_ROLE = {
   ],
 };
 
-const ROLE_BADGE = {
-  Admin:           { label: "Admin",          cls: "bg-white/[0.12] text-white border-white/[0.18]" },
-  OrganizerHead:   { label: "Trưởng BTC",     cls: "bg-white/[0.12] text-white border-white/[0.18]" },
-  OrganizerMember: { label: "Thành viên BTC", cls: "bg-white/[0.12] text-white border-white/[0.18]" },
-  HorseOwner:      { label: "Chủ ngựa",       cls: "bg-white/[0.12] text-white border-white/[0.18]" },
-  Jockey:          { label: "Nài ngựa",       cls: "bg-white/[0.12] text-white border-white/[0.18]" },
-  Referee:         { label: "Trọng tài",      cls: "bg-white/[0.12] text-white border-white/[0.18]" },
-  Spectator:       { label: "Khán giả",       cls: "bg-white/[0.12] text-white border-white/[0.18]" },
+const ROLE_LABEL = {
+  Admin:      "Admin",
+  Organizer:  "Ban tổ chức",
+  HorseOwner: "Chủ ngựa",
+  Jockey:     "Nài ngựa",
+  Referee:    "Trọng tài",
+  Spectator:  "Khán giả",
 };
 
 export default function Sidebar() {
@@ -69,115 +67,85 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   const menu = MENU_BY_ROLE[role] || [];
-  const badge = ROLE_BADGE[role];
+  const roleLabel = ROLE_LABEL[role];
 
   return (
     <aside
-      className={`relative flex flex-col h-screen transition-all duration-300 ease-in-out shrink-0 ${
+      className={`relative flex flex-col h-screen shrink-0 bg-sb-s1 border-r border-sb-border transition-all duration-300 ${
         collapsed ? "w-[60px]" : "w-60"
       }`}
-      style={{
-        background: "linear-gradient(180deg, #2563EB 0%, #3B82F6 50%, #2563EB 100%)",
-        boxShadow: "4px 0 20px rgba(59,130,246,0.20)",
-      }}
     >
-      {/* Subtle shimmer at top */}
-      <div className="absolute top-0 right-0 w-40 h-40 bg-white/[0.04] rounded-full blur-3xl pointer-events-none" />
-
       {/* ── Logo ── */}
-      <div className="flex items-center justify-between px-4 h-16 border-b border-white/[0.12] shrink-0">
-        {!collapsed && (
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="relative shrink-0">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.15] border border-white/[0.2]">
-                <Zap size={14} className="text-amber-300" />
+      <div className="flex items-center justify-between px-4 h-16 border-b border-sb-border shrink-0">
+        {collapsed ? (
+          <div className="mx-auto w-8 h-8 rounded-lg flex items-center justify-center bg-sb-emerald-soft border border-sb-emerald-bd text-base">
+            🏇
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-sb-emerald-soft border border-sb-emerald-bd text-base shrink-0">
+                🏇
+              </div>
+              <div className="overflow-hidden">
+                <p className="text-sb-tx font-bold text-xs tracking-widest uppercase leading-none">
+                  HorseRacing
+                </p>
+                <p className="text-sb-tx-3 text-[9px] tracking-widest uppercase mt-0.5">
+                  Season 2026
+                </p>
               </div>
             </div>
-            <div className="overflow-hidden">
-              <p className="text-white font-bold text-xs tracking-widest uppercase leading-none">
-                HorseRacing
-              </p>
-              <p className="text-blue-200 text-[9px] tracking-widest uppercase mt-0.5 opacity-80">
-                Management
-              </p>
-            </div>
-          </div>
-        )}
-
-        {collapsed && (
-          <div className="mx-auto w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.15] border border-white/[0.2]">
-            <Zap size={14} className="text-amber-300" />
-          </div>
-        )}
-
-        {!collapsed && (
-          <button
-            onClick={() => setCollapsed(true)}
-            className="ml-2 p-1.5 rounded-lg text-blue-200 hover:text-white hover:bg-white/[0.1] transition-all duration-200 shrink-0"
-          >
-            <ChevronLeft size={14} />
-          </button>
+            <button onClick={() => setCollapsed(true)}
+              className="ml-2 p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s2 transition-colors shrink-0">
+              <ChevronLeft size={14} />
+            </button>
+          </>
         )}
       </div>
 
-      {/* Expand button when collapsed */}
       {collapsed && (
-        <button
-          onClick={() => setCollapsed(false)}
-          className="absolute -right-3 top-[72px] z-10 w-6 h-6 rounded-full bg-blue-700 border border-blue-500/40 flex items-center justify-center text-white hover:bg-blue-600 transition-all shadow-md shadow-blue-900/40"
-        >
+        <button onClick={() => setCollapsed(false)}
+          className="absolute -right-3 top-[72px] z-10 w-6 h-6 rounded-full bg-sb-s2 border border-sb-border flex items-center justify-center text-sb-tx-2 hover:text-sb-tx transition-colors">
           <ChevronRight size={11} />
         </button>
       )}
 
-      {/* ── Navigation ── */}
+      {/* ── Menu ── */}
       <nav className="flex-1 py-4 space-y-0.5 overflow-y-auto overflow-x-hidden px-2">
         {!collapsed && (
-          <p className="px-2 mb-2 text-[10px] font-semibold text-blue-300 uppercase tracking-widest opacity-70">
+          <p className="px-2 mb-2 text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">
             Menu
           </p>
         )}
 
-        {menu.map((item, i) => (
+        {menu.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
-            style={{ animationDelay: `${i * 40}ms` }}
+            end
+            title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
-              `group relative flex items-center gap-3 rounded-xl text-sm transition-all duration-200 animate-fade-in-up ${
+              `group relative flex items-center gap-3 rounded-xl text-sm transition-colors border ${
                 collapsed ? "px-0 py-2.5 justify-center" : "px-3 py-2.5"
               } ${
                 isActive
-                  ? "text-white bg-white/[0.12] border border-white/[0.10]"
-                  : "text-blue-100 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.06]"
+                  ? "text-sb-tx bg-sb-emerald-soft border-sb-emerald-bd"
+                  : "text-sb-tx-2 border-transparent hover:text-sb-tx hover:bg-sb-s2"
               }`
             }
-            title={collapsed ? item.label : undefined}
           >
             {({ isActive }) => (
               <>
-                {/* Active left bar */}
                 {isActive && !collapsed && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-white rounded-full shadow-[0_0_6px_rgba(255,255,255,0.6)]" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full bg-sb-emerald" />
                 )}
-
-                {/* Icon */}
-                <span className={`shrink-0 transition-all duration-200 ${
-                  isActive
-                    ? "text-white"
-                    : "text-blue-300 group-hover:text-white"
-                }`}>
+                <span className={`shrink-0 ${isActive ? "text-sb-emerald-ink" : "text-sb-tx-3 group-hover:text-sb-tx-2"}`}>
                   <item.icon size={16} />
                 </span>
-
-                {/* Label */}
-                {!collapsed && (
-                  <span className="truncate font-medium">{item.label}</span>
-                )}
-
-                {/* Active dot when collapsed */}
+                {!collapsed && <span className="truncate font-medium">{item.label}</span>}
                 {isActive && collapsed && (
-                  <span className="absolute right-0.5 top-1.5 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]" />
+                  <span className="absolute right-1 top-1.5 w-1.5 h-1.5 rounded-full bg-sb-emerald" />
                 )}
               </>
             )}
@@ -185,23 +153,23 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* ── Role badge + Logout ── */}
-      <div className="border-t border-white/[0.12] p-3 space-y-2 shrink-0">
-        {badge && !collapsed && (
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium ${badge.cls}`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
-            <span className="truncate">{badge.label}</span>
+      {/* ── Vai trò + Đăng xuất ── */}
+      <div className="border-t border-sb-border p-3 space-y-2 shrink-0">
+        {roleLabel && !collapsed && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-sb-s2 border border-sb-border text-xs font-semibold text-sb-tx-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-sb-emerald" />
+            <span className="truncate">{roleLabel}</span>
           </div>
         )}
 
         <button
-          onClick={() => { logout(); navigate("/login"); }}
-          className={`group flex items-center gap-3 w-full rounded-xl text-sm text-blue-200 hover:text-red-300 hover:bg-red-400/[0.12] border border-transparent hover:border-red-400/[0.2] transition-all duration-200 ${
+          onClick={() => { logout(); navigate("/"); }}
+          title={collapsed ? "Đăng xuất" : undefined}
+          className={`flex items-center gap-3 w-full rounded-xl text-sm text-sb-tx-2 border border-transparent hover:text-sb-lose hover:bg-sb-lose/10 hover:border-sb-lose/25 transition-colors ${
             collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
           }`}
-          title={collapsed ? "Đăng xuất" : undefined}
         >
-          <LogOut size={15} className="shrink-0 group-hover:rotate-12 transition-transform duration-300" />
+          <LogOut size={15} className="shrink-0" />
           {!collapsed && <span>Đăng xuất</span>}
         </button>
       </div>

@@ -40,7 +40,6 @@ import RefereeRaceDetailPage from "./pages/referee/RefereeRaceDetailPage";
 
 // Spectator pages
 import RaceSchedulePage from "./pages/spectator/RaceSchedulePage";
-import PredictionPage from "./pages/spectator/PredictionPage";
 import WalletPage from "./pages/spectator/WalletPage";
 import BettingPage from "./pages/spectator/BettingPage";
 import LeaderboardPage from "./pages/spectator/LeaderboardPage";
@@ -99,14 +98,13 @@ export default function App() {
 
           {/* ── Organizer — F5 ──────────────────────────────── */}
           <Route path="/organizer/races"
-            element={guard(["OrganizerHead", "OrganizerMember"], <OrganizerRacesPage />)} />
+            element={guard(["Organizer"], <OrganizerRacesPage />)} />
           <Route path="/organizer/races/:raceId"
-            element={guard(["OrganizerHead", "OrganizerMember"], <OrganizerRaceDetailPage />)} />
+            element={guard(["Organizer"], <OrganizerRaceDetailPage />)} />
           <Route path="/organizer/results"
-            element={guard(["OrganizerHead"], <OrganizerResultsPage />)} />
-          {/* OrganizerMember referee assignment alias */}
+            element={guard(["Organizer"], <OrganizerResultsPage />)} />
           <Route path="/organizer/referees"
-            element={guard(["OrganizerHead", "OrganizerMember"], <OrganizerRacesPage />)} />
+            element={guard(["Organizer"], <OrganizerRacesPage />)} />
 
           {/* ── HorseOwner — F2 ─────────────────────────────── */}
           <Route path="/owner/horses"
@@ -129,8 +127,6 @@ export default function App() {
           {/* ── Spectator — F4 ──────────────────────────────── */}
           <Route path="/spectator/schedule"
             element={guard(["Spectator"], <RaceSchedulePage />)} />
-          <Route path="/spectator/predictions"
-            element={guard(["Spectator"], <PredictionPage />)} />
           <Route path="/spectator/wallet"
             element={guard(["Spectator"], <WalletPage />)} />
           <Route path="/spectator/betting"

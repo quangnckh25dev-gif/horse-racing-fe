@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { organizerService } from "../../services/organizer";
+import { tournamentService } from "../../services/tournament";
 import { useAuth } from "../../context/AuthContext";
 
 const STATUS_CONFIG = {
@@ -26,8 +27,14 @@ const STATUS_TRANSITIONS = {
 };
 
 const EMPTY_FORM = {
-  raceName: "", roundId: "", startTime: "", endTime: "",
-  description: "", maxEntries: "", distance: "", prizePool: "",
+  tournamentId: "", roundId: "", raceName: "", startTime: "",
+  distance: "1200", trackType: "Flat", maxEntries: "8",
+  prizeFirst: "20000000", prizeSecond: "10000000", prizeThird: "5000000",
+};
+
+const EMPTY_TOURNAMENT = {
+  tournamentName: "", location: "", startDate: "", endDate: "",
+  budgetTotal: "50000000", maxHorses: "20", maxParticipants: "20",
 };
 
 const inputCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.08)] transition-all";
@@ -60,37 +67,79 @@ function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   );
 }
 
-function RaceForm({ form, onChange, onSubmit, onCancel, loading, submitLabel }) {
+const lbl = "block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5";
+
+function RaceForm({ form, onChange, onSubmit, onCancel, loading, submitLabel,
+  tournaments, rounds, onAddRound, roundBusy }) {
+  const editing = submitLabel !== "Tạo vòng đua";
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      {!editing && (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={lbl}>Giải đấu *</label>
+            <select name="tournamentId" value={form.tournamentId} onChange={onChange} required className={inputCls}>
+              <option value="">-- Chọn giải đấu --</option>
+              {tournaments.map((t) => <option key={t.tournamentId} value={t.tournamentId}>{t.tournamentName}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lbl}>Vòng *</label>
+            <div className="flex gap-2">
+              <select name="roundId" value={form.roundId} onChange={onChange} required disabled={!form.tournamentId} className={inputCls + " disabled:opacity-40"}>
+                <option value="">{form.tournamentId ? "-- Chọn vòng --" : "Chọn giải trước"}</option>
+                {rounds.map((r) => <option key={r.roundId} value={r.roundId}>{r.roundName}</option>)}
+              </select>
+              <button type="button" onClick={onAddRound} disabled={!form.tournamentId || roundBusy} title="Thêm vòng mới"
+                className="px-3 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx disabled:opacity-40 shrink-0">
+                {roundBusy ? <Loader2 size={13} className="animate-spin" /> : <Plus size={14} />}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
-          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Tên vòng đua *</label>
+          <label className={lbl}>Tên cuộc đua *</label>
           <input name="raceName" value={form.raceName} onChange={onChange} required className={inputCls} placeholder="VD: Vòng chung kết mùa hè" />
         </div>
         <div>
-          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Thời gian bắt đầu *</label>
+          <label className={lbl}>Thời gian đua *</label>
           <input name="startTime" type="datetime-local" value={form.startTime} onChange={onChange} required className={inputCls} />
+          {!editing && (() => {
+            const t = tournaments.find((x) => String(x.tournamentId) === String(form.tournamentId));
+            return t?.startDate ? (
+              <p className="text-sb-tx-3 text-[11px] mt-1">Phải trong khoảng giải: {String(t.startDate).slice(0, 10)} → {String(t.endDate).slice(0, 10)}</p>
+            ) : null;
+          })()}
         </div>
         <div>
-          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Thời gian kết thúc</label>
-          <input name="endTime" type="datetime-local" value={form.endTime} onChange={onChange} className={inputCls} />
+          <label className={lbl}>Cự ly (m)</label>
+          <input name="distance" type="number" value={form.distance} onChange={onChange} className={inputCls} placeholder="1200" />
         </div>
         <div>
-          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Cự ly (m)</label>
-          <input name="distance" type="number" value={form.distance} onChange={onChange} className={inputCls} placeholder="1600" />
+          <label className={lbl}>Loại đường</label>
+          <select name="trackType" value={form.trackType} onChange={onChange} className={inputCls}>
+            <option value="Flat">Đường bằng (Flat)</option>
+            <option value="Turf">Cỏ (Turf)</option>
+            <option value="Dirt">Đất (Dirt)</option>
+          </select>
         </div>
         <div>
-          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Số tham gia tối đa</label>
+          <label className={lbl}>Số ngựa tối đa</label>
           <input name="maxEntries" type="number" value={form.maxEntries} onChange={onChange} className={inputCls} placeholder="8" />
         </div>
-        <div className="col-span-2">
-          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Giải thưởng (VNĐ)</label>
-          <input name="prizePool" type="number" value={form.prizePool} onChange={onChange} className={inputCls} placeholder="50000000" />
+        <div>
+          <label className={lbl}>Giải nhất (VNĐ)</label>
+          <input name="prizeFirst" type="number" value={form.prizeFirst} onChange={onChange} className={inputCls} placeholder="20000000" />
         </div>
-        <div className="col-span-2">
-          <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Mô tả</label>
-          <textarea name="description" value={form.description} onChange={onChange} rows={2} className={inputCls + " resize-none"} />
+        <div>
+          <label className={lbl}>Giải nhì</label>
+          <input name="prizeSecond" type="number" value={form.prizeSecond} onChange={onChange} className={inputCls} placeholder="10000000" />
+        </div>
+        <div>
+          <label className={lbl}>Giải ba</label>
+          <input name="prizeThird" type="number" value={form.prizeThird} onChange={onChange} className={inputCls} placeholder="5000000" />
         </div>
       </div>
       <div className="flex gap-3 pt-1">
@@ -120,6 +169,15 @@ export default function OrganizerRacesPage() {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
 
+  // Giải đấu + vòng của Organizer (race cần tournamentId + roundId)
+  const [tournaments, setTournaments] = useState([]);
+  const [rounds, setRounds] = useState([]);
+  const [roundBusy, setRoundBusy] = useState(false);
+  const [showCreateTournament, setShowCreateTournament] = useState(false);
+  const [tournamentForm, setTournamentForm] = useState(EMPTY_TOURNAMENT);
+  const [tBusy, setTBusy] = useState(false);
+  const [tError, setTError] = useState("");
+
   const fetchRaces = useCallback(async () => {
     setLoading(true); setError("");
     try {
@@ -132,23 +190,104 @@ export default function OrganizerRacesPage() {
     }
   }, []);
 
-  useEffect(() => { fetchRaces(); }, [fetchRaces]);
+  const fetchTournaments = useCallback(async () => {
+    try {
+      const res = await organizerService.getTournaments();
+      setTournaments(res.data || []);
+    } catch { setTournaments([]); }
+  }, []);
 
-  const handleFormChange = (e) => setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  useEffect(() => { fetchRaces(); fetchTournaments(); }, [fetchRaces, fetchTournaments]);
+
+  // Khi chọn giải đấu → tải danh sách vòng
+  useEffect(() => {
+    if (!formData.tournamentId) { setRounds([]); return; }
+    let alive = true;
+    tournamentService.getPublicRounds(formData.tournamentId)
+      .then((r) => { if (alive) setRounds(r.data || []); })
+      .catch(() => { if (alive) setRounds([]); });
+    return () => { alive = false; };
+  }, [formData.tournamentId]);
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value, ...(name === "tournamentId" ? { roundId: "" } : {}) }));
+  };
+
+  // Map field FE → body BE cho POST /organizer/races
+  const toRacePayload = (f) => ({
+    tournamentId: Number(f.tournamentId),
+    roundId: Number(f.roundId),
+    raceName: f.raceName,
+    raceDate: f.startTime,
+    trackLength: Number(f.distance) || 1200,
+    trackType: f.trackType || "Flat",
+    maxParticipants: Number(f.maxEntries) || 8,
+    prizeFirst: Number(f.prizeFirst) || 0,
+    prizeSecond: Number(f.prizeSecond) || 0,
+    prizeThird: Number(f.prizeThird) || 0,
+    status: "Scheduled",
+    registrationOpen: new Date().toISOString().slice(0, 16),
+    registrationClose: f.startTime,
+  });
 
   const handleCreate = async (e) => {
-    e.preventDefault(); setFormLoading(true); setFormError("");
+    e.preventDefault();
+    if (!formData.tournamentId || !formData.roundId) { setFormError("Vui lòng chọn giải đấu và vòng."); return; }
+    setFormLoading(true); setFormError("");
     try {
-      await organizerService.createRace(formData);
+      await organizerService.createRace(toRacePayload(formData));
       setShowCreate(false); setFormData(EMPTY_FORM); fetchRaces();
-    } catch (err) { setFormError(err.message || "Tạo vòng đua thất bại"); }
+    } catch (err) { setFormError(err.message || "Tạo cuộc đua thất bại"); }
     finally { setFormLoading(false); }
+  };
+
+  // Tạo nhanh 1 vòng cho giải đang chọn
+  const handleAddRound = async () => {
+    if (!formData.tournamentId) return;
+    setRoundBusy(true);
+    try {
+      const order = rounds.length + 1;
+      const today = new Date().toISOString().slice(0, 10);
+      await tournamentService.createRound(formData.tournamentId, {
+        roundName: `Vòng ${order}`, roundOrder: order, startDate: today, endDate: today,
+      });
+      const r = await tournamentService.getPublicRounds(formData.tournamentId);
+      setRounds(r.data || []);
+    } catch (err) { setFormError(err.message || "Tạo vòng thất bại"); }
+    finally { setRoundBusy(false); }
+  };
+
+  const handleCreateTournament = async (e) => {
+    e.preventDefault(); setTBusy(true); setTError("");
+    try {
+      const res = await tournamentService.create({
+        tournamentName: tournamentForm.tournamentName,
+        location: tournamentForm.location,
+        startDate: tournamentForm.startDate,
+        endDate: tournamentForm.endDate,
+        budgetTotal: Number(tournamentForm.budgetTotal) || 0,
+        maxHorses: Number(tournamentForm.maxHorses) || 20,
+        maxParticipants: Number(tournamentForm.maxParticipants) || 20,
+      });
+      await fetchTournaments();
+      setShowCreateTournament(false);
+      setTournamentForm(EMPTY_TOURNAMENT);
+      // mở luôn form tạo race với giải vừa tạo
+      const newId = res.data?.tournamentId;
+      if (newId) { setFormData({ ...EMPTY_FORM, tournamentId: String(newId) }); setFormError(""); setShowCreate(true); }
+    } catch (err) { setTError(err.message || "Tạo giải đấu thất bại"); }
+    finally { setTBusy(false); }
   };
 
   const handleEdit = async (e) => {
     e.preventDefault(); setFormLoading(true); setFormError("");
     try {
-      await organizerService.updateRace(showEdit.raceId, formData);
+      await organizerService.updateRace(showEdit.raceId, toRacePayload({
+        ...formData,
+        tournamentId: formData.tournamentId || showEdit.tournamentId,
+        roundId: formData.roundId || showEdit.roundId,
+      }));
       setShowEdit(null); fetchRaces();
     } catch (err) { setFormError(err.message || "Cập nhật thất bại"); }
     finally { setFormLoading(false); }
@@ -174,11 +313,13 @@ export default function OrganizerRacesPage() {
 
   const openEdit = (race) => {
     setFormData({
-      raceName: race.raceName || "", roundId: race.roundId || "",
-      startTime: race.startTime ? race.startTime.slice(0, 16) : "",
-      endTime: race.endTime ? race.endTime.slice(0, 16) : "",
-      description: race.description || "", maxEntries: race.maxEntries || "",
-      distance: race.distance || "", prizePool: race.prizePool || "",
+      tournamentId: race.tournamentId || "", roundId: race.roundId || "",
+      raceName: race.raceName || "",
+      startTime: (race.raceDate || race.startTime) ? (race.raceDate || race.startTime).slice(0, 16) : "",
+      distance: race.trackLength || race.distance || "1200",
+      trackType: race.trackType || "Flat",
+      maxEntries: race.maxParticipants || race.maxEntries || "8",
+      prizeFirst: race.prizeFirst || "", prizeSecond: race.prizeSecond || "", prizeThird: race.prizeThird || "",
     });
     setShowEdit(race); setFormError("");
   };
@@ -223,9 +364,15 @@ export default function OrganizerRacesPage() {
               className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all">
               <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
             </button>
+            <button onClick={() => { setTournamentForm(EMPTY_TOURNAMENT); setTError(""); setShowCreateTournament(true); }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx font-bold rounded-xl text-sm transition-all">
+              <Trophy size={15} /> Tạo giải đấu
+            </button>
             <button onClick={() => { setFormData(EMPTY_FORM); setFormError(""); setShowCreate(true); }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm btn-gold-glow transition-all">
-              <Plus size={15} /> Tạo vòng đua
+              disabled={tournaments.length === 0}
+              title={tournaments.length === 0 ? "Hãy tạo giải đấu trước" : ""}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm btn-gold-glow transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+              <Plus size={15} /> Tạo cuộc đua
             </button>
           </div>
         </div>
@@ -359,9 +506,52 @@ export default function OrganizerRacesPage() {
 
       {/* ── Modals ── */}
       {showCreate && (
-        <Modal title="Tạo vòng đua mới" onClose={() => setShowCreate(false)}>
+        <Modal title="Tạo cuộc đua mới" onClose={() => setShowCreate(false)}>
           {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-red-950/40 border border-red-900/50 rounded-xl text-red-300 text-sm"><AlertCircle size={13} /> {formError}</div>}
-          <RaceForm form={formData} onChange={handleFormChange} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} loading={formLoading} submitLabel="Tạo vòng đua" />
+          <RaceForm form={formData} onChange={handleFormChange} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} loading={formLoading} submitLabel="Tạo vòng đua"
+            tournaments={tournaments} rounds={rounds} onAddRound={handleAddRound} roundBusy={roundBusy} />
+        </Modal>
+      )}
+
+      {showCreateTournament && (
+        <Modal title="Tạo giải đấu mới" onClose={() => setShowCreateTournament(false)}>
+          {tError && <div className="mb-4 flex items-center gap-2 p-3 bg-red-950/40 border border-red-900/50 rounded-xl text-red-300 text-sm"><AlertCircle size={13} /> {tError}</div>}
+          <form onSubmit={handleCreateTournament} className="space-y-4">
+            <div>
+              <label className={lbl}>Tên giải đấu *</label>
+              <input value={tournamentForm.tournamentName} onChange={(e) => setTournamentForm((p) => ({ ...p, tournamentName: e.target.value }))} required className={inputCls} placeholder="VD: Giải Đua Mùa Thu 2026" />
+            </div>
+            <div>
+              <label className={lbl}>Địa điểm</label>
+              <input value={tournamentForm.location} onChange={(e) => setTournamentForm((p) => ({ ...p, location: e.target.value }))} className={inputCls} placeholder="Hồ Chí Minh" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={lbl}>Ngày bắt đầu *</label>
+                <input type="date" value={tournamentForm.startDate} onChange={(e) => setTournamentForm((p) => ({ ...p, startDate: e.target.value }))} required className={inputCls} />
+              </div>
+              <div>
+                <label className={lbl}>Ngày kết thúc *</label>
+                <input type="date" value={tournamentForm.endDate} onChange={(e) => setTournamentForm((p) => ({ ...p, endDate: e.target.value }))} required className={inputCls} />
+              </div>
+              <div>
+                <label className={lbl}>Ngân sách (VNĐ)</label>
+                <input type="number" value={tournamentForm.budgetTotal} onChange={(e) => setTournamentForm((p) => ({ ...p, budgetTotal: e.target.value }))} className={inputCls} />
+              </div>
+              <div>
+                <label className={lbl}>Số ngựa tối đa</label>
+                <input type="number" value={tournamentForm.maxHorses} onChange={(e) => setTournamentForm((p) => ({ ...p, maxHorses: e.target.value }))} className={inputCls} />
+              </div>
+            </div>
+            <p className="text-sb-tx-3 text-[11px]">Giải tạo ở trạng thái Nháp. Tạo cuộc đua xong, gửi Admin duyệt để mở đăng ký.</p>
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={() => setShowCreateTournament(false)} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Huỷ</button>
+              <button type="submit" disabled={tBusy}
+                className="flex-1 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 btn-gold-glow transition-all">
+                {tBusy && <Loader2 size={14} className="animate-spin" />} Tạo giải đấu
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
 

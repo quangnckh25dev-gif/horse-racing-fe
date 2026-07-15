@@ -20,7 +20,7 @@ const RACE_STATUS_CONFIG = {
   Cancelled:        { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",                          icon: XCircle,      dot: "bg-red-400" },
 };
 
-const REFEREE_ROLES = ["MainReferee", "AssistantReferee", "TimingReferee", "StartReferee"];
+const REFEREE_ROLES = ["Chief", "Assistant"];
 
 const TABS = [
   { id: "info",     label: "Thông tin", icon: FileText },
@@ -113,15 +113,14 @@ function RefereesTab({ raceId }) {
   const [allReferees, setAllReferees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAssign, setShowAssign] = useState(false);
-  const [assignForm, setAssignForm] = useState({ refereeId: "", role: "AssistantReferee" });
+  const [assignForm, setAssignForm] = useState({ refereeId: "", role: "Chief" });
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // BE chỉ nhận role: Chief | Assistant
   const ROLE_LABELS = {
-    MainReferee:      { label: "Trọng tài chính", color: "text-[#D4AF37] bg-[#D4AF37]/10 border-[#D4AF37]/25" },
-    AssistantReferee: { label: "Trợ lý TT",        color: "text-blue-300 bg-blue-500/10 border-blue-500/25" },
-    TimingReferee:    { label: "TT bấm giờ",       color: "text-purple-300 bg-purple-500/10 border-purple-500/25" },
-    StartReferee:     { label: "TT xuất phát",     color: "text-green-300 bg-green-500/10 border-green-500/25" },
+    Chief:     { label: "Trọng tài chính", color: "text-[#D4AF37] bg-[#D4AF37]/10 border-[#D4AF37]/25" },
+    Assistant: { label: "Trợ lý trọng tài", color: "text-blue-300 bg-blue-500/10 border-blue-500/25" },
   };
 
   const load = useCallback(async () => {
@@ -203,7 +202,7 @@ function RefereesTab({ raceId }) {
       ) : (
         <div className="space-y-2.5">
           {assigned.map((ref, idx) => {
-            const roleKey = ref.role || ref.refereeRole || "AssistantReferee";
+            const roleKey = ref.role || ref.refereeRole || "Assistant";
             const roleCfg = ROLE_LABELS[roleKey] || { label: roleKey, color: "text-sb-tx-3 bg-sb-s1/5 border-sb-border" };
             const info = refById[ref.refereeId] || {};
             const name = info.fullName || info.username || ref.fullName || `Trọng tài #${ref.refereeId}`;
@@ -271,10 +270,8 @@ function RefereesTab({ raceId }) {
 }
 
 const REFEREE_ROLES_LABELS = {
-  MainReferee:      "Trọng tài chính",
-  AssistantReferee: "Trợ lý trọng tài",
-  TimingReferee:    "Trọng tài bấm giờ",
-  StartReferee:     "Trọng tài xuất phát",
+  Chief:     "Trọng tài chính",
+  Assistant: "Trợ lý trọng tài",
 };
 
 // ── Tab: Entries ──────────────────────────────────────────────────────────────

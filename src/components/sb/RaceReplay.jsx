@@ -133,7 +133,7 @@ export default function RaceReplay({ raceName, results, onClose }) {
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
       onClick={(e) => e.target === e.currentTarget && onClose?.()}>
       <div className="w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-sb-s1 border border-sb-border shadow-2xl shadow-black/50 overflow-hidden">
         <div className="h-0.5 bg-gradient-to-r from-sb-emerald to-transparent shrink-0" />

@@ -510,7 +510,17 @@ function MinutesTab({ raceId }) {
           <input type="file" accept="image/*,application/pdf" hidden
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) { setFileName(f.name); setForm((p) => ({ ...p, minutesFileUrl: `demo-uploads/${f.name}` })); }
+              if (!f) return;
+              setFileName(f.name);
+              setForm((p) => ({ ...p, minutesFileUrl: `demo-uploads/${f.name}` }));
+              // Ảnh: lưu data URL vào localStorage (theo raceId) để hiện ảnh thật khi xem biên bản (demo 1 máy)
+              if (f.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = () => { try { localStorage.setItem(`minutes-img-${raceId}`, reader.result); } catch { /* ảnh quá lớn */ } };
+                reader.readAsDataURL(f);
+              } else {
+                try { localStorage.removeItem(`minutes-img-${raceId}`); } catch { /* ignore */ }
+              }
             }} />
           <span className="text-lg">📎</span>
           <span className="text-sm text-sb-tx-2">

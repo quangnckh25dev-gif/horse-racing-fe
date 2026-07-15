@@ -34,8 +34,12 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
     ["Ghi chú thêm", minutes?.notes],
   ].filter(([, v]) => v);
 
+  // Ảnh biên bản đã lưu ở localStorage lúc trọng tài upload (data URL)
+  let localImg = null;
+  try { localImg = localStorage.getItem(`minutes-img-${raceId}`); } catch { localImg = null; }
+
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50"
       onClick={(e) => e.target === e.currentTarget && onClose?.()}>
       <div className="w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl bg-sb-s1 border border-sb-border shadow-2xl shadow-black/50 overflow-hidden">
         <div className="h-0.5 bg-gradient-to-r from-sb-gold to-transparent shrink-0" />
@@ -67,12 +71,19 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
                       <p className="text-sb-tx text-sm whitespace-pre-wrap">{value}</p>
                     </div>
                   ))}
-                  {minutes.minutesFileUrl && (
+                  {/* Ảnh biên bản ký tay */}
+                  {localImg ? (
+                    <div>
+                      <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Ảnh biên bản đã ký</p>
+                      <img src={localImg} alt="Biên bản ký tay"
+                        className="w-full rounded-xl border border-sb-border max-h-[420px] object-contain bg-sb-s2" />
+                    </div>
+                  ) : minutes.minutesFileUrl ? (
                     <div className="flex items-center gap-2 bg-sb-gold-soft border border-sb-gold-bd rounded-xl p-3">
                       <Paperclip size={15} className="text-sb-gold-2 shrink-0" />
                       <span className="text-sb-gold-2 text-sm truncate">{minutes.minutesFileUrl}</span>
                     </div>
-                  )}
+                  ) : null}
                 </>
               )}
 

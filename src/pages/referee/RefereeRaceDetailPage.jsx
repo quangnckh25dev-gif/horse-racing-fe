@@ -80,23 +80,19 @@ function ResultsTab({ raceId, entries }) {
     };
     setFormLoading(true);
     try {
-      if (isEditing) {
-        // Individual PUT per result (contract: PUT /races/{raceId}/results/{resultId})
-        for (const row of form) {
-          const existing = results.find((r) => r.entryId === row.entryId);
-          if (existing?.resultId) {
-            await raceResultService.updateResult(raceId, existing.resultId, {
-              entryId: row.entryId,
-              position: Number(row.position),
-              finishTime: toFinish(row),
-              dnf: row.dnf,
-              note: row.note || "",
-            });
-          }
-        }
-      } else {
-        // Individual POST per entry (contract: POST /races/{raceId}/results)
-        for (const row of form) {
+      // Xử lý TỪNG ngựa: đã có kết quả → cập nhật (PUT), chưa có → tạo mới (POST).
+      // Tránh lỗi "Entry nay da co ket qua" khi nhập lại / nhập bổ sung.
+      for (const row of form) {
+        const existing = results.find((r) => r.entryId === row.entryId);
+        if (existing?.resultId) {
+          await raceResultService.updateResult(raceId, existing.resultId, {
+            entryId: row.entryId,
+            position: Number(row.position),
+            finishTime: toFinish(row),
+            dnf: row.dnf,
+            note: row.note || "",
+          });
+        } else {
           await raceResultService.createResults(raceId, {
             entryId: row.entryId,
             position: Number(row.position),
@@ -288,10 +284,14 @@ function ViolationsTab({ raceId, entries }) {
         </div>
       ) : (
         <div className="space-y-2">
-          {violations.map((v) => (
+          {violations.map((v) => {
+            // BE trả vi phạm không kèm tên ngựa → tra từ entries theo entryId
+            const ent = entries.find((e) => e.entryId === v.entryId) || {};
+            const horse = v.horseName || ent.horseName || (ent.horseId ? `Ngựa #${ent.horseId}` : "Ngựa —");
+            return (
             <div key={v.violationId} className="flex items-start justify-between bg-red-950/10 border border-red-900/30 rounded-xl p-4">
               <div className="flex-1">
-                <p className="text-white font-medium text-sm">{v.horseName || `Ngựa #${v.horseId}`}</p>
+                <p className="text-white font-medium text-sm">{horse}</p>
                 <p className="text-orange-300 text-xs font-medium mt-0.5">{v.violationType}</p>
                 {v.description && <p className="text-sb-tx-3 text-xs mt-1">{v.description}</p>}
                 {v.penalty && <p className="text-red-300 text-xs mt-0.5">Hình phạt: {v.penalty}</p>}
@@ -301,7 +301,8 @@ function ViolationsTab({ raceId, entries }) {
                 <Trash2 size={14} />
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -368,7 +369,8 @@ function MinutesTab({ raceId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ content: "", weatherCondition: "", trackCondition: "", notes: "" });
+  const [form, setForm] = useState({ content: "", weatherCondition: "", trackCondition: "", notes: "", minutesFileUrl: "" });
+  const [fileName, setFileName] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
   const load = useCallback(async () => {
@@ -382,6 +384,7 @@ function MinutesTab({ raceId }) {
           weatherCondition: res.data.weatherCondition || "",
           trackCondition: res.data.trackCondition || "",
           notes: res.data.notes || "",
+          minutesFileUrl: res.data.minutesFileUrl || "",
         });
       }
     } catch {
@@ -395,6 +398,7 @@ function MinutesTab({ raceId }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!form.minutesFileUrl) { alert("Vui lòng đính kèm file biên bản (ảnh/PDF đã ký)."); return; }
     setFormLoading(true);
     try {
       if (minutes) await raceResultService.updateMinutes(raceId, form);
@@ -437,6 +441,7 @@ function MinutesTab({ raceId }) {
             ["Điều kiện thời tiết", minutes.weatherCondition],
             ["Điều kiện đường đua", minutes.trackCondition],
             ["Nội dung biên bản", minutes.content],
+            ["File biên bản", minutes.minutesFileUrl],
             ["Ghi chú thêm", minutes.notes],
           ].filter(([, v]) => v).map(([label, value]) => (
             <div key={label} className="bg-[#0A0E1A]/60 rounded-xl p-4">
@@ -466,6 +471,23 @@ function MinutesTab({ raceId }) {
         <textarea value={form.content} onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))} rows={6} required
           placeholder="Mô tả diễn biến vòng đua, sự cố, quyết định của trọng tài..."
           className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37] resize-none" />
+      </div>
+      <div>
+        <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">
+          File biên bản đã ký <span className="text-red-400">*</span>
+        </label>
+        <label className="flex items-center gap-3 bg-[#0A0E1A] border border-dashed border-sb-border-2 rounded-lg px-3 py-3 cursor-pointer hover:border-[#D4AF37] transition-colors">
+          <input type="file" accept="image/*,application/pdf" hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) { setFileName(f.name); setForm((p) => ({ ...p, minutesFileUrl: `demo-uploads/${f.name}` })); }
+            }} />
+          <span className="text-lg">📎</span>
+          <span className="text-sm text-sb-tx-2">
+            {fileName || form.minutesFileUrl || "Bấm để đính kèm ảnh/PDF biên bản có chữ ký..."}
+          </span>
+        </label>
+        <p className="text-sb-tx-3 text-[11px] mt-1">Đây là môi trường demo — chỉ lưu tên file làm minh chứng, không upload thật.</p>
       </div>
       <div>
         <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Ghi chú thêm</label>

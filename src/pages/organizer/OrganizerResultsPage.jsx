@@ -5,6 +5,7 @@ import {
   Globe, Eye, RefreshCw, X, Trophy, Clock, Flag,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import { confirmBox } from "../../lib/toast";
 import { organizerService } from "../../services/organizer";
 import { raceResultService } from "../../services/raceResult";
 
@@ -122,7 +123,7 @@ export default function OrganizerResultsPage() {
   };
 
   const handlePublish = async (raceId) => {
-    if (!confirm("Xác nhận công bố kết quả vòng đua này công khai?")) return;
+    if (!(await confirmBox("Xác nhận công bố kết quả vòng đua này công khai?", { okText: "Công bố" }))) return;
     setActionLoading(raceId + "_publish");
     try {
       await organizerService.publishResults(raceId);

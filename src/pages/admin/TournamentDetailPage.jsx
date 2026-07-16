@@ -5,6 +5,7 @@ import {
   CheckCircle2, Users, Calendar, Flag, Trophy,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import { confirmBox } from "../../lib/toast";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -174,7 +175,7 @@ export default function TournamentDetailPage() {
   };
 
   const handleDeleteRound = async (roundId) => {
-    if (!window.confirm("Xóa vòng đấu này?")) return;
+    if (!(await confirmBox("Xóa vòng đấu này?", { danger: true }))) return;
     try {
       await tournamentService.deleteRound(roundId);
       setRounds((prev) => prev.filter((r) => r.roundId !== roundId));
@@ -220,7 +221,7 @@ export default function TournamentDetailPage() {
   };
 
   const handleDeleteRace = async (raceId) => {
-    if (!window.confirm("Xóa cuộc đua này?")) return;
+    if (!(await confirmBox("Xóa cuộc đua này?", { danger: true }))) return;
     try {
       await tournamentService.deleteRace(raceId);
       setRaces((prev) => prev.filter((r) => r.raceId !== raceId));
@@ -644,7 +645,7 @@ export default function TournamentDetailPage() {
 
       {/* ══ ROUND MODAL ══════════════════════════════════════════════════════════ */}
       {roundModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between p-5 border-b border-sb-border">
               <h2 className="text-base font-bold text-sb-tx">
@@ -715,7 +716,7 @@ export default function TournamentDetailPage() {
 
       {/* ══ RACE MODAL ═══════════════════════════════════════════════════════════ */}
       {raceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl">
             <div className="flex items-center justify-between p-5 border-b border-sb-border">
               <h2 className="text-base font-bold text-sb-tx">
@@ -848,7 +849,7 @@ export default function TournamentDetailPage() {
 
       {/* ══ REFEREE MODAL ════════════════════════════════════════════════════════ */}
       {refModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between p-5 border-b border-sb-border">
               <div>

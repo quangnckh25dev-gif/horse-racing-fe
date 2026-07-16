@@ -18,7 +18,7 @@ export default function SbModal({ title, subtitle, tone = "default", size = "md"
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
       onClick={(e) => e.target === e.currentTarget && onClose?.()}
     >
       <div className={`w-full ${maxW} max-h-[90vh] overflow-y-auto rounded-2xl bg-sb-s1 border border-sb-border shadow-2xl shadow-black/40 animate-scale-in`}

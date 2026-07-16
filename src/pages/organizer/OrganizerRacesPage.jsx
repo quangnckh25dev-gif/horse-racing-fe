@@ -6,6 +6,7 @@ import {
   Clock, Zap, Trophy, Users, Calendar,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import { confirmBox } from "../../lib/toast";
 import { organizerService } from "../../services/organizer";
 import { tournamentService } from "../../services/tournament";
 import { useAuth } from "../../context/AuthContext";
@@ -313,7 +314,8 @@ export default function OrganizerRacesPage() {
   // Gửi giải đấu lên Admin duyệt (Draft → PendingApproval)
   const [submitBusy, setSubmitBusy] = useState(null);
   const handleSubmitTournament = async (t) => {
-    if (!confirm(`Gửi giải "${t.tournamentName}" lên Admin duyệt? Sau khi gửi sẽ không sửa được tới khi Admin xử lý.`)) return;
+    if (!(await confirmBox(`Gửi giải "${t.tournamentName}" lên Admin duyệt?
+Sau khi gửi sẽ không sửa được tới khi Admin xử lý.`, { okText: "Gửi duyệt" }))) return;
     setSubmitBusy(t.tournamentId);
     try {
       await tournamentService.submitForApproval(t.tournamentId);

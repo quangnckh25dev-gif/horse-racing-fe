@@ -266,7 +266,7 @@ export default function TournamentManagementPage() {
 
       {/* ── Modal Create / Edit ── */}
       {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl animate-scale-in">
             <div className="h-0.5 w-full rounded-t-2xl bg-gradient-to-r from-[#D4AF37] to-transparent" />
             <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border">

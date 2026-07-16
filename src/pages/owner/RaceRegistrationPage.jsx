@@ -5,6 +5,7 @@ import {
   Flag, ClipboardList,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import { confirmBox } from "../../lib/toast";
 import { entryService } from "../../services/entry";
 import { horseService } from "../../services/horse";
 import { spectatorService } from "../../services/spectator";
@@ -138,7 +139,7 @@ export default function RaceRegistrationPage() {
   };
 
   const handleCancel = async (raceId, entryId) => {
-    if (!confirm("Xác nhận huỷ đăng ký?")) return;
+    if (!(await confirmBox("Xác nhận huỷ đăng ký?", { okText: "Huỷ đăng ký", danger: true }))) return;
     setActionLoading(entryId);
     try {
       await entryService.cancelEntry(raceId, entryId);

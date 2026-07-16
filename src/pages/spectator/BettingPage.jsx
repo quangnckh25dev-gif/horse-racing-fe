@@ -253,16 +253,17 @@ export default function BettingPage() {
   const [error, setError]         = useState("");
   const [replay, setReplay]       = useState(null); // { raceName, results } cho màn Xem lại
 
-  // Mở màn xem kết quả + replay cho trận đã cược
+  // Mở màn xem kết quả + replay cho trận đã cược (kèm vé để hiện vị trí + tiền thắng)
   const openReplay = async (bet) => {
-    setReplay({ raceName: bet.raceName || `Race #${bet.raceId}`, results: null });
+    const raceName = bet.raceName || `Race #${bet.raceId}`;
+    setReplay({ raceName, results: null, bet });
     try {
       const res = await spectatorService.getRaceResults(bet.raceId);
       const norm = (res.data || []).map((r) => ({ ...r, position: r.finishPosition ?? r.position }))
         .sort((a, b) => (a.position || 99) - (b.position || 99));
-      setReplay({ raceName: bet.raceName || `Race #${bet.raceId}`, results: norm });
+      setReplay({ raceName, results: norm, bet });
     } catch {
-      setReplay({ raceName: bet.raceName || `Race #${bet.raceId}`, results: [] });
+      setReplay({ raceName, results: [], bet });
     }
   };
 
@@ -503,6 +504,7 @@ export default function BettingPage() {
         <RaceReplay
           raceName={replay.raceName}
           results={replay.results || []}
+          bet={replay.bet}
           onClose={() => setReplay(null)}
         />
       )}

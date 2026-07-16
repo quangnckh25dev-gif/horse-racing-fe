@@ -36,6 +36,15 @@ const STATUS_CONFIG = {
     bg: "bg-sb-lose/10",
     border: "border-sb-lose/30",
   },
+  Cancelled: {
+    label: "Đã thu hồi",
+    color: "bg-sb-s2 text-sb-tx-3 border-sb-border",
+    borderCls: "border-l-4 border-l-gray-500",
+    icon: XCircle,
+    iconCls: "text-sb-tx-3",
+    bg: "bg-sb-s2",
+    border: "border-sb-border",
+  },
 };
 
 const selectCls = "w-full h-10 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 pr-8 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-sb-emerald";
@@ -124,9 +133,25 @@ export default function OwnerInvitationsPage() {
   };
 
   const counts = {
-    Pending:  invitations.filter((i) => (i.status || "Pending") === "Pending").length,
-    Accepted: invitations.filter((i) => i.status === "Accepted").length,
-    Declined: invitations.filter((i) => i.status === "Declined").length,
+    Pending:   invitations.filter((i) => (i.status || "Pending") === "Pending").length,
+    Accepted:  invitations.filter((i) => i.status === "Accepted").length,
+    Declined:  invitations.filter((i) => i.status === "Declined").length,
+    Cancelled: invitations.filter((i) => i.status === "Cancelled").length,
+  };
+
+  // Thu hồi lời mời đang chờ phản hồi
+  const [cancelBusy, setCancelBusy] = useState(null);
+  const handleCancel = async (inv) => {
+    if (!confirm(`Thu hồi lời mời gửi ${inv.jockeyName || "jockey này"}?`)) return;
+    setCancelBusy(inv.invitationId);
+    try {
+      await invitationService.cancelInvitation(inv.invitationId);
+      fetchInvitations();
+    } catch (e) {
+      alert(e.message || "Thu hồi thất bại");
+    } finally {
+      setCancelBusy(null);
+    }
   };
 
   return (
@@ -176,7 +201,7 @@ export default function OwnerInvitationsPage() {
       <div className="p-6 space-y-5">
 
         {/* ── Mini stats ── */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
             const Icon = cfg.icon;
             const count = counts[status] || 0;
@@ -271,10 +296,18 @@ export default function OwnerInvitationsPage() {
                       )}
                     </div>
 
-                    {/* Status icon */}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${cfg.bg} ${cfg.border}`}>
-                      <Icon size={18} className={cfg.iconCls} />
-                    </div>
+                    {/* Pending → cho thu hồi; còn lại chỉ hiện icon trạng thái */}
+                    {status === "Pending" ? (
+                      <button onClick={() => handleCancel(inv)} disabled={cancelBusy === inv.invitationId}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20 text-xs font-bold disabled:opacity-50 transition-colors shrink-0">
+                        {cancelBusy === inv.invitationId ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={12} />}
+                        Thu hồi lời mời
+                      </button>
+                    ) : (
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${cfg.bg} ${cfg.border}`}>
+                        <Icon size={18} className={cfg.iconCls} />
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -333,7 +366,7 @@ export default function OwnerInvitationsPage() {
                   <select value={selectedJockey} onChange={(e) => setSelectedJockey(e.target.value)} className={selectCls}>
                     <option value="">-- Chọn Jockey --</option>
                     {jockeys.map((j) => (
-                      <option key={j.userId || j.jockeyId} value={j.userId || j.jockeyId}>
+                      <option key={j.jockeyId} value={j.jockeyId}>
                         {j.fullName || j.username} {j.experienceYear ? `(${j.experienceYear} năm KN)` : ""}
                       </option>
                     ))}

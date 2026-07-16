@@ -37,7 +37,7 @@ function normalize(results) {
   return rows;
 }
 
-export default function RaceReplay({ raceName, results, onClose }) {
+export default function RaceReplay({ raceName, results, bet, onClose }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const stateRef = useRef({ horses: [], running: false, startT: 0, finishOrder: [], maxFt: 80, scale: 8 });
@@ -149,6 +149,42 @@ export default function RaceReplay({ raceName, results, onClose }) {
         </div>
 
         <div className="p-4 overflow-y-auto">
+          {/* Vé cược của người xem — vị trí ngựa + tiền thắng/thua */}
+          {bet && (() => {
+            const r = (results || []).find((x) => x.entryId === bet.entryId);
+            const pos = r ? (r.finishPosition ?? r.position) : null;
+            const dq = r && (r.dq || r.dnf);
+            const won = bet.status === "Won";
+            const lost = bet.status === "Lost";
+            const payout = bet.potentialPayout ?? (Number(bet.amount) * (bet.odds ?? 1));
+            return (
+              <div className={`mb-3 rounded-xl border p-3.5 flex items-center gap-3 flex-wrap ${
+                won ? "bg-sb-emerald-soft border-sb-emerald-bd" : lost ? "bg-sb-lose/10 border-sb-lose/30" : "bg-sb-gold-soft border-sb-gold-bd"
+              }`}>
+                <span className="text-xl">🎫</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sb-tx font-bold text-sm">
+                    Vé của bạn: {bet.horseName || `Entry #${bet.entryId}`}
+                    <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/20">
+                      {bet.betTypeLabel || bet.betType}{bet.targetPosition ? ` · hạng ${bet.targetPosition}` : ""}
+                    </span>
+                  </p>
+                  <p className="text-sb-tx-2 text-xs mt-0.5">
+                    {dq ? "Ngựa bị loại (DQ/DNF)" : pos != null ? `Về hạng ${pos}` : "Chưa có kết quả"} ·
+                    cược {Number(bet.amount).toLocaleString("vi-VN")}₫ × {bet.odds ?? "—"}
+                  </p>
+                </div>
+                <span className={`font-mono font-extrabold text-base tabular-nums shrink-0 ${
+                  won ? "text-sb-win" : lost ? "text-sb-lose" : "text-sb-gold-2"
+                }`}>
+                  {won ? `+${Number(payout).toLocaleString("vi-VN")}₫`
+                    : lost ? `−${Number(bet.amount).toLocaleString("vi-VN")}₫`
+                    : "Chờ công bố"}
+                </span>
+              </div>
+            );
+          })()}
+
           {N === 0 ? (
             <div className="py-16 text-center text-sb-tx-3 text-sm">Chưa có kết quả để xem lại.</div>
           ) : (

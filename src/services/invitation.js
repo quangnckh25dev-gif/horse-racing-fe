@@ -14,4 +14,7 @@ export const invitationService = {
   // ── Jockey: respond accept/reject ────────────────────────
   respondToInvitation: (id, status) =>
     api.patch(`/invitations/${id}/respond`, { status }),
+
+  // ── HorseOwner: thu hồi lời mời đang Pending ──────────────
+  cancelInvitation: (id) => api.delete(`/invitations/${id}`),
 };

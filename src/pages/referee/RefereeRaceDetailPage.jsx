@@ -595,7 +595,10 @@ export default function RefereeRaceDetailPage() {
   };
 
   const status = race?.status;
-  const canStart = status === "Scheduled" || status === "RegistrationOpen";
+  // Chỉ tính ngựa đủ điều kiện đua (đã có jockey)
+  const raceableCount = entries.filter((e) => e.jockeyId || e.jockeyName).length;
+  const canStart = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount >= 1;
+  const startBlockedNoHorse = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount < 1;
 
   return (
     <AdminLayout title="Nhập liệu vòng đua">
@@ -640,6 +643,11 @@ export default function RefereeRaceDetailPage() {
                       className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-50 hover:opacity-90 transition-opacity">
                       {busy === "start" ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} Bắt đầu đua
                     </button>
+                  )}
+                  {startBlockedNoHorse && (
+                    <span className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm font-semibold">
+                      <AlertCircle size={14} /> Chưa có ngựa (có nài) — không thể bắt đầu
+                    </span>
                   )}
                   {status === "Ongoing" && (
                     <button onClick={() => doAction("finish", () => raceResultService.changeRaceStatus(raceId, "Finished"), "Đã kết thúc vòng đua")}

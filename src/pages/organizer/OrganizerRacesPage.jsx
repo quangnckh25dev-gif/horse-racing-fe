@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, Edit2, Trash2, Eye, AlertCircle, Loader2,
-  RefreshCw, Flag, ChevronDown, X, Check,
+  RefreshCw, Flag, X, Check,
   Clock, Zap, Trophy, Users, Calendar,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
@@ -16,14 +16,6 @@ const STATUS_CONFIG = {
   Ongoing:          { label: "Đang diễn ra", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", borderCls: "border-l-gold-glow",   icon: Zap,       iconCls: "text-[#D4AF37]",   glow: "hover:shadow-yellow-500/10" },
   Finished:         { label: "Đã kết thúc",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",   borderCls: "border-l-green-glow",  icon: Trophy,    iconCls: "text-green-400",   glow: "hover:shadow-green-500/10" },
   Cancelled:        { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",                          borderCls: "border-l-red-glow",    icon: X,         iconCls: "text-red-400",     glow: "" },
-};
-
-const STATUS_TRANSITIONS = {
-  Scheduled:        ["RegistrationOpen", "Cancelled"],
-  RegistrationOpen: ["Ongoing", "Cancelled"],
-  Ongoing:          ["Finished"],
-  Finished:         [],
-  Cancelled:        [],
 };
 
 const EMPTY_FORM = {
@@ -164,7 +156,6 @@ export default function OrganizerRacesPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(null);
   const [showDelete, setShowDelete] = useState(null);
-  const [showStatus, setShowStatus] = useState(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
@@ -270,12 +261,29 @@ export default function OrganizerRacesPage() {
         maxHorses: Number(tournamentForm.maxHorses) || 20,
         maxParticipants: Number(tournamentForm.maxParticipants) || 20,
       });
+      const newId = res.data?.tournamentId;
+
+      // Tự tạo "Vòng 1" luôn — để form tạo cuộc đua có vòng chọn ngay, khỏi kẹt dropdown rỗng
+      let firstRoundId = "";
+      if (newId) {
+        try {
+          const r = await tournamentService.createRound(newId, {
+            roundName: "Vòng 1", roundOrder: 1,
+            startDate: tournamentForm.startDate, endDate: tournamentForm.endDate,
+          });
+          firstRoundId = r.data?.roundId ? String(r.data.roundId) : "";
+        } catch { /* tạo vòng lỗi thì user vẫn tự thêm bằng nút + */ }
+      }
+
       await fetchTournaments();
       setShowCreateTournament(false);
       setTournamentForm(EMPTY_TOURNAMENT);
-      // mở luôn form tạo race với giải vừa tạo
-      const newId = res.data?.tournamentId;
-      if (newId) { setFormData({ ...EMPTY_FORM, tournamentId: String(newId) }); setFormError(""); setShowCreate(true); }
+      // Mở form tạo cuộc đua với giải + vòng đã chọn sẵn
+      if (newId) {
+        setFormData({ ...EMPTY_FORM, tournamentId: String(newId), roundId: firstRoundId });
+        setFormError("");
+        setShowCreate(true);
+      }
     } catch (err) { setTError(err.message || "Tạo giải đấu thất bại"); }
     finally { setTBusy(false); }
   };
@@ -302,13 +310,25 @@ export default function OrganizerRacesPage() {
     finally { setFormLoading(false); }
   };
 
-  const handleChangeStatus = async (newStatus) => {
-    setFormLoading(true);
+  // Gửi giải đấu lên Admin duyệt (Draft → PendingApproval)
+  const [submitBusy, setSubmitBusy] = useState(null);
+  const handleSubmitTournament = async (t) => {
+    if (!confirm(`Gửi giải "${t.tournamentName}" lên Admin duyệt? Sau khi gửi sẽ không sửa được tới khi Admin xử lý.`)) return;
+    setSubmitBusy(t.tournamentId);
     try {
-      await organizerService.changeRaceStatus(showStatus.raceId, newStatus);
-      setShowStatus(null); fetchRaces();
-    } catch (err) { alert(err.message || "Đổi trạng thái thất bại"); }
-    finally { setFormLoading(false); }
+      await tournamentService.submitForApproval(t.tournamentId);
+      await fetchTournaments();
+    } catch (err) { alert(err.message || "Gửi duyệt thất bại"); }
+    finally { setSubmitBusy(null); }
+  };
+
+  const TOURNAMENT_STATUS = {
+    Draft:           { label: "Nháp",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
+    PendingApproval: { label: "Chờ Admin duyệt", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
+    Open:            { label: "Đang mở",      cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd" },
+    Ongoing:         { label: "Đang diễn ra", cls: "bg-sb-info/10 text-sb-info border-sb-info/30" },
+    Finished:        { label: "Kết thúc",     cls: "bg-sb-s2 text-sb-tx-3 border-sb-border" },
+    Cancelled:       { label: "Đã huỷ",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30" },
   };
 
   const openEdit = (race) => {
@@ -379,6 +399,37 @@ export default function OrganizerRacesPage() {
       </div>
 
       <div className="p-6 space-y-5">
+        {/* ── Giải đấu của tôi (tạo → gửi Admin duyệt) ── */}
+        {tournaments.length > 0 && (
+          <div className="rounded-2xl border border-sb-border bg-sb-s1 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Trophy size={15} className="text-[#D4AF37]" />
+              <h3 className="text-white font-bold text-sm">Giải đấu của tôi</h3>
+              <span className="text-sb-tx-3 text-xs ml-auto">Tạo giải → tạo cuộc đua → gửi Admin duyệt</span>
+            </div>
+            <div className="space-y-2">
+              {tournaments.map((t) => {
+                const st = TOURNAMENT_STATUS[t.status] || { label: t.status, cls: "bg-sb-s2 text-sb-tx-3 border-sb-border" };
+                return (
+                  <div key={t.tournamentId} className="flex items-center gap-3 bg-sb-s2 border border-sb-border rounded-xl px-4 py-3 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-white font-semibold text-sm truncate">{t.tournamentName}</p>
+                      <p className="text-sb-tx-3 text-xs">{t.startDate ? `${String(t.startDate).slice(0,10)} → ${String(t.endDate).slice(0,10)}` : ""}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${st.cls}`}>{st.label}</span>
+                    {t.status === "Draft" && (
+                      <button onClick={() => handleSubmitTournament(t)} disabled={submitBusy === t.tournamentId}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] text-xs font-bold disabled:opacity-50 transition-colors">
+                        {submitBusy === t.tournamentId ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Gửi Admin duyệt
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* ── Filter tabs ── */}
         <div className="flex gap-2 flex-wrap">
           {[
@@ -475,14 +526,8 @@ export default function OrganizerRacesPage() {
                       </div>
                     </div>
 
-                    {/* Right: Actions */}
+                    {/* Right: Actions — BTC KHÔNG đổi trạng thái đua (chỉ Trọng tài) */}
                     <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                      {STATUS_TRANSITIONS[race.status]?.length > 0 && (
-                        <button onClick={() => setShowStatus(race)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/25 text-[#D4AF37] hover:bg-[#D4AF37]/20 hover:border-[#D4AF37]/50 rounded-xl text-xs font-semibold transition-all">
-                          <ChevronDown size={12} /> Đổi trạng thái
-                        </button>
-                      )}
                       <button onClick={() => navigate(`/organizer/races/${race.raceId}`)}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-gray-600 rounded-xl text-xs transition-all">
                         <Eye size={12} /> Chi tiết
@@ -579,28 +624,6 @@ export default function OrganizerRacesPage() {
         </Modal>
       )}
 
-      {showStatus && (
-        <Modal title={`Đổi trạng thái vòng đua`} onClose={() => setShowStatus(null)}>
-          <p className="text-sb-tx-3 text-xs mb-1 uppercase tracking-widest font-semibold">Vòng đua</p>
-          <p className="text-white font-bold mb-4">{showStatus.raceName}</p>
-          <div className="flex items-center gap-2 mb-5">
-            <span className="text-sb-tx-3 text-sm">Hiện tại:</span>
-            <StatusBadge status={showStatus.status} />
-          </div>
-          <div className="space-y-2">
-            {STATUS_TRANSITIONS[showStatus.status]?.map((newStatus) => {
-              const newCfg = STATUS_CONFIG[newStatus];
-              return (
-                <button key={newStatus} onClick={() => handleChangeStatus(newStatus)} disabled={formLoading}
-                  className="w-full py-3 px-4 rounded-xl border border-sb-border bg-sb-s2 text-white hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/5 text-sm font-medium transition-all flex items-center justify-between disabled:opacity-60">
-                  <span>Chuyển sang <span className={`font-bold ${newCfg?.iconCls || "text-[#D4AF37]"}`}>{newCfg?.label}</span></span>
-                  {formLoading ? <Loader2 size={14} className="animate-spin text-[#D4AF37]" /> : <Check size={14} className="text-sb-tx-2" />}
-                </button>
-              );
-            })}
-          </div>
-        </Modal>
-      )}
     </AdminLayout>
   );
 }

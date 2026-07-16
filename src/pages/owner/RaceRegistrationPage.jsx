@@ -10,10 +10,20 @@ import { horseService } from "../../services/horse";
 import { spectatorService } from "../../services/spectator";
 import { invitationService } from "../../services/invitation";
 
+// Trạng thái đầy đủ theo flow: Chờ BTC duyệt → Đã duyệt/chờ jockey → Sẵn sàng thi đấu
 const ENTRY_STATUS = {
-  Pending:  { label: "Chờ duyệt", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", borderCls: "border-l-gold-glow",  icon: Clock },
-  Approved: { label: "Đã duyệt",  color: "bg-green-500/20 text-green-300 border-green-500/40",   borderCls: "border-l-green-glow", icon: CheckCircle2 },
-  Rejected: { label: "Từ chối",   color: "bg-red-500/20 text-red-300 border-red-500/40",          borderCls: "border-l-red-glow",   icon: XCircle },
+  Pending:  { label: "Chờ BTC duyệt",       color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", borderCls: "border-l-gold-glow",  icon: Clock },
+  Approved: { label: "Đã duyệt · chờ jockey", color: "bg-blue-500/20 text-blue-300 border-blue-500/40",     borderCls: "border-l-blue-glow",  icon: CheckCircle2 },
+  Ready:    { label: "Sẵn sàng thi đấu ✓",   color: "bg-green-500/20 text-green-300 border-green-500/40",   borderCls: "border-l-green-glow", icon: CheckCircle2 },
+  Rejected: { label: "Từ chối",              color: "bg-red-500/20 text-red-300 border-red-500/40",         borderCls: "border-l-red-glow",   icon: XCircle },
+  Withdrawn:{ label: "Đã rút",               color: "bg-sb-s2 text-sb-tx-3 border-sb-border",               borderCls: "",                    icon: XCircle },
+};
+
+// BE trả registrationStatus; entry Approved + đã có jockey xác nhận = sẵn sàng thi đấu
+const entryStatusOf = (e) => {
+  const raw = e.registrationStatus || e.status || "Pending";
+  if (raw === "Approved" && (e.jockeyConfirmed || e.jockeyName)) return "Ready";
+  return raw;
 };
 
 const selectCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
@@ -53,15 +63,20 @@ export default function RaceRegistrationPage() {
   const [activeTab, setActiveTab]       = useState("upcoming");
   const [actionLoading, setActionLoading] = useState("");
 
+  const [jockeys, setJockeys] = useState([]);
+
   const loadRaces = useCallback(async () => {
     setLoading(true); setError("");
     try {
-      const [racesRes, horsesRes] = await Promise.all([
+      const [racesRes, horsesRes, jockeysRes] = await Promise.all([
         spectatorService.getRaces(),
         horseService.getMyHorses(),
+        entryService.getJockeys().catch(() => ({ data: [] })),
       ]);
       setRaces(racesRes.data || []);
-      setHorses((horsesRes.data || []).filter((h) => h.status === "Active" || !h.status));
+      // Ngựa đang hoạt động (BE trả active/statusLabel, không có field status)
+      setHorses((horsesRes.data || []).filter((h) => h.active !== false));
+      setJockeys(jockeysRes.data || []);
     } catch (e) {
       setError(e.message || "Không thể tải dữ liệu");
     } finally {
@@ -89,10 +104,12 @@ export default function RaceRegistrationPage() {
     if (!registerForm.horseId) { setFormError("Vui lòng chọn ngựa"); return; }
     setFormLoading(true); setFormError("");
     try {
-      await entryService.registerForRace(showRegister.raceId, { horseId: registerForm.horseId });
+      await entryService.registerForRace(showRegister.raceId, { horseId: Number(registerForm.horseId) });
       setShowRegister(null);
       setRegisterForm({ horseId: "" });
-      if (activeTab === "entries") loadMyEntries();
+      // Chuyển sang tab "Đăng ký của tôi" để thấy ngay đăng ký mới (trạng thái Chờ BTC duyệt)
+      setActiveTab("entries");
+      loadMyEntries();
     } catch (err) {
       setFormError(err.message || "Đăng ký thất bại");
     } finally {
@@ -102,12 +119,17 @@ export default function RaceRegistrationPage() {
 
   const handleInvite = async (e) => {
     e.preventDefault();
-    if (!inviteForm.jockeyId) { setFormError("Vui lòng nhập ID Jockey"); return; }
+    if (!inviteForm.jockeyId) { setFormError("Vui lòng chọn Jockey"); return; }
     setFormLoading(true); setFormError("");
     try {
-      await invitationService.sendInvitation(showInvite.entryId, inviteForm);
+      // BE cần jockeyId (số) + message
+      await invitationService.sendInvitation(showInvite.entryId, {
+        jockeyId: Number(inviteForm.jockeyId),
+        message: inviteForm.note?.trim() || undefined,
+      });
       setShowInvite(null);
       setInviteForm({ jockeyId: "", note: "" });
+      loadMyEntries();
     } catch (err) {
       setFormError(err.message || "Gửi lời mời thất bại");
     } finally {
@@ -129,8 +151,9 @@ export default function RaceRegistrationPage() {
   };
 
   const upcomingRaces = races.filter((r) => ["Scheduled", "RegistrationOpen"].includes(r.status));
-  const pendingEntries  = myEntries.filter((e) => (e.status || "Pending") === "Pending").length;
-  const approvedEntries = myEntries.filter((e) => e.status === "Approved").length;
+  const pendingEntries  = myEntries.filter((e) => entryStatusOf(e) === "Pending").length;
+  const approvedEntries = myEntries.filter((e) => entryStatusOf(e) === "Approved").length;
+  const readyEntries    = myEntries.filter((e) => entryStatusOf(e) === "Ready").length;
 
   return (
     <AdminLayout title="Đăng ký thi đấu">
@@ -152,10 +175,11 @@ export default function RaceRegistrationPage() {
               <span className="stat-pill"><span className="text-white font-bold">{upcomingRaces.length}</span> vòng đua sắp tới</span>
               {pendingEntries > 0 && (
                 <span className="stat-pill text-yellow-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {pendingEntries} chờ duyệt
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {pendingEntries} chờ BTC duyệt
                 </span>
               )}
-              {approvedEntries > 0 && <span className="stat-pill text-green-400">{approvedEntries} đã duyệt</span>}
+              {approvedEntries > 0 && <span className="stat-pill text-blue-400">{approvedEntries} chờ jockey</span>}
+              {readyEntries > 0 && <span className="stat-pill text-green-400">{readyEntries} sẵn sàng thi đấu</span>}
             </div>
           </div>
           <button onClick={loadRaces}
@@ -219,14 +243,14 @@ export default function RaceRegistrationPage() {
                       <span className="text-[10px] font-bold px-2.5 py-1 rounded-full border bg-blue-500/20 text-blue-300 border-blue-500/40">Sắp diễn ra</span>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
-                      {race.startTime && (
+                      {(race.raceDate || race.startTime) && (
                         <span className="flex items-center gap-1 text-sb-tx-3 text-xs">
-                          <Calendar size={10} /> {new Date(race.startTime).toLocaleString("vi-VN")}
+                          <Calendar size={10} /> {new Date(race.raceDate || race.startTime).toLocaleString("vi-VN")}
                         </span>
                       )}
-                      {race.distance   && <span className="stat-pill">📏 {race.distance}m</span>}
-                      {race.maxEntries && <span className="stat-pill">👥 {race.maxEntries} chỗ</span>}
-                      {race.prizePool  && <span className="text-xs font-bold text-[#D4AF37] neon-gold">💰 {Number(race.prizePool).toLocaleString("vi-VN")} VNĐ</span>}
+                      {(race.trackLength || race.distance) && <span className="stat-pill">📏 {race.trackLength || race.distance}m</span>}
+                      {(race.maxParticipants || race.maxEntries) && <span className="stat-pill">👥 {race.maxParticipants || race.maxEntries} chỗ</span>}
+                      {(race.prizePool || race.prizeFirst) && <span className="text-xs font-bold text-[#D4AF37] neon-gold">💰 {Number(race.prizePool || race.prizeFirst).toLocaleString("vi-VN")} VNĐ</span>}
                     </div>
                   </div>
                   <button
@@ -258,7 +282,7 @@ export default function RaceRegistrationPage() {
           ) : (
             <div className="space-y-3">
               {myEntries.map((entry, idx) => {
-                const status = entry.status || "Pending";
+                const status = entryStatusOf(entry);
                 const cfg = ENTRY_STATUS[status] || ENTRY_STATUS.Pending;
                 const StatusIcon = cfg.icon;
                 const isBusy = actionLoading === entry.entryId;
@@ -271,7 +295,8 @@ export default function RaceRegistrationPage() {
                       {/* Status icon */}
                       <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border border-white/[0.06] ${
                         status === "Pending" ? "bg-yellow-500/10 text-yellow-400" :
-                        status === "Approved" ? "bg-green-500/10 text-green-400" :
+                        status === "Approved" ? "bg-blue-500/10 text-blue-400" :
+                        status === "Ready" ? "bg-green-500/10 text-green-400" :
                         "bg-red-500/10 text-red-400"
                       }`}>
                         <StatusIcon size={17} />
@@ -289,20 +314,20 @@ export default function RaceRegistrationPage() {
                         <div className="flex items-center gap-3 flex-wrap">
                           {entry.horseName  && <span className="stat-pill">🐴 {entry.horseName}</span>}
                           {entry.jockeyName
-                            ? <span className="stat-pill">🏇 {entry.jockeyName}</span>
-                            : <span className="text-sb-tx-2 text-xs italic">Chưa có jockey</span>
+                            ? <span className="stat-pill text-green-400">🏇 {entry.jockeyName} {entry.jockeyConfirmed ? "✓" : ""}</span>
+                            : status === "Approved"
+                              ? <span className="text-blue-300 text-xs italic">Chưa có jockey — hãy gửi lời mời</span>
+                              : <span className="text-sb-tx-2 text-xs italic">Chưa có jockey</span>
                           }
-                          {entry.raceDate && (
-                            <span className="text-sb-tx-3 text-xs">
-                              📅 {new Date(entry.raceDate).toLocaleDateString("vi-VN")}
-                            </span>
+                          {entry.rejectReason && status === "Rejected" && (
+                            <span className="text-red-300 text-xs">Lý do: {entry.rejectReason}</span>
                           )}
                         </div>
                       </div>
 
                       {/* Actions */}
                       <div className="flex items-center gap-2 shrink-0">
-                        {status === "Approved" && !entry.jockeyName && (
+                        {status === "Approved" && (
                           <button
                             onClick={() => { setInviteForm({ jockeyId: "", note: "" }); setFormError(""); setShowInvite(entry); }}
                             className="flex items-center gap-1.5 px-3 py-2 bg-purple-600/15 border border-purple-600/30 text-purple-300 hover:bg-purple-600/25 rounded-xl text-xs font-bold transition-all">
@@ -368,9 +393,19 @@ export default function RaceRegistrationPage() {
           )}
           <form onSubmit={handleInvite} className="space-y-4">
             <div>
-              <label className={labelCls}>ID Jockey *</label>
-              <input type="text" value={inviteForm.jockeyId} onChange={(e) => setInviteForm((p) => ({ ...p, jockeyId: e.target.value }))}
-                placeholder="Nhập ID của Jockey" required className={inputCls} />
+              <label className={labelCls}>Chọn Jockey *</label>
+              {/* Dropdown gửi đúng jockeyId (không phải userId) — hết lỗi "Không tìm thấy jockey" */}
+              <select value={inviteForm.jockeyId}
+                onChange={(e) => setInviteForm((p) => ({ ...p, jockeyId: e.target.value }))}
+                required className={selectCls}>
+                <option value="">-- Chọn Jockey --</option>
+                {jockeys.map((j) => (
+                  <option key={j.jockeyId} value={j.jockeyId}>
+                    {j.fullName || j.username}{j.totalWins != null ? ` · ${j.totalWins} thắng` : ""}
+                  </option>
+                ))}
+              </select>
+              {jockeys.length === 0 && <p className="text-sb-tx-3 text-xs mt-1">Không có jockey nào trong hệ thống.</p>}
             </div>
             <div>
               <label className={labelCls}>Ghi chú (tuỳ chọn)</label>

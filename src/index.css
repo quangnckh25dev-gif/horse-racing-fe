@@ -527,10 +527,31 @@
 .page-enter { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* Modal backdrop (light) */
+/* Overlay modal thống nhất: đen trong suốt, KHÔNG blur (blur làm nền trắng đục) */
 .modal-backdrop {
-  backdrop-filter: blur(10px);
-  background: rgba(250,248,240,0.88);
+  background: rgba(4, 7, 12, 0.55);
 }
+
+/* ─── Polish toàn cục cho theme dark ─────────────────────── */
+/* Thanh cuộn tối (mặc định trắng rất lệch theme) */
+* { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #2c3849; border-radius: 99px; border: 2px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: #3a4859; background-clip: content-box; }
+
+/* Dropdown option trên nền tối (Windows hay render option nền trắng chữ trắng) */
+.dark select option { background-color: #121822; color: #EAEEF4; }
+
+/* Ô lịch/datetime: icon lịch trắng thay vì đen chìm */
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
+
+/* Focus nhìn thấy được khi điều hướng bàn phím */
+.dark :focus-visible { outline: 2px solid #10B981; outline-offset: 1px; }
 
 /* ─── Scroll Reveal (Intersection Observer) ─────────────── */
 .scroll-reveal {

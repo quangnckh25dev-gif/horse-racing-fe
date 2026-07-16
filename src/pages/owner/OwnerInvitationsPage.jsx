@@ -5,6 +5,7 @@ import {
   Loader2, X, Users, ChevronDown,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import { confirmBox } from "../../lib/toast";
 import { invitationService } from "../../services/invitation";
 import { entryService } from "../../services/entry";
 
@@ -51,7 +52,7 @@ const selectCls = "w-full h-10 rounded-xl bg-sb-s1 border border-sb-border text-
 
 function Modal({ title, onClose, children }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border sticky top-0 bg-sb-s1">
           <h3 className="text-sb-tx font-semibold">{title}</h3>
@@ -142,7 +143,7 @@ export default function OwnerInvitationsPage() {
   // Thu hồi lời mời đang chờ phản hồi
   const [cancelBusy, setCancelBusy] = useState(null);
   const handleCancel = async (inv) => {
-    if (!confirm(`Thu hồi lời mời gửi ${inv.jockeyName || "jockey này"}?`)) return;
+    if (!(await confirmBox(`Thu hồi lời mời gửi ${inv.jockeyName || "jockey này"}?`, { okText: "Thu hồi", danger: true }))) return;
     setCancelBusy(inv.invitationId);
     try {
       await invitationService.cancelInvitation(inv.invitationId);

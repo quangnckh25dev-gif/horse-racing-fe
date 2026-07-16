@@ -8,6 +8,7 @@ import {
   Timer, User, Medal, ShieldCheck,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import { confirmBox } from "../../lib/toast";
 import { organizerService } from "../../services/organizer";
 import { raceResultService } from "../../services/raceResult";
 import { useAuth } from "../../context/AuthContext";
@@ -156,7 +157,7 @@ function RefereesTab({ raceId }) {
   };
 
   const handleRemove = async (refereeId) => {
-    if (!confirm("Xác nhận huỷ phân công trọng tài này?")) return;
+    if (!(await confirmBox("Xác nhận huỷ phân công trọng tài này?", { danger: true }))) return;
     try {
       await organizerService.removeReferee(raceId, refereeId);
       load();

@@ -6,6 +6,7 @@ import {
   Play, Flag, Send, CheckCircle2, Mail,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import { confirmBox } from "../../lib/toast";
 import { raceResultService } from "../../services/raceResult";
 import { spectatorService } from "../../services/spectator";
 
@@ -286,7 +287,7 @@ function ViolationsTab({ raceId, entries }) {
   };
 
   const handleDelete = async (violationId) => {
-    if (!confirm("Xác nhận xoá vi phạm này?")) return;
+    if (!(await confirmBox("Xác nhận xoá vi phạm này?", { okText: "Xoá", danger: true }))) return;
     try {
       await raceResultService.deleteViolation(violationId);
       load();

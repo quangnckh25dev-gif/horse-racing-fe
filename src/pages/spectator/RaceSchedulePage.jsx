@@ -118,7 +118,6 @@ export default function RaceSchedulePage() {
       {/* ── Page Header Banner ── */}
       <div className="page-header">
         <div className="absolute right-0 top-0 w-72 h-full bg-gradient-to-l from-[#D4AF37]/[0.04] to-transparent pointer-events-none" />
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.08] select-none pointer-events-none animate-float">🏟</div>
 
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

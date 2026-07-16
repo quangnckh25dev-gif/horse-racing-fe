@@ -5,6 +5,7 @@ import {
   DollarSign, History, Flag, X, Calendar,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import RaceReplay from "../../components/sb/RaceReplay";
 import { spectatorService } from "../../services/spectator";
 import { betService } from "../../services/bet";
 
@@ -250,6 +251,21 @@ export default function BettingPage() {
   const [history, setHistory]     = useState([]);
   const [histLoading, setHistLoading] = useState(false);
   const [error, setError]         = useState("");
+  const [replay, setReplay]       = useState(null); // { raceName, results } cho màn Xem lại
+
+  // Mở màn xem kết quả + replay cho trận đã cược (kèm vé để hiện vị trí + tiền thắng)
+  const openReplay = async (bet) => {
+    const raceName = bet.raceName || `Race #${bet.raceId}`;
+    setReplay({ raceName, results: null, bet });
+    try {
+      const res = await spectatorService.getRaceResults(bet.raceId);
+      const norm = (res.data || []).map((r) => ({ ...r, position: r.finishPosition ?? r.position }))
+        .sort((a, b) => (a.position || 99) - (b.position || 99));
+      setReplay({ raceName, results: norm, bet });
+    } catch {
+      setReplay({ raceName, results: [], bet });
+    }
+  };
 
   const fetchRaces = useCallback(async () => {
     setRacesLoading(true); setError("");
@@ -469,6 +485,11 @@ export default function BettingPage() {
                             </p>
                           )}
                         </div>
+                        {/* Xem lại trận đã cược + kết quả */}
+                        <button onClick={() => openReplay(bet)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sb-emerald text-white text-xs font-bold hover:opacity-90 transition-opacity shrink-0">
+                          ▶ Xem kết quả
+                        </button>
                       </div>
                     );
                   })}
@@ -478,6 +499,15 @@ export default function BettingPage() {
           </>
         )}
       </div>
+
+      {replay && (
+        <RaceReplay
+          raceName={replay.raceName}
+          results={replay.results || []}
+          bet={replay.bet}
+          onClose={() => setReplay(null)}
+        />
+      )}
     </AdminLayout>
   );
 }

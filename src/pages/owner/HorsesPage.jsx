@@ -321,7 +321,6 @@ export default function HorsesPage() {
         {/* right glow */}
         <div className="absolute right-0 top-0 w-80 h-full bg-gradient-to-l from-orange-500/[0.05] to-transparent pointer-events-none" />
         {/* floating emoji */}
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 text-6xl opacity-[0.08] pointer-events-none select-none animate-float">🐴</div>
 
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

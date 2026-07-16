@@ -102,7 +102,9 @@ export default function LandingPage() {
     e.preventDefault();
     setBusy(true); clearNotes();
     try {
-      await authService.register(regForm);
+      // BE đọc roleName (không phải role) → tránh mặc định Spectator
+      const { role, ...rest } = regForm;
+      await authService.register({ ...rest, roleName: role });
       setRegForm(EMPTY_REG);
       setTab("login");
       setOkNote("Đăng ký thành công! Tài khoản cần Admin duyệt trước khi đăng nhập.");

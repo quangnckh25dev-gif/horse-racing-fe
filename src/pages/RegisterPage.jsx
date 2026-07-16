@@ -37,7 +37,9 @@ export default function RegisterPage() {
     if (!form.role) { setErrorMsg("Vui lòng chọn vai trò của bạn."); return; }
     setIsLoading(true); setErrorMsg(""); setSuccessMsg("");
     try {
-      await authService.register(form);
+      // BE đọc roleName (không phải role) → gửi đúng field, nếu không sẽ mặc định Spectator
+      const { role, ...rest } = form;
+      await authService.register({ ...rest, roleName: role });
       setSuccessMsg("Đăng ký thành công! Tài khoản cần Admin duyệt. Đang chuyển tới đăng nhập…");
       setTimeout(() => navigate("/login"), 1800);
     } catch (err) {

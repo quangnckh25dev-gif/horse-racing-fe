@@ -9,7 +9,6 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import PublicLayout from "./components/layout/PublicLayout";
 import AdminLayout from "./components/layout/AdminLayout";
-import PublicRacesPage from "./pages/public/PublicRacesPage";
 import LandingPage from "./pages/LandingPage";
 
 // Admin pages
@@ -78,7 +77,8 @@ export default function App() {
         <Routes>
           {/* ── Public (no auth required) ───────────────────── */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/races" element={<PublicLayout><PublicRacesPage /></PublicLayout>} />
+          {/* /races đã gộp vào trang chủ (trang chủ hiện đủ lịch đua + BXH) */}
+          <Route path="/races" element={<Navigate to="/" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />

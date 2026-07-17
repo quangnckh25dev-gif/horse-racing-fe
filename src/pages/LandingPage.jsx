@@ -36,12 +36,10 @@ const HOW = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
 
   // ── modals ──
   const [authOpen, setAuthOpen] = useState(false);
-  const [racesOpen, setRacesOpen] = useState(false);
-  const [lbOpen, setLbOpen] = useState(false);
 
   // ── auth form ──
   const [tab, setTab] = useState("login");
@@ -63,29 +61,29 @@ export default function LandingPage() {
 
   // Đóng modal bằng Esc
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") { setAuthOpen(false); setRacesOpen(false); setLbOpen(false); } };
+    const onKey = (e) => { if (e.key === "Escape") setAuthOpen(false); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  const loadRaces = useCallback(async () => {
-    setRacesOpen(true);
-    if (races) return;
-    try { const r = await spectatorService.getRaces(); setRaces(r.data || []); }
-    catch { setRaces([]); }
-  }, [races]);
+  // Lịch đua + BXH hiện thẳng trên trang chủ (đồng bộ với /races) → tải ngay khi vào
+  useEffect(() => {
+    let alive = true;
+    spectatorService.getRaces()
+      .then((r) => { if (alive) setRaces(r.data || []); })
+      .catch(() => { if (alive) setRaces([]); });
+    Promise.all([
+      leaderboardService.getGlobalJockeyLeaderboard(),
+      leaderboardService.getGlobalHorseLeaderboard(),
+    ])
+      .then(([j, h]) => { if (alive) setLb({ jockey: j.data || [], horse: h.data || [] }); })
+      .catch(() => { if (alive) setLb({ jockey: [], horse: [] }); });
+    return () => { alive = false; };
+  }, []);
 
-  const loadLb = useCallback(async () => {
-    setLbOpen(true);
-    if (lb) return;
-    try {
-      const [j, h] = await Promise.all([
-        leaderboardService.getGlobalJockeyLeaderboard(),
-        leaderboardService.getGlobalHorseLeaderboard(),
-      ]);
-      setLb({ jockey: j.data || [], horse: h.data || [] });
-    } catch { setLb({ jockey: [], horse: [] }); }
-  }, [lb]);
+  const scrollTo = useCallback((id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -133,9 +131,13 @@ export default function LandingPage() {
             </div>
           </div>
           <nav className="lp-nav">
-            <button onClick={loadRaces}>Cuộc đua</button>
-            <button onClick={loadLb}>Xếp hạng</button>
-            <button className="lp-nav-cta" onClick={() => openAuth("login")}>Đăng nhập</button>
+            <button onClick={() => scrollTo("lp-races")}>Cuộc đua</button>
+            <button onClick={() => scrollTo("lp-lb")}>Xếp hạng</button>
+            {user ? (
+              <button className="lp-nav-cta" onClick={() => navigate("/dashboard")}>Vào bảng điều khiển</button>
+            ) : (
+              <button className="lp-nav-cta" onClick={() => openAuth("login")}>Đăng nhập</button>
+            )}
           </nav>
         </header>
 
@@ -148,7 +150,7 @@ export default function LandingPage() {
           </p>
           <div className="lp-cta">
             <button className="lp-btn lp-btn-bet" onClick={() => openAuth("register")}>Tham gia ngay →</button>
-            <button className="lp-btn lp-btn-ghost" onClick={loadRaces}>Xem lịch đua</button>
+            <button className="lp-btn lp-btn-ghost" onClick={() => scrollTo("lp-races")}>Xem lịch đua</button>
           </div>
         </section>
 
@@ -168,6 +170,62 @@ export default function LandingPage() {
               <div className="lp-stat-n">{x.n}</div>
               <div className="lp-stat-l">{x.l}</div>
               <div className="lp-stat-s">{x.s}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ══ LỊCH THI ĐẤU (đồng bộ với /races) ══ */}
+      <section id="lp-races" className="lp-sec">
+        <div className="lp-sec-eyebrow">Lịch thi đấu</div>
+        <h2 className="lp-sec-h">Các vòng đua mùa giải</h2>
+        <div className="lp-inline-list">
+          {races === null ? (
+            <div className="lp-empty">Đang tải…</div>
+          ) : races.length === 0 ? (
+            <div className="lp-empty">Chưa có vòng đua nào</div>
+          ) : races.map((r) => {
+            const st = RACE_STATUS[r.status] || RACE_STATUS.Scheduled;
+            return (
+              <div className="lp-race" key={r.raceId}>
+                <div className="lp-race-ic">🏁</div>
+                <div className="lp-race-main">
+                  <div className="lp-race-name">{r.raceName}</div>
+                  <div className="lp-race-meta">
+                    {(r.raceDate || r.startTime) && <span>{new Date(r.raceDate || r.startTime).toLocaleString("vi-VN")}</span>}
+                    {r.trackLength && <span>· {r.trackLength}m</span>}
+                    {fmtVND(r.prizePool || r.prizeFirst) && <span className="lp-race-prize">· 🏆 {fmtVND(r.prizePool || r.prizeFirst)}</span>}
+                  </div>
+                </div>
+                <span className={`lp-badge ${st.cls}`}>{st.label}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="lp-inline-cta">
+          <button className="lp-btn lp-btn-bet" onClick={() => openAuth("login")}>Đăng nhập để đặt cược →</button>
+        </div>
+      </section>
+
+      {/* ══ BẢNG XẾP HẠNG ══ */}
+      <section id="lp-lb" className="lp-sec lp-sec-alt">
+        <div className="lp-sec-eyebrow">Bảng xếp hạng</div>
+        <h2 className="lp-sec-h">Top xuất sắc nhất mùa giải</h2>
+        <div className="lp-inline-list">
+          <div className="lp-mtabs lp-tabs-center">
+            <button data-on={lbTab === "jockey"} onClick={() => setLbTab("jockey")}>🏇 Nài ngựa</button>
+            <button data-on={lbTab === "horse"} onClick={() => setLbTab("horse")}>🐴 Ngựa đua</button>
+          </div>
+          {lb === null ? (
+            <div className="lp-empty">Đang tải…</div>
+          ) : (lb[lbTab] || []).length === 0 ? (
+            <div className="lp-empty">Chưa có dữ liệu xếp hạng</div>
+          ) : lb[lbTab].slice(0, 8).map((it, i) => (
+            <div className="lp-lbrow" key={it.entityId ?? i}>
+              <span className="lp-lbrank">{i < 3 ? ["🥇","🥈","🥉"][i] : it.rank ?? i + 1}</span>
+              <span className="lp-lbname">{it.name ?? "—"}</span>
+              <span className="lp-lbwin">{it.totalWins ?? 0} thắng</span>
+              <span className="lp-lbpts">{it.points ?? 0}đ</span>
             </div>
           ))}
         </div>
@@ -198,7 +256,7 @@ export default function LandingPage() {
           </div>
           <div className="lp-ctaband-btns">
             <button className="lp-btn lp-btn-bet" onClick={() => openAuth("register")}>Đăng ký ngay</button>
-            <button className="lp-btn lp-btn-ghost" onClick={loadLb}>Xem bảng xếp hạng</button>
+            <button className="lp-btn lp-btn-ghost" onClick={() => scrollTo("lp-lb")}>Xem bảng xếp hạng</button>
           </div>
         </div>
       </section>
@@ -210,8 +268,8 @@ export default function LandingPage() {
           <div><div className="lp-bt">HORSERACING VN</div><div className="lp-bs">Đồ án · Không dùng tiền thật</div></div>
         </div>
         <div className="lp-footer-links">
-          <button onClick={loadRaces}>Cuộc đua</button>
-          <button onClick={loadLb}>Xếp hạng</button>
+          <button onClick={() => scrollTo("lp-races")}>Cuộc đua</button>
+          <button onClick={() => scrollTo("lp-lb")}>Xếp hạng</button>
           <button onClick={() => openAuth("login")}>Đăng nhập</button>
         </div>
       </footer>
@@ -296,69 +354,6 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* ══════════ POPUP: CUỘC ĐUA ══════════ */}
-      {racesOpen && (
-        <div className="lp-ov" onClick={(e) => e.target === e.currentTarget && setRacesOpen(false)}>
-          <div className="lp-modal lp-modal-wide" role="dialog" aria-modal="true">
-            <button className="lp-x" onClick={() => setRacesOpen(false)} aria-label="Đóng">✕</button>
-            <h3>Lịch thi đấu</h3>
-            <div className="lp-msub">Các vòng đua trong hệ thống</div>
-            <div className="lp-list">
-              {races === null ? (
-                <div className="lp-empty">Đang tải…</div>
-              ) : races.length === 0 ? (
-                <div className="lp-empty">Chưa có vòng đua nào</div>
-              ) : races.map((r) => {
-                const st = RACE_STATUS[r.status] || RACE_STATUS.Scheduled;
-                return (
-                  <div className="lp-race" key={r.raceId}>
-                    <div className="lp-race-ic">🏁</div>
-                    <div className="lp-race-main">
-                      <div className="lp-race-name">{r.raceName}</div>
-                      <div className="lp-race-meta">
-                        {(r.raceDate || r.startTime) && <span>{new Date(r.raceDate || r.startTime).toLocaleString("vi-VN")}</span>}
-                        {r.trackLength && <span>· {r.trackLength}m</span>}
-                        {fmtVND(r.prizePool || r.prizeFirst) && <span className="lp-race-prize">· 🏆 {fmtVND(r.prizePool || r.prizeFirst)}</span>}
-                      </div>
-                    </div>
-                    <span className={`lp-badge ${st.cls}`}>{st.label}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <button className="lp-mbtn" onClick={() => openAuth("register")}>Đăng ký để đặt cược</button>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════ POPUP: XẾP HẠNG ══════════ */}
-      {lbOpen && (
-        <div className="lp-ov" onClick={(e) => e.target === e.currentTarget && setLbOpen(false)}>
-          <div className="lp-modal lp-modal-wide" role="dialog" aria-modal="true">
-            <button className="lp-x" onClick={() => setLbOpen(false)} aria-label="Đóng">✕</button>
-            <h3>Bảng xếp hạng</h3>
-            <div className="lp-msub">Top xuất sắc nhất mùa giải</div>
-            <div className="lp-mtabs">
-              <button data-on={lbTab === "jockey"} onClick={() => setLbTab("jockey")}>🏇 Nài ngựa</button>
-              <button data-on={lbTab === "horse"} onClick={() => setLbTab("horse")}>🐴 Ngựa đua</button>
-            </div>
-            <div className="lp-list">
-              {lb === null ? (
-                <div className="lp-empty">Đang tải…</div>
-              ) : (lb[lbTab] || []).length === 0 ? (
-                <div className="lp-empty">Chưa có dữ liệu xếp hạng</div>
-              ) : lb[lbTab].map((it, i) => (
-                <div className="lp-lbrow" key={it.entityId ?? i}>
-                  <span className="lp-lbrank">{i < 3 ? ["🥇","🥈","🥉"][i] : it.rank ?? i + 1}</span>
-                  <span className="lp-lbname">{it.name ?? "—"}</span>
-                  <span className="lp-lbwin">{it.totalWins ?? 0} thắng</span>
-                  <span className="lp-lbpts">{it.points ?? 0}đ</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

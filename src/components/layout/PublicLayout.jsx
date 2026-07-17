@@ -18,7 +18,7 @@ export default function PublicLayout({ children }) {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          <Link to="/races" className="text-sm font-bold text-sb-tx-2 hover:text-sb-emerald px-3 py-2 rounded-lg hover:bg-white/5 transition flex items-center gap-1.5">
+          <Link to="/" className="text-sm font-bold text-sb-tx-2 hover:text-sb-emerald px-3 py-2 rounded-lg hover:bg-white/5 transition flex items-center gap-1.5">
             <Calendar size={14} /> Lịch đua
           </Link>
           <Link to="/leaderboard" className="text-sm font-bold text-sb-tx-2 hover:text-sb-emerald px-3 py-2 rounded-lg hover:bg-white/5 transition flex items-center gap-1.5">

@@ -43,7 +43,7 @@ function RaceBetPanel({ race, onBetPlaced }) {
   const [options, setOptions]     = useState([]);
   const [myBets, setMyBets]       = useState([]);
   const [loading, setLoading]     = useState(true);
-  const [betType, setBetType]     = useState("WIN");
+  const [pickedHorse, setPickedHorse] = useState(null); // entryId ngựa đang chọn
   const [selected, setSelected]   = useState(null);
   const [amount, setAmount]       = useState("");
   const [placing, setPlacing]     = useState(false);
@@ -104,10 +104,21 @@ function RaceBetPanel({ race, onBetPlaced }) {
     );
   }
 
-  // Các loại cược thực sự có kèo, sắp theo thứ tự chuẩn
-  const availableTypes = BET_TYPE_ORDER.filter((t) => options.some((o) => o.betType === t));
-  const activeType = availableTypes.includes(betType) ? betType : availableTypes[0];
-  const shown = options.filter((o) => o.betType === activeType);
+  // Danh sách ngựa (unique theo entryId) — chọn ngựa trước, rồi mới chọn vị trí cược
+  const horses = [];
+  const seen = new Set();
+  for (const o of options) {
+    if (!seen.has(o.entryId)) { seen.add(o.entryId); horses.push(o); }
+  }
+  // Kèo của ngựa đang chọn: Về nhất → Top 2 → Top 3 → Đúng hạng 1..N (kèm odds từng kèo)
+  const horseOptions = pickedHorse == null ? [] : options
+    .filter((o) => o.entryId === pickedHorse)
+    .sort((a, b) => {
+      const ia = BET_TYPE_ORDER.indexOf(a.betType), ib = BET_TYPE_ORDER.indexOf(b.betType);
+      if (ia !== ib) return ia - ib;
+      return (a.targetPosition || 0) - (b.targetPosition || 0);
+    });
+  const pickedInfo = horses.find((h) => h.entryId === pickedHorse);
 
   return (
     <div className="p-5 border-t border-white/[0.06] space-y-4">
@@ -156,60 +167,69 @@ function RaceBetPanel({ race, onBetPlaced }) {
         <p className="text-gray-500 text-sm text-center py-4">Chưa có lựa chọn cược cho vòng đua này</p>
       ) : (
         <>
-          {/* Loại cược — kèo càng khó trúng, tỉ lệ ăn càng cao */}
-          <div className="flex flex-wrap gap-1.5">
-            {availableTypes.map((t) => {
-              const label = options.find((o) => o.betType === t)?.betTypeLabel || BET_TYPE_FALLBACK[t] || t;
+          {/* BƯỚC 1: chọn ngựa — list đầy đủ ngựa tham gia */}
+          <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">① Chọn ngựa</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {horses.map((h) => {
+              const isOn = pickedHorse === h.entryId;
               return (
-                <button
-                  key={t}
-                  onClick={() => { setBetType(t); setSelected(null); }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                    activeType === t
-                      ? "bg-[#D4AF37] text-[#0A0E1A] border-[#D4AF37]"
-                      : "bg-white/[0.02] text-gray-400 border-gray-800 hover:border-gray-600"
-                  }`}
-                >
-                  {label}
+                <button key={h.entryId}
+                  onClick={() => { setPickedHorse(h.entryId); setSelected(null); }}
+                  className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all ${
+                    isOn ? "border-[#D4AF37] bg-[#D4AF37]/10 shadow-[0_0_14px_rgba(212,175,55,0.15)]" : "border-gray-800 bg-white/[0.02] hover:border-gray-600"
+                  }`}>
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border ${
+                    isOn ? "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/40" : "bg-white/[0.04] text-gray-400 border-gray-700"
+                  }`}>
+                    {h.laneNumber ?? "🐴"}
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`font-semibold text-sm truncate ${isOn ? "text-[#D4AF37]" : "text-white"}`}>
+                      {h.horseName || `Entry #${h.entryId}`}
+                    </p>
+                    {h.jockeyName && <p className="text-gray-500 text-[11px] truncate">🏇 {h.jockeyName}</p>}
+                  </div>
                 </button>
               );
             })}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {shown.map((opt) => {
-              const isOn = selected && optKey(selected) === optKey(opt);
-              return (
-                <button
-                  key={optKey(opt)}
-                  onClick={() => setSelected(opt)}
-                  className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
-                    isOn ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-800 bg-white/[0.02] hover:border-gray-600"
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border ${
-                    isOn ? "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/40" : "bg-white/[0.04] text-gray-400 border-gray-700"
-                  }`}>
-                    {opt.laneNumber ?? "—"}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-semibold text-sm ${isOn ? "text-[#D4AF37]" : "text-white"}`}>
-                      {opt.horseName || `Entry #${opt.entryId}`}
-                    </p>
-                    <p className="text-gray-500 text-xs truncate">
-                      {opt.targetPosition ? `🎯 Về đúng hạng ${opt.targetPosition}` : opt.jockeyName ? `🏇 ${opt.jockeyName}` : ""}
-                    </p>
-                  </div>
-                  {opt.odds != null && (
-                    <span className="font-data text-xs font-bold text-[#D4AF37] shrink-0">{opt.odds}x</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          {/* BƯỚC 2: chọn vị trí cược của ngựa đó — kèm tỉ lệ từng kèo */}
+          {pickedHorse != null && (
+            <>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+                ② Cược <span className="text-[#D4AF37]">{pickedInfo?.horseName}</span> về vị trí nào?
+                <span className="text-gray-600 normal-case font-normal tracking-normal ml-2">kèo càng khó · tỉ lệ ăn càng cao</span>
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {horseOptions.map((opt) => {
+                  const isOn = selected && optKey(selected) === optKey(opt);
+                  const label = opt.betType === "EXACT"
+                    ? `Đúng hạng ${opt.targetPosition}`
+                    : (opt.betTypeLabel || BET_TYPE_FALLBACK[opt.betType] || opt.betType);
+                  return (
+                    <button key={optKey(opt)}
+                      onClick={() => setSelected(opt)}
+                      className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-left transition-all ${
+                        isOn ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-gray-800 bg-white/[0.02] hover:border-gray-600"
+                      }`}>
+                      <span className={`text-sm font-semibold ${isOn ? "text-[#D4AF37]" : "text-white"}`}>
+                        {opt.betType === "WIN" ? "🥇 " : opt.betType === "PLACE" ? "🥈 " : opt.betType === "SHOW" ? "🥉 " : "🎯 "}
+                        {label}
+                      </span>
+                      <span className="font-data text-xs font-bold text-[#D4AF37] bg-[#D4AF37]/10 border border-[#D4AF37]/25 rounded-lg px-2 py-1 shrink-0 tabular-nums">
+                        {opt.odds}x
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           {selected && (
             <>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">③ Nhập số tiền</p>
               <div className="flex gap-2">
                 <input
                   type="number"

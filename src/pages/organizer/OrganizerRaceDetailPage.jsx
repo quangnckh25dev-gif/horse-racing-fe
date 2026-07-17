@@ -308,6 +308,26 @@ function EntriesTab({ raceId }) {
     }
   };
 
+  // Từ chối kèm lý do (Owner sẽ thấy lý do này)
+  const [rejectEntry, setRejectEntry] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const handleReject = async () => {
+    if (!rejectEntry) return;
+    setActionLoading(rejectEntry.entryId);
+    try {
+      await organizerService.approveEntry(raceId, rejectEntry.entryId, { approved: false, reason: rejectReason || "Không đủ điều kiện" });
+      setRejectEntry(null); setRejectReason("");
+      load();
+    } catch (err) {
+      alert(err.message || "Từ chối thất bại");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  // BE trả registrationStatus (không phải status)
+  const statusOf = (e) => e.registrationStatus || e.status || "Pending";
+
   if (loading) return (
     <div className="space-y-3">
       {[...Array(4)].map((_, i) => <div key={i} className="h-20 shimmer rounded-xl" />)}
@@ -315,8 +335,8 @@ function EntriesTab({ raceId }) {
   );
 
   const counts = {
-    pending:  entries.filter((e) => e.status === "Pending").length,
-    approved: entries.filter((e) => e.status === "Approved").length,
+    pending:  entries.filter((e) => statusOf(e) === "Pending").length,
+    approved: entries.filter((e) => ["Approved", "Ready"].includes(statusOf(e))).length,
   };
 
   return (
@@ -341,8 +361,10 @@ function EntriesTab({ raceId }) {
       ) : (
         <div className="space-y-2.5">
           {entries.map((entry, idx) => {
-            const isPending = entry.status === "Pending";
-            const isApproved = entry.status === "Approved";
+            const st = statusOf(entry);
+            const isPending = st === "Pending";
+            const isReady = st === "Ready" || (st === "Approved" && (entry.jockeyConfirmed || entry.jockeyName));
+            const isApproved = st === "Approved" && !isReady;
             const busyThis = actionLoading === entry.entryId;
 
             return (
@@ -369,18 +391,27 @@ function EntriesTab({ raceId }) {
                 </div>
 
                 {/* Status / action */}
-                <div className="shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   {isPending ? (
-                    <button onClick={() => handleApprove(entry.entryId)} disabled={busyThis}
-                      className="flex items-center gap-1.5 px-3.5 py-2 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-xl text-xs font-bold transition-all disabled:opacity-50">
-                      {busyThis ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
-                      Duyệt
-                    </button>
+                    <>
+                      <button onClick={() => handleApprove(entry.entryId)} disabled={busyThis}
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-xl text-xs font-bold transition-all disabled:opacity-50">
+                        {busyThis ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                        Duyệt
+                      </button>
+                      <button onClick={() => { setRejectEntry(entry); setRejectReason(""); }} disabled={busyThis}
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-red-600/10 border border-red-600/25 text-red-400 hover:bg-red-600/20 rounded-xl text-xs font-bold transition-all disabled:opacity-50">
+                        <XCircle size={12} /> Từ chối
+                      </button>
+                    </>
                   ) : (
                     <span className={`text-[10px] font-bold px-2.5 py-1.5 rounded-full border ${
-                      isApproved ? "bg-green-500/15 text-green-300 border-green-500/30" : "bg-gray-500/15 text-sb-tx-3 border-gray-500/30"
+                      isReady ? "bg-green-500/15 text-green-300 border-green-500/30" :
+                      isApproved ? "bg-blue-500/15 text-blue-300 border-blue-500/30" :
+                      st === "Rejected" ? "bg-red-500/15 text-red-300 border-red-500/30" :
+                      "bg-gray-500/15 text-sb-tx-3 border-gray-500/30"
                     }`}>
-                      {isApproved ? "✓ Đã duyệt" : entry.status}
+                      {isReady ? "Sẵn sàng thi đấu ✓" : isApproved ? "✓ Đã duyệt · chờ jockey" : st === "Rejected" ? "✕ Từ chối" : st}
                     </span>
                   )}
                 </div>
@@ -388,6 +419,24 @@ function EntriesTab({ raceId }) {
             );
           })}
         </div>
+      )}
+
+      {/* Modal từ chối kèm lý do */}
+      {rejectEntry && (
+        <Modal title={`Từ chối: ${rejectEntry.horseName || "đăng ký"}`} accentColor="rgb(239,68,68)" onClose={() => setRejectEntry(null)}>
+          <p className="text-sb-tx-3 text-sm mb-3">Nhập lý do để Owner biết vì sao bị từ chối:</p>
+          <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3}
+            placeholder="VD: Ngựa chưa đạt điều kiện sức khoẻ..."
+            className="w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-red-400/60 resize-none mb-4" />
+          <div className="flex gap-3">
+            <button onClick={() => setRejectEntry(null)}
+              className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Huỷ</button>
+            <button onClick={handleReject} disabled={!!actionLoading}
+              className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
+              {actionLoading === rejectEntry.entryId && <Loader2 size={14} className="animate-spin" />} Xác nhận từ chối
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );

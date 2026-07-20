@@ -326,10 +326,10 @@ After submission, it cannot be edited until an Administrator reviews it.`, { okT
 
   const TOURNAMENT_STATUS = {
     Draft:           { label: "Draft",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
-    PendingApproval: { label: "Pending Admin Approval", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
+    PendingApproval: { label: "Pending Approval", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
     Open:            { label: "Open",      cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd" },
     Ongoing:         { label: "Ongoing", cls: "bg-sb-info/10 text-sb-info border-sb-info/30" },
-    Finished:        { label: "End",     cls: "bg-sb-s2 text-sb-tx-3 border-sb-border" },
+    Finished:        { label: "Finished", cls: "bg-sb-s2 text-sb-tx-3 border-sb-border" },
     Cancelled:       { label: "Cancelled",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30" },
   };
 

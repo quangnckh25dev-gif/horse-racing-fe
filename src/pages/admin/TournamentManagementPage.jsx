@@ -12,10 +12,10 @@ import { tournamentService } from "../../services/tournament";
 
 const STATUS_CONFIG = {
   Draft:     { label: "Draft",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border",           strip: "from-gray-400/20 to-gray-400/5",    dot: "bg-gray-400" },
-  PendingApproval: { label: "Pending Admin Approval", cls: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30", strip: "from-yellow-400/20 to-yellow-400/5", dot: "bg-yellow-400" },
+  PendingApproval: { label: "Pending Approval", cls: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30", strip: "from-yellow-400/20 to-yellow-400/5", dot: "bg-yellow-400" },
   Open:      { label: "Registration Open",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30",           strip: "from-blue-400/20 to-blue-400/5",    dot: "bg-blue-500" },
   Ongoing:   { label: "Ongoing", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd",        strip: "from-amber-400/20 to-amber-400/5",  dot: "bg-amber-500" },
-  Finished:  { label: "End",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd",        strip: "from-green-400/20 to-green-400/5",  dot: "bg-green-500" },
+  Finished:  { label: "Finished", cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd",        strip: "from-green-400/20 to-green-400/5",  dot: "bg-green-500" },
   Cancelled: { label: "Cancelled",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30",              strip: "from-red-400/20 to-red-400/5",      dot: "bg-red-500" },
 };
 

@@ -110,14 +110,12 @@ function RaceBetPanel({ race, onBetPlaced }) {
   for (const o of options) {
     if (!seen.has(o.entryId)) { seen.add(o.entryId); horses.push(o); }
   }
-  // Kèo của ngựa đang chọn: Về nhất → Top 2 → Top 3 → Đúng hạng 1..N (kèm odds từng kèo)
+  // Kèo của ngựa đang chọn: chỉ đúng hạng 1..tổng số ngựa trong race.
+  const horseCount = horses.length;
   const horseOptions = pickedHorse == null ? [] : options
-    .filter((o) => o.entryId === pickedHorse)
-    .sort((a, b) => {
-      const ia = BET_TYPE_ORDER.indexOf(a.betType), ib = BET_TYPE_ORDER.indexOf(b.betType);
-      if (ia !== ib) return ia - ib;
-      return (a.targetPosition || 0) - (b.targetPosition || 0);
-    });
+    .filter((o) => o.entryId === pickedHorse && o.betType === "EXACT")
+    .filter((o) => Number(o.targetPosition) >= 1 && Number(o.targetPosition) <= horseCount)
+    .sort((a, b) => (a.targetPosition || 0) - (b.targetPosition || 0));
   const pickedInfo = horses.find((h) => h.entryId === pickedHorse);
 
   return (
@@ -205,7 +203,7 @@ function RaceBetPanel({ race, onBetPlaced }) {
                 {horseOptions.map((opt) => {
                   const isOn = selected && optKey(selected) === optKey(opt);
                   const label = opt.betType === "EXACT"
-                    ? `Đúng hạng ${opt.targetPosition}`
+                    ? `Hạng ${opt.targetPosition}`
                     : (opt.betTypeLabel || BET_TYPE_FALLBACK[opt.betType] || opt.betType);
                   return (
                     <button key={optKey(opt)}

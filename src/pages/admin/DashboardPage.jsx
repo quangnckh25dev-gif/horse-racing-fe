@@ -80,7 +80,7 @@ function RoleDashboard({ user, role, navigate }) {
             </h2>
             <p className="text-sb-tx-3 text-sm mt-1">{ROLE_TAGLINE[role] || "Chào mừng trở lại hệ thống."}</p>
             <button
-              onClick={() => navigate("/races")}
+              onClick={() => navigate("/")}
               className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sb-s1/10 hover:bg-sb-s1/20 border border-white/20 text-white/80 hover:text-sb-tx text-xs font-medium transition-all"
             >
               <Home size={12} /> Quay về trang chủ
@@ -237,7 +237,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => navigate("/races")}
+                    onClick={() => navigate("/")}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sb-s1/10 hover:bg-sb-s1/20 border border-white/20 text-white/80 hover:text-sb-tx text-sm font-medium transition-all"
                   >
                     <Home size={14} /> Trang chủ

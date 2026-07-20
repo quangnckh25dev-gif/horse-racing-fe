@@ -151,7 +151,7 @@ export default function RaceRegistrationPage() {
     }
   };
 
-  const upcomingRaces = races.filter((r) => ["Scheduled", "RegistrationOpen"].includes(r.status));
+  const upcomingRaces = races.filter((r) => r.status === "RegistrationOpen");
   const pendingEntries  = myEntries.filter((e) => entryStatusOf(e) === "Pending").length;
   const approvedEntries = myEntries.filter((e) => entryStatusOf(e) === "Approved").length;
   const readyEntries    = myEntries.filter((e) => entryStatusOf(e) === "Ready").length;

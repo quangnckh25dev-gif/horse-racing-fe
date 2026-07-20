@@ -2,7 +2,7 @@ import { api } from "./api";
 
 export const organizerService = {
   // ── Races CRUD ────────────────────────────────────────────
-  getRaces: () => api.get("/races"),
+  getRaces: () => api.get("/organizer/races"),
   getRaceById: (raceId) => api.get(`/races/${raceId}`),
   createRace: (data) => api.post("/organizer/races", data),
   updateRace: (raceId, data) => api.put(`/organizer/races/${raceId}`, data),

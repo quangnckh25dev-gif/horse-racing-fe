@@ -4,8 +4,8 @@ export const tournamentService = {
   // ── Admin: chỉ xem + duyệt (không tạo/sửa/xoá) ────────────
   getAll: () => api.get("/admin/tournaments"),
   getById: (id) => api.get(`/admin/tournaments/${id}`),
-  changeStatus: (id, status) =>
-    api.put(`/admin/tournaments/${id}/status`, { status }),
+  changeStatus: (id, status, reason) =>
+    api.put(`/admin/tournaments/${id}/status`, { status, reason }),
 
   // ── Organizer: tạo / sửa / gửi duyệt ──────────────────────
   getMine: () => api.get("/organizer/tournaments"),

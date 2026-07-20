@@ -145,7 +145,7 @@ export default function RegisterPage() {
           <Link to="/login" className="text-sb-emerald-ink font-semibold hover:underline">Đăng nhập ngay</Link>
         </p>
         <p className="text-sm text-sb-tx-3">
-          Hoặc <Link to="/races" className="text-sb-emerald-ink font-semibold hover:underline">xem lịch đua không cần đăng nhập</Link>
+          Hoặc <Link to="/" className="text-sb-emerald-ink font-semibold hover:underline">xem lịch đua không cần đăng nhập</Link>
         </p>
       </div>
     </AuthShell>

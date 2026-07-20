@@ -19,6 +19,7 @@ import TournamentManagementPage from "./pages/admin/TournamentManagementPage";
 import TournamentDetailPage from "./pages/admin/TournamentDetailPage";
 import AuditLogsPage from "./pages/admin/AuditLogsPage";
 import SystemConfigsPage from "./pages/admin/SystemConfigsPage";
+import DepositRequestsPage from "./pages/admin/DepositRequestsPage";
 
 // Organizer pages
 import OrganizerRacesPage from "./pages/organizer/OrganizerRacesPage";
@@ -95,6 +96,7 @@ export default function App() {
           <Route path="/admin/tournaments/:id" element={guard(["Admin"], <TournamentDetailPage />)} />
           <Route path="/admin/audit-logs"     element={guard(["Admin"], <AuditLogsPage />)} />
           <Route path="/admin/configs"        element={guard(["Admin"], <SystemConfigsPage />)} />
+          <Route path="/admin/deposit-requests" element={guard(["Admin"], <DepositRequestsPage />)} />
 
           {/* ── Organizer — F5 ──────────────────────────────── */}
           <Route path="/organizer/races"

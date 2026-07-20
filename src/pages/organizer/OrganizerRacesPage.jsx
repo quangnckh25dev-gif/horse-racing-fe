@@ -230,7 +230,7 @@ export default function OrganizerRacesPage() {
     try {
       await organizerService.createRace(toRacePayload(formData));
       setShowCreate(false); setFormData(EMPTY_FORM); fetchRaces();
-    } catch (err) { setFormError(err.message || "Create Race thất bại"); }
+    } catch (err) { setFormError(err.message || "Failed to create race"); }
     finally { setFormLoading(false); }
   };
 
@@ -320,7 +320,7 @@ After submission, it cannot be edited until an Administrator reviews it.`, { okT
     try {
       await tournamentService.submitForApproval(t.tournamentId);
       await fetchTournaments();
-    } catch (err) { alert(err.message || "Submit for Approval thất bại"); }
+    } catch (err) { alert(err.message || "Submission failed"); }
     finally { setSubmitBusy(null); }
   };
 
@@ -407,7 +407,7 @@ After submission, it cannot be edited until an Administrator reviews it.`, { okT
             <div className="flex items-center gap-2 mb-3">
               <Trophy size={15} className="text-[#D4AF37]" />
               <h3 className="text-white font-bold text-sm">My Tournaments</h3>
-              <span className="text-sb-tx-3 text-xs ml-auto">Tạo giải → tạo races → gửi Admin duyệt</span>
+              <span className="text-sb-tx-3 text-xs ml-auto">{"Create tournament -> create races -> submit for Admin approval"}</span>
             </div>
             <div className="space-y-2">
               {tournaments.map((t) => {
@@ -483,7 +483,7 @@ After submission, it cannot be edited until an Administrator reviews it.`, { okT
               <Flag size={24} className="text-blue-500/40" />
             </div>
             <p className="text-white font-semibold mb-1">No races yet</p>
-            <p className="text-sb-tx-3 text-sm">Create Race đầu tiên để bắt đầu</p>
+            <p className="text-sb-tx-3 text-sm">Create your first race to get started</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -553,7 +553,7 @@ After submission, it cannot be edited until an Administrator reviews it.`, { okT
 
       {/* ── Modals ── */}
       {showCreate && (
-        <Modal title="Create Race mới" onClose={() => setShowCreate(false)}>
+        <Modal title="Create New Race" onClose={() => setShowCreate(false)}>
           {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-red-950/40 border border-red-900/50 rounded-xl text-red-300 text-sm"><AlertCircle size={13} /> {formError}</div>}
           <RaceForm form={formData} onChange={handleFormChange} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} loading={formLoading} submitLabel="Create Race"
             tournaments={tournaments} rounds={rounds} onAddRound={handleAddRound} roundBusy={roundBusy} />

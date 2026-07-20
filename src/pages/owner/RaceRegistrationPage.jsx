@@ -112,7 +112,7 @@ export default function RaceRegistrationPage() {
       setActiveTab("entries");
       loadMyEntries();
     } catch (err) {
-      setFormError(err.message || "Register thất bại");
+      setFormError(err.message || "Registration failed");
     } finally {
       setFormLoading(false);
     }
@@ -321,7 +321,7 @@ export default function RaceRegistrationPage() {
                               : <span className="text-sb-tx-2 text-xs italic">No jockey yet</span>
                           }
                           {entry.rejectReason && status === "Rejected" && (
-                            <span className="text-red-300 text-xs">Lý do: {entry.rejectReason}</span>
+                            <span className="text-red-300 text-xs">Reason: {entry.rejectReason}</span>
                           )}
                         </div>
                       </div>
@@ -411,7 +411,7 @@ export default function RaceRegistrationPage() {
             <div>
               <label className={labelCls}>Note (optional)</label>
               <textarea value={inviteForm.note} onChange={(e) => setInviteForm((p) => ({ ...p, note: e.target.value }))}
-                placeholder="VD: Please join this weekend race..." rows={3} className={inputCls + " resize-none"} />
+                placeholder="e.g. Please join this weekend race..." rows={3} className={inputCls + " resize-none"} />
             </div>
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setShowInvite(null)}

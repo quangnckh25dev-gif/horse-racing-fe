@@ -35,13 +35,12 @@ export default function LoginPage() {
     } catch (err) {
       const msg = err.message || "";
       const m = msg.toLowerCase();
-      const isMaintenance = err.status === 503 || m.includes("bảo trì") || m.includes("maintenance");
-      const isPending = err.status === 403 || m.includes("chờ") || m.includes("duyệt") ||
+      const isMaintenance = err.status === 503 || m.includes("maintenance");
+      const isPending = err.status === 403 ||
         m.includes("pending") || m.includes("not active") || m.includes("not approved");
-      const isLocked = m.includes("quá nhiều") || m.includes("too many") || m.includes("lock");
-      const isBadCred = m.includes("sai mật khẩu") || m.includes("bad credentials") ||
-        m.includes("incorrect") || m.includes("invalid") || m.includes("không đúng") ||
-        m.includes("không chính xác") || m.includes("không tìm thấy") || m.includes("not found");
+      const isLocked = m.includes("too many") || m.includes("lock");
+      const isBadCred = m.includes("bad credentials") ||
+        m.includes("incorrect") || m.includes("invalid") || m.includes("not found");
 
       if (isMaintenance) {
         let until = err.data?.maintenanceUntil || null;

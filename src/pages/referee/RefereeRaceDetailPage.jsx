@@ -242,7 +242,7 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
                   <tr className="bg-sb-s2 border-b border-sb-border text-[10px] uppercase tracking-widest text-sb-tx-3">
                     <th className="text-left px-4 py-2.5">Position</th>
                     <th className="text-left px-4 py-2.5">Horse / Jockey</th>
-                    <th className="text-right px-4 py-2.5">Về đích</th>
+                    <th className="text-right px-4 py-2.5">Finish Time</th>
                     <th className="text-right px-4 py-2.5">Penalty</th>
                     <th className="text-right px-4 py-2.5">Official</th>
                   </tr>
@@ -307,7 +307,7 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
                     <option value="">-- minutes --</option>
                     {[0,1,2,3,4,5].map((m) => <option key={m} value={m}>{m} minutes</option>)}
                   </select>
-                  <input type="number" step="0.001" min="0" max="59.999" placeholder="seconds (vd 23.456)"
+                  <input type="number" step="0.001" min="0" max="59.999" placeholder="seconds (e.g. 23.456)"
                     value={row.ss} disabled={row.dnf}
                     onChange={(e) => setForm((prev) => prev.map((r, i) => i === idx ? { ...r, ss: e.target.value } : r))}
                     className="w-32 bg-[#0A0E1A] border border-sb-border rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:border-[#D4AF37] disabled:opacity-40" />
@@ -470,7 +470,7 @@ function ViolationsTab({ raceId, entries, preRaceChecked }) {
                 </select>
               ) : (
                 <input value={form.violationType} onChange={(e) => setForm((p) => ({ ...p, violationType: e.target.value }))} required
-                  placeholder="VD: Blocking, false start..."
+                  placeholder="e.g. Blocking, false start..."
                   className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]" />
               )}
             </div>
@@ -595,8 +595,8 @@ function MinutesTab({ raceId }) {
   return (
     <form onSubmit={handleSave} className="space-y-4">
       {[
-        { label: "Weather Conditions", field: "weatherCondition", placeholder: "VD: Sunny, light rain..." },
-        { label: "Track Conditions", field: "trackCondition", placeholder: "VD: Dry, wet..." },
+        { label: "Weather Conditions", field: "weatherCondition", placeholder: "e.g. Sunny, light rain..." },
+        { label: "Track Conditions", field: "trackCondition", placeholder: "e.g. Dry, wet..." },
       ].map(({ label, field, placeholder }) => (
         <div key={field}>
           <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">{label}</label>
@@ -670,7 +670,7 @@ export default function RefereeRaceDetailPage() {
   const [busy, setBusy] = useState("");
   const [flash, setFlash] = useState("");
   const [preRaceChecked, setPreRaceChecked] = useState(false);
-  const [sent, setSent] = useState(false);          // đã gửi biên bản cho Owner
+  const [sent, setSent] = useState(false);          // sent biên bản cho Owner
   const [handedOff, setHandedOff] = useState(false); // đã bàn giao BTC
 
   const fetchData = useCallback(async () => {
@@ -683,7 +683,7 @@ export default function RefereeRaceDetailPage() {
       ]);
       setRace(raceRes.data);
       setEntries(entriesRes.data || []);
-      // Nếu biên bản đã gửi Owner từ trước → giữ nút khoá kể cả khi reload
+      // Nếu biên bản sent Owner từ trước → giữ nút khoá kể cả khi reload
       if (minRes?.data?.sentToOwners) setSent(true);
     } catch (e) {
       setError(e.message || "Unable to load data");
@@ -803,7 +803,7 @@ export default function RefereeRaceDetailPage() {
                         {busy === "send" ? <Loader2 size={14} className="animate-spin" /> : sent ? <CheckCircle2 size={14} /> : <Mail size={14} />}
                         {sent ? "Sent to Owners" : "Send to Owners"}
                       </button>
-                      <button onClick={() => doAction("handoff", () => raceResultService.handoff(raceId), "Handed Off cho Organizer", () => setHandedOff(true))}
+                      <button onClick={() => doAction("handoff", () => raceResultService.handoff(raceId), "Handed off to Organizer", () => setHandedOff(true))}
                         disabled={!!busy || handedOff}
                         className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity">
                         {busy === "handoff" ? <Loader2 size={14} className="animate-spin" /> : handedOff ? <CheckCircle2 size={14} /> : <Send size={14} />}

@@ -123,7 +123,7 @@ export default function OwnerInvitationsPage() {
         jockeyId: Number(selectedJockey),
         message: message.trim() || undefined,
       });
-      setModalSuccess("Send Invitation thành công!");
+      setModalSuccess("Invitation sent successfully!");
       setSelectedEntry(""); setSelectedJockey(""); setMessage("");
       fetchInvitations();
     } catch (e) {
@@ -149,7 +149,7 @@ export default function OwnerInvitationsPage() {
       await invitationService.cancelInvitation(inv.invitationId);
       fetchInvitations();
     } catch (e) {
-      alert(e.message || "Withdraw thất bại");
+      alert(e.message || "Withdraw failed");
     } finally {
       setCancelBusy(null);
     }
@@ -172,7 +172,7 @@ export default function OwnerInvitationsPage() {
             <h1 className="text-2xl font-black text-sb-tx leading-tight">Jockey Invitations</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs font-semibold">
-                <span className="font-bold text-sb-tx mr-1">{invitations.length}</span> đã gửi
+                <span className="font-bold text-sb-tx mr-1">{invitations.length}</span> sent
               </span>
               {counts.Pending > 0 && (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2 text-xs font-semibold">
@@ -243,7 +243,7 @@ export default function OwnerInvitationsPage() {
             <p className="text-sb-tx-3 text-sm mb-4">Click "Send Invitation" to invite a jockey to race with your horse</p>
             <button onClick={openModal}
               className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm rounded-xl transition-colors">
-              <Plus size={14} /> Send Invitation đầu tiên
+              <Plus size={14} /> Send First Invitation
             </button>
           </div>
         ) : (
@@ -340,7 +340,7 @@ export default function OwnerInvitationsPage() {
               {/* Entry select */}
               <div>
                 <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-2">
-                  Race Registration (đã được BTC duyệt)
+                  Approved Race Registration
                 </label>
                 <div className="relative">
                   <select value={selectedEntry} onChange={(e) => setSelectedEntry(e.target.value)} className={selectCls}>
@@ -354,7 +354,7 @@ export default function OwnerInvitationsPage() {
                   <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-sb-tx-3 pointer-events-none" />
                 </div>
                 {entries.length === 0 && (
-                  <p className="text-sb-tx-3 text-xs mt-1">No registrations yet được BTC duyệt. Hãy registrations và chờ ban tổ chức xét duyệt.</p>
+                  <p className="text-sb-tx-3 text-xs mt-1">No approved registrations yet. Register for a race and wait for organizer approval.</p>
                 )}
               </div>
 

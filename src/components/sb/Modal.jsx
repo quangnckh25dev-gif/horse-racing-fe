@@ -29,7 +29,7 @@ export default function SbModal({ title, subtitle, tone = "default", size = "md"
             <h3 className="text-sb-tx font-bold truncate">{title}</h3>
             {subtitle && <p className="text-sb-tx-3 text-xs mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} aria-label="Đóng"
+          <button onClick={onClose} aria-label="Close"
             className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s2 transition-colors shrink-0">
             <X size={16} />
           </button>

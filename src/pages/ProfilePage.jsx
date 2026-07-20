@@ -6,28 +6,28 @@ import { useAuth } from "../context/AuthContext";
 
 const ROLE_FIELDS = {
   HorseOwner: [
-    { key: "address",       label: "Địa chỉ",               type: "text",   placeholder: "Nhập địa chỉ..." },
-    { key: "organization",  label: "Tổ chức / Chuồng ngựa", type: "text",   placeholder: "Tên tổ chức hoặc chuồng ngựa..." },
-    { key: "licenseNumber", label: "Số giấy phép",           type: "text",   placeholder: "VD: OWN-001" },
+    { key: "address",       label: "Address",               type: "text",   placeholder: "Enter address..." },
+    { key: "organization",  label: "Organization / Stable", type: "text",   placeholder: "Organization or stable name..." },
+    { key: "licenseNumber", label: "License Number",           type: "text",   placeholder: "VD: OWN-001" },
   ],
   Jockey: [
-    { key: "weightKg",      label: "Cân nặng (kg)",     type: "number", placeholder: "VD: 58.5", step: "0.1" },
-    { key: "heightCm",      label: "Chiều cao (cm)",     type: "number", placeholder: "VD: 168",  step: "0.1" },
-    { key: "experienceYear",label: "Số năm kinh nghiệm",type: "number", placeholder: "VD: 4",    step: "1" },
+    { key: "weightKg",      label: "Weight (kg)",     type: "number", placeholder: "VD: 58.5", step: "0.1" },
+    { key: "heightCm",      label: "Height (cm)",     type: "number", placeholder: "VD: 168",  step: "0.1" },
+    { key: "experienceYear",label: "Years of Experience",type: "number", placeholder: "VD: 4",    step: "1" },
   ],
   Referee: [
-    { key: "badgeNumber",   label: "Số huy hiệu",  type: "text", placeholder: "VD: REF-001" },
-    { key: "speciality",    label: "Chuyên môn",   type: "text", placeholder: "VD: Race Control, Timing..." },
+    { key: "badgeNumber",   label: "Badge Number",  type: "text", placeholder: "VD: REF-001" },
+    { key: "speciality",    label: "Specialty",   type: "text", placeholder: "VD: Race Control, Timing..." },
   ],
 };
 
 const ROLE_LABEL = {
-  Admin:      "Quản trị viên",
-  Organizer:  "Ban tổ chức",
-  HorseOwner: "Chủ ngựa",
-  Jockey:     "Nài ngựa",
-  Referee:    "Trọng tài",
-  Spectator:  "Khán giả",
+  Admin:      "Administrator",
+  Organizer:  "Organizer",
+  HorseOwner: "Horse Owner",
+  Jockey:     "Jockey",
+  Referee:    "Referee",
+  Spectator:  "Spectator",
 };
 
 const ROLE_BADGE_CLS = {
@@ -102,7 +102,7 @@ export default function ProfilePage() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err.message || "Lưu hồ sơ thất bại");
+      setError(err.message || "Failed to save profile");
     } finally {
       setSaving(false);
     }
@@ -111,7 +111,7 @@ export default function ProfilePage() {
   const gradientCls = ROLE_AVATAR_GRADIENT[role] || "from-gray-400 to-gray-500";
 
   return (
-    <AdminLayout title="Hồ sơ cá nhân">
+    <AdminLayout title="Profile">
       <div className="p-6 max-w-2xl mx-auto">
 
         {/* ── User info card ── */}
@@ -139,8 +139,8 @@ export default function ProfilePage() {
             <div className="w-16 h-16 rounded-2xl bg-sb-s2 border border-sb-border flex items-center justify-center mb-4">
               <User size={28} className="text-sb-tx-3" />
             </div>
-            <p className="text-sb-tx-2 font-semibold text-base mb-2">Role này chưa có hồ sơ mở rộng</p>
-            <p className="text-sb-tx-3 text-sm">Chỉ Chủ ngựa, Nài ngựa và Trọng tài mới có hồ sơ riêng.</p>
+            <p className="text-sb-tx-2 font-semibold text-base mb-2">This role has no extended profile</p>
+            <p className="text-sb-tx-3 text-sm">Only Horse Owner, Jockey, and Referee have separate profiles.</p>
           </div>
         ) : loading ? (
           <div className="flex items-center justify-center py-20">
@@ -152,7 +152,7 @@ export default function ProfilePage() {
             <div className="bg-sb-s1 border border-sb-border rounded-2xl p-5 shadow-sm">
               <h3 className="text-sb-tx font-bold text-sm mb-4 pb-3 border-b border-sb-border flex items-center gap-2">
                 <User size={14} className="text-sb-info" />
-                Thông tin hồ sơ
+                Profile Information
               </h3>
               <div className="space-y-4">
                 {fields.map((f) => (
@@ -176,7 +176,7 @@ export default function ProfilePage() {
             {!profileExists && (
               <div className="flex items-start gap-2 p-3 bg-sb-info/10 border border-sb-info/30 rounded-xl text-sb-info text-sm">
                 <AlertCircle size={14} className="shrink-0 text-blue-500 mt-0.5" />
-                <span>Hồ sơ chưa có dữ liệu — điền thông tin và nhấn <strong>Lưu hồ sơ</strong> để cập nhật.</span>
+                <span>Profile has no data yet - fill it in and click <strong>Save Profile</strong> to update.</span>
               </div>
             )}
 
@@ -188,14 +188,14 @@ export default function ProfilePage() {
 
             {success && (
               <div className="flex items-center gap-2 p-3 bg-sb-emerald-soft border border-sb-emerald-bd rounded-xl text-sb-emerald-ink text-sm">
-                <CheckCircle2 size={14} className="shrink-0" /> Hồ sơ đã được lưu thành công!
+                <CheckCircle2 size={14} className="shrink-0" /> Profile saved successfully!
               </div>
             )}
 
             <button type="submit" disabled={saving}
               className="flex items-center gap-2 px-6 py-3 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl btn-gold-glow transition-all text-sm disabled:opacity-60">
               {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-              Lưu hồ sơ
+              Save Profile
             </button>
           </form>
         )}

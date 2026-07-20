@@ -3,7 +3,7 @@ import { X, Play, RotateCcw, Trophy } from "lucide-react";
 
 const HUES = ["#4ADE9E", "#FFD873", "#7DD3FC", "#FB7185", "#C4B5FD", "#FCA5A5", "#F0ABFC", "#FDBA74"];
 
-// Chuẩn hoá thời gian về giây: nhận "hh:mm:ss.SSS", "mm:ss.SSS", số giây, hoặc số.
+// Chuẩn hoá thời gian về seconds: nhận "hh:mm:ss.SSS", "mm:ss.SSS", số seconds, hoặc số.
 function toSeconds(v) {
   if (v == null) return null;
   if (typeof v === "number") return v;
@@ -19,13 +19,13 @@ function toSeconds(v) {
   return isNaN(n) ? null : n;
 }
 
-// Chuẩn hoá 1 kết quả về { name, jockey, ft (finishTime giây), dq }
+// Chuẩn hoá 1 kết quả về { name, jockey, ft (finishTime seconds), dq }
 function normalize(results) {
   const rows = (results || []).map((r, i) => {
     const dq = Boolean(r.dq || r.dnf || r.isDq || r.isDnf);
     const ft = toSeconds(r.finishTime ?? r.finalTime) ?? (65 + i * 1.5);
     return {
-      name: r.horseName || r.name || `Ngựa #${r.horseId ?? r.entryId ?? i + 1}`,
+      name: r.horseName || r.name || `Horse #${r.horseId ?? r.entryId ?? i + 1}`,
       jockey: r.jockeyName || r.jockey || "—",
       pos: r.finishPosition ?? r.position ?? null,
       dq,
@@ -124,7 +124,7 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // bảng xếp hạng chính thức (theo finishPosition nếu có, else theo finalTime)
+  // bảng xếp place chính thức (theo finishPosition nếu có, else theo finalTime)
   const ranked = [...horses].sort((a, b) => {
     if (a.dq && !b.dq) return 1;
     if (!a.dq && b.dq) return -1;
@@ -140,7 +140,7 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
         {/* Header cố định — nút đóng luôn thấy dù nhiều ngựa */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-sb-border shrink-0">
           <div>
-            <h3 className="text-sb-tx font-bold text-sm">Xem lại đường đua</h3>
+            <h3 className="text-sb-tx font-bold text-sm">Race Replay</h3>
             <p className="text-sb-tx-3 text-xs">{raceName || "Race replay"}</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s2 transition-colors shrink-0">
@@ -149,7 +149,7 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
         </div>
 
         <div className="p-4 overflow-y-auto">
-          {/* Vé cược của người xem — vị trí ngựa + tiền thắng/thua */}
+          {/* Vé bet của người xem — vị trí ngựa + tiền wins/thua */}
           {bet && (() => {
             const r = (results || []).find((x) => x.entryId === bet.entryId);
             const pos = r ? (r.finishPosition ?? r.position) : null;
@@ -164,14 +164,14 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
                 <span className="text-xl">🎫</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sb-tx font-bold text-sm">
-                    Vé của bạn: {bet.horseName || `Entry #${bet.entryId}`}
+                    Your Ticket: {bet.horseName || `Entry #${bet.entryId}`}
                     <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/20">
-                      {bet.betTypeLabel || bet.betType}{bet.targetPosition ? ` · hạng ${bet.targetPosition}` : ""}
+                      {bet.betTypeLabel || bet.betType}{bet.targetPosition ? ` · place ${bet.targetPosition}` : ""}
                     </span>
                   </p>
                   <p className="text-sb-tx-2 text-xs mt-0.5">
-                    {dq ? "Ngựa bị loại (DQ/DNF)" : pos != null ? `Về hạng ${pos}` : "Chưa có kết quả"} ·
-                    cược {Number(bet.amount).toLocaleString("vi-VN")}₫ × {bet.odds ?? "—"}
+                    {dq ? "Horse disqualified (DQ/DNF)" : pos != null ? `Finished place ${pos}` : "No result yet"} ·
+                    bet {Number(bet.amount).toLocaleString("vi-VN")}₫ × {bet.odds ?? "—"}
                   </p>
                 </div>
                 <span className={`font-mono font-extrabold text-base tabular-nums shrink-0 ${
@@ -179,14 +179,14 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
                 }`}>
                   {won ? `+${Number(payout).toLocaleString("vi-VN")}₫`
                     : lost ? `−${Number(bet.amount).toLocaleString("vi-VN")}₫`
-                    : "Chờ công bố"}
+                    : "Pending Publication"}
                 </span>
               </div>
             );
           })()}
 
           {N === 0 ? (
-            <div className="py-16 text-center text-sb-tx-3 text-sm">Chưa có kết quả để xem lại.</div>
+            <div className="py-16 text-center text-sb-tx-3 text-sm">No results to replay.</div>
           ) : (
             <>
               <div className="relative rounded-xl border border-sb-border overflow-hidden bg-[#0A0E13]" style={{ height: "min(52vh,420px)" }}>
@@ -197,7 +197,7 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
                 {!started && (
                   <button onClick={start}
                     className="absolute inset-0 m-auto w-fit h-fit flex items-center gap-2 px-5 py-3 rounded-xl bg-sb-emerald text-white font-bold text-sm hover:opacity-90 transition-opacity">
-                    <Play size={16} /> Bắt đầu xem đua
+                    <Play size={16} /> Start Replay
                   </button>
                 )}
               </div>
@@ -205,7 +205,7 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
               {done && (
                 <div className="mt-4">
                   <div className="flex items-center gap-2 mb-2 text-sb-gold-2 font-bold text-sm">
-                    <Trophy size={15} /> Kết quả chính thức
+                    <Trophy size={15} /> Official Results
                   </div>
                   <div className="rounded-xl border border-sb-border divide-y divide-sb-border overflow-hidden">
                     {ranked.map((h, i) => (
@@ -221,7 +221,7 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
                   </div>
                   <button onClick={start}
                     className="mt-3 flex items-center gap-2 px-4 h-9 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm transition-colors">
-                    <RotateCcw size={14} /> Xem lại
+                    <RotateCcw size={14} /> Replay
                   </button>
                 </div>
               )}

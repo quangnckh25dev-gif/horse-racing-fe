@@ -8,21 +8,21 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { horseService } from "../../services/horse";
 
 const STATUS_CONFIG = {
-  Active:   { label: "Hoạt động",       color: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", strip: "from-green-400/20 to-green-400/5", dot: "bg-green-500" },
-  Injured:  { label: "Bị thương",       color: "bg-sb-lose/10 text-sb-lose border-sb-lose/30",       strip: "from-red-400/20 to-red-400/5",    dot: "bg-red-500" },
-  Inactive: { label: "Không hoạt động", color: "bg-sb-s2 text-sb-tx-3 border-sb-border",    strip: "from-gray-400/15 to-gray-400/5",  dot: "bg-gray-400" },
+  Active:   { label: "Active",       color: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", strip: "from-green-400/20 to-green-400/5", dot: "bg-green-500" },
+  Injured:  { label: "Injured",       color: "bg-sb-lose/10 text-sb-lose border-sb-lose/30",       strip: "from-red-400/20 to-red-400/5",    dot: "bg-red-500" },
+  Inactive: { label: "Inactive", color: "bg-sb-s2 text-sb-tx-3 border-sb-border",    strip: "from-gray-400/15 to-gray-400/5",  dot: "bg-gray-400" },
 };
 
 const HORSE_COLORS = [
-  "Nâu", "Đen", "Trắng", "Xám", "Đỏ nâu (Bay)", "Vàng (Palomino)",
-  "Hoa (Pinto)", "Nâu nhạt (Chestnut)", "Xám đốm (Dapple Grey)",
-  "Đen tuyền", "Nâu vàng (Buckskin)", "Kem (Cremello)",
+  "Brown", "Black", "White", "Gray", "Bay", "Palomino",
+  "Pinto", "Brown nhạt (Chestnut)", "Gray đốm (Dapple Grey)",
+  "Black tuyền", "Brown vàng (Buckskin)", "Cremello",
 ];
 
 const HORSE_BREEDS = [
   "Thoroughbred", "Arabian", "Quarter Horse", "Warmblood", "Appaloosa",
   "Morgan", "Friesian", "Mustang", "Andalusian", "Hanoverian",
-  "Paint", "Standardbred", "Irish Draught", "Clydesdale", "Ngựa Việt Nam",
+  "Paint", "Standardbred", "Irish Draught", "Clydesdale", "Vietnamese Horse",
 ];
 
 const EMPTY_FORM = {
@@ -66,49 +66,49 @@ function HorseForm({ form, onChange, onSubmit, onCancel, loading, submitLabel })
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
-          <FormField label="Tên ngựa *">
+          <FormField label="Horse Name *">
             <input name="horseName" value={form.horseName} onChange={onChange} required className={inputCls} placeholder="VD: Thunder Storm" />
           </FormField>
         </div>
-        <FormField label="Giống ngựa">
+        <FormField label="Breed">
           <select name="breed" value={form.breed} onChange={onChange} className={inputCls}>
-            <option value="">-- Chọn giống --</option>
+            <option value="">-- Select Breed --</option>
             {HORSE_BREEDS.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
         </FormField>
-        <FormField label={`Năm sinh${calcAge !== null ? ` (${calcAge} tuổi)` : ""}`}>
+        <FormField label={`Birth Year${calcAge !== null ? ` (${calcAge} years old)` : ""}`}>
           <input name="birthYear" type="number" min="1990" max={currentYear} value={form.birthYear} onChange={onChange}
             className={inputCls} placeholder={String(currentYear - 5)} />
         </FormField>
-        <FormField label="Giới tính">
+        <FormField label="Gender">
           <select name="gender" value={form.gender} onChange={onChange} className={inputCls}>
-            <option value="">-- Chọn --</option>
-            <option value="Male">Đực ♂</option>
-            <option value="Female">Cái ♀</option>
+            <option value="">-- Select --</option>
+            <option value="Male">Male ♂</option>
+            <option value="Female">Female ♀</option>
           </select>
         </FormField>
-        <FormField label="Màu sắc">
+        <FormField label="Color">
           <select name="color" value={form.color} onChange={onChange} className={inputCls}>
-            <option value="">-- Chọn màu --</option>
+            <option value="">-- Select Color --</option>
             {HORSE_COLORS.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </FormField>
         <div className="col-span-2">
-          <FormField label="Cân nặng (kg)">
+          <FormField label="Weight (kg)">
             <input name="weightKg" type="number" min="100" max="1000" value={form.weightKg} onChange={onChange} className={inputCls} placeholder="450" />
           </FormField>
         </div>
         <div className="col-span-2">
-          <FormField label="Mô tả">
+          <FormField label="Description">
             <textarea name="description" value={form.description} onChange={onChange} rows={2}
-              className={inputCls + " resize-none"} placeholder="Ghi chú thêm..." />
+              className={inputCls + " resize-none"} placeholder="Additional Notes..." />
           </FormField>
         </div>
       </div>
       <div className="flex gap-3 pt-1">
         <button type="button" onClick={onCancel}
           className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-sb-border-2 text-sm transition-colors">
-          Huỷ
+          Cancel
         </button>
         <button type="submit" disabled={loading}
           className="flex-1 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 btn-gold-glow transition-all">
@@ -150,44 +150,44 @@ function HealthModal({ horseId, horseName, onClose }) {
       setAddForm({ checkDate: "", condition: "", notes: "", veterinarian: "" });
       load();
     } catch (err) {
-      alert(err.message || "Thêm hồ sơ thất bại");
+      alert(err.message || "Failed to add health record");
     } finally {
       setAddLoading(false);
     }
   };
 
   return (
-    <Modal title={`Hồ sơ sức khoẻ — ${horseName}`} accentColor="rgb(244,114,182)" onClose={onClose}>
+    <Modal title={`Health Records - ${horseName}`} accentColor="rgb(244,114,182)" onClose={onClose}>
       <div className="space-y-4">
         <button onClick={() => setShowAdd(!showAdd)}
           className="flex items-center gap-2 px-3 py-2 bg-pink-500/10 border border-pink-500/30 text-pink-400 rounded-xl text-xs font-semibold hover:bg-pink-500/20 transition-colors">
-          <Plus size={13} /> Thêm hồ sơ mới
+          <Plus size={13} /> Add New Record
         </button>
 
         {showAdd && (
           <form onSubmit={handleAdd} className="bg-sb-s2 rounded-xl border border-sb-border p-4 space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <FormField label="Ngày kiểm tra">
+              <FormField label="Check Date">
                 <input type="date" value={addForm.checkDate} onChange={(e) => setAddForm((p) => ({ ...p, checkDate: e.target.value }))} className={inputCls} />
               </FormField>
-              <FormField label="Tình trạng">
+              <FormField label="Condition">
                 <input value={addForm.condition} onChange={(e) => setAddForm((p) => ({ ...p, condition: e.target.value }))}
-                  placeholder="VD: Tốt, Bị thương..." className={inputCls} />
+                  placeholder="VD: Tốt, Injured..." className={inputCls} />
               </FormField>
               <div className="col-span-2">
-                <FormField label="Bác sĩ thú y">
+                <FormField label="Veterinarian">
                   <input value={addForm.veterinarian} onChange={(e) => setAddForm((p) => ({ ...p, veterinarian: e.target.value }))} className={inputCls} />
                 </FormField>
               </div>
               <div className="col-span-2">
-                <FormField label="Ghi chú">
+                <FormField label="Note">
                   <textarea value={addForm.notes} onChange={(e) => setAddForm((p) => ({ ...p, notes: e.target.value }))} rows={2}
                     className={inputCls + " resize-none"} />
                 </FormField>
               </div>
             </div>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-xl border border-sb-border text-sb-tx-3 text-sm">Huỷ</button>
+              <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-xl border border-sb-border text-sb-tx-3 text-sm">Cancel</button>
               <button type="submit" disabled={addLoading} className="flex-1 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
                 {addLoading && <Loader2 size={12} className="animate-spin" />} Thêm
               </button>
@@ -200,7 +200,7 @@ function HealthModal({ horseId, horseName, onClose }) {
         ) : records.length === 0 ? (
           <div className="text-center py-10">
             <Activity size={32} className="mx-auto text-sb-tx-3 mb-2" />
-            <p className="text-sb-tx-3 text-sm">Chưa có hồ sơ sức khoẻ</p>
+            <p className="text-sb-tx-3 text-sm">No health records yet</p>
           </div>
         ) : (
           <div className="space-y-2 max-h-72 overflow-y-auto">
@@ -240,7 +240,7 @@ export default function HorsesPage() {
       const res = await horseService.getMyHorses();
       setHorses(res.data || []);
     } catch (e) {
-      setError(e.message || "Không thể tải danh sách ngựa");
+      setError(e.message || "Unable to load horses");
     } finally {
       setLoading(false);
     }
@@ -260,7 +260,7 @@ export default function HorsesPage() {
       setFormData(EMPTY_FORM);
       fetchHorses();
     } catch (err) {
-      setFormError(err.message || "Tạo thất bại");
+      setFormError(err.message || "Create failed");
     } finally {
       setFormLoading(false);
     }
@@ -275,7 +275,7 @@ export default function HorsesPage() {
       setShowEdit(null);
       fetchHorses();
     } catch (err) {
-      setFormError(err.message || "Cập nhật thất bại");
+      setFormError(err.message || "Update failed");
     } finally {
       setFormLoading(false);
     }
@@ -288,7 +288,7 @@ export default function HorsesPage() {
       await horseService.changeStatus(horseId, newStatus);
       setHorses((prev) => prev.map((h) => h.horseId === horseId ? { ...h, status: newStatus } : h));
     } catch (err) {
-      alert(err.message || "Đổi trạng thái thất bại");
+      alert(err.message || "Failed to change status");
     } finally {
       setStatusLoading("");
     }
@@ -314,7 +314,7 @@ export default function HorsesPage() {
   const inactiveCount = horses.filter((h) => h.status === "Inactive").length;
 
   return (
-    <AdminLayout title="Ngựa của tôi">
+    <AdminLayout title="My Horses">
 
       {/* ── Page Header Banner ── */}
       <div className="page-header mb-0">
@@ -328,14 +328,14 @@ export default function HorsesPage() {
               <div className="w-7 h-7 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
                 <PawPrint size={14} className="text-orange-400" />
               </div>
-              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Quản lý ngựa</span>
+              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Horse Management</span>
             </div>
-            <h1 className="text-2xl font-black text-sb-tx leading-tight">Ngựa của tôi</h1>
+            <h1 className="text-2xl font-black text-sb-tx leading-tight">My Horses</h1>
             <div className="flex items-center gap-3 mt-2">
-              <span className="stat-pill"><span className="text-sb-tx font-bold">{horses.length}</span> tổng cộng</span>
-              {activeCount > 0 && <span className="stat-pill text-green-400"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block mr-1" />{activeCount} hoạt động</span>}
-              {injuredCount > 0 && <span className="stat-pill text-red-400"><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block mr-1" />{injuredCount} bị thương</span>}
-              {inactiveCount > 0 && <span className="stat-pill text-sb-tx-3"><span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block mr-1" />{inactiveCount} không hoạt động</span>}
+              <span className="stat-pill"><span className="text-sb-tx font-bold">{horses.length}</span> total</span>
+              {activeCount > 0 && <span className="stat-pill text-green-400"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block mr-1" />{activeCount} active</span>}
+              {injuredCount > 0 && <span className="stat-pill text-red-400"><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block mr-1" />{injuredCount} injured</span>}
+              {inactiveCount > 0 && <span className="stat-pill text-sb-tx-3"><span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block mr-1" />{inactiveCount} inactive</span>}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -345,7 +345,7 @@ export default function HorsesPage() {
             </button>
             <button onClick={() => { setFormData(EMPTY_FORM); setFormError(""); setShowCreate(true); }}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm transition-all btn-gold-glow">
-              <Plus size={15} /> Thêm ngựa
+              <Plus size={15} /> Add Horse
             </button>
           </div>
         </div>
@@ -370,11 +370,11 @@ export default function HorsesPage() {
             <div className="w-20 h-20 rounded-2xl bg-orange-500/5 border border-orange-500/10 flex items-center justify-center mb-4 animate-float">
               <span className="text-4xl">🐴</span>
             </div>
-            <p className="text-sb-tx font-semibold mb-1">Chưa có ngựa nào</p>
-            <p className="text-sb-tx-3 text-sm mb-4">Thêm ngựa đầu tiên vào danh sách của bạn</p>
+            <p className="text-sb-tx font-semibold mb-1">No horses yet</p>
+            <p className="text-sb-tx-3 text-sm mb-4">Add your first horse to your stable</p>
             <button onClick={() => { setFormData(EMPTY_FORM); setFormError(""); setShowCreate(true); }}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm btn-gold-glow">
-              <Plus size={15} /> Thêm ngựa đầu tiên
+              <Plus size={15} /> Add Horse đầu tiên
             </button>
           </div>
         ) : (
@@ -403,7 +403,7 @@ export default function HorsesPage() {
                           <h3 className="text-sb-tx font-bold text-base leading-tight truncate">{horse.horseName}</h3>
                           <p className="text-sb-tx-3 text-xs mt-0.5 flex items-center gap-1">
                             <Dna size={10} className="shrink-0" />
-                            {horse.breed || "Chưa xác định"}
+                            {horse.breed || "Unknown"}
                           </p>
                         </div>
                       </div>
@@ -415,8 +415,8 @@ export default function HorsesPage() {
                     {/* Stats grid */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
                       {[
-                        { label: "Tuổi",   value: horse.birthYear ? `${currentYear - horse.birthYear}t` : (horse.age ? `${horse.age}t` : "—"), icon: "🎂" },
-                        { label: "Cân nặng", value: (horse.weightKg || horse.weight) ? `${horse.weightKg || horse.weight}kg` : "—", icon: "⚖️" },
+                        { label: "Age",   value: horse.birthYear ? `${currentYear - horse.birthYear}t` : (horse.age ? `${horse.age}t` : "—"), icon: "🎂" },
+                        { label: "Weight", value: (horse.weightKg || horse.weight) ? `${horse.weightKg || horse.weight}kg` : "—", icon: "⚖️" },
                       ].map(({ label, value, icon }) => (
                         <div key={label} className="bg-sb-s2 rounded-xl p-2.5 text-center border border-sb-border">
                           <span className="text-sm block mb-0.5">{icon}</span>
@@ -430,7 +430,7 @@ export default function HorsesPage() {
                     <div className="flex flex-wrap gap-1.5 mb-4 min-h-[20px]">
                       {horse.gender && (
                         <span className="stat-pill">
-                          {horse.gender === "Male" ? <><Mars size={10} className="text-blue-400" /> Đực</> : <><Venus size={10} className="text-pink-400" /> Cái</>}
+                          {horse.gender === "Male" ? <><Mars size={10} className="text-blue-400" /> Male</> : <><Venus size={10} className="text-pink-400" /> Female</>}
                         </span>
                       )}
                       {horse.color && (
@@ -440,16 +440,16 @@ export default function HorsesPage() {
 
                     {/* Status changer */}
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-sb-tx-3 text-[10px] uppercase tracking-wider shrink-0">Trạng thái:</span>
+                      <span className="text-sb-tx-3 text-[10px] uppercase tracking-wider shrink-0">Status:</span>
                       <select
                         value={horse.status || "Active"}
                         disabled={statusLoading === horse.horseId}
                         onChange={(e) => handleChangeStatus(horse.horseId, e.target.value)}
                         className="flex-1 bg-sb-s1 border border-sb-border rounded-lg px-2 py-1 text-xs text-sb-tx focus:outline-none focus:border-sb-emerald transition-all cursor-pointer disabled:opacity-50"
                       >
-                        <option value="Active">🟢 Hoạt động</option>
-                        <option value="Injured">🔴 Bị thương</option>
-                        <option value="Inactive">⚫ Không hoạt động</option>
+                        <option value="Active">🟢 Active</option>
+                        <option value="Injured">🔴 Injured</option>
+                        <option value="Inactive">⚫ Inactive</option>
                       </select>
                       {statusLoading === horse.horseId && <Loader2 size={12} className="animate-spin text-[#D4AF37] shrink-0" />}
                     </div>
@@ -458,7 +458,7 @@ export default function HorsesPage() {
                     <div className="flex gap-2 pt-3 border-t border-sb-border">
                       <button onClick={() => setShowHealth(horse)}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-pink-500/10 border border-pink-500/30 text-pink-400 hover:bg-pink-500/20 hover:border-pink-300 rounded-xl text-xs font-semibold transition-all">
-                        <Heart size={11} /> Sức khoẻ
+                        <Heart size={11} /> Health
                       </button>
                       <button onClick={() => openEdit(horse)}
                         className="p-2 bg-sb-s2 border border-sb-border text-sb-tx-3 hover:text-sb-info hover:border-blue-300 hover:bg-sb-info/10 rounded-xl transition-all">
@@ -475,16 +475,16 @@ export default function HorsesPage() {
 
       {/* ── Modals ── */}
       {showCreate && (
-        <Modal title="Thêm ngựa mới" onClose={() => setShowCreate(false)}>
+        <Modal title="Add Horse mới" onClose={() => setShowCreate(false)}>
           {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-sb-lose/10 border border-sb-lose/30 rounded-xl text-sb-lose text-sm"><AlertCircle size={13} />{formError}</div>}
-          <HorseForm form={formData} onChange={handleFormChange} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} loading={formLoading} submitLabel="Thêm ngựa" />
+          <HorseForm form={formData} onChange={handleFormChange} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} loading={formLoading} submitLabel="Add Horse" />
         </Modal>
       )}
 
       {showEdit && (
-        <Modal title={`Chỉnh sửa — ${showEdit.horseName}`} onClose={() => setShowEdit(null)}>
+        <Modal title={`Edit - ${showEdit.horseName}`} onClose={() => setShowEdit(null)}>
           {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-sb-lose/10 border border-sb-lose/30 rounded-xl text-sb-lose text-sm"><AlertCircle size={13} />{formError}</div>}
-          <HorseForm form={formData} onChange={handleFormChange} onSubmit={handleEdit} onCancel={() => setShowEdit(null)} loading={formLoading} submitLabel="Lưu thay đổi" />
+          <HorseForm form={formData} onChange={handleFormChange} onSubmit={handleEdit} onCancel={() => setShowEdit(null)} loading={formLoading} submitLabel="Save Changes" />
         </Modal>
       )}
 

@@ -10,33 +10,33 @@ import { spectatorService } from "../../services/spectator";
 import { betService } from "../../services/bet";
 
 const STATUS_CONFIG = {
-  Scheduled:        { label: "Sắp diễn ra",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40",       icon: Clock,        iconCls: "text-blue-400 bg-blue-500/10"    },
-  RegistrationOpen: { label: "Mở đăng ký",   color: "bg-purple-500/20 text-purple-300 border-purple-500/40", icon: Calendar,     iconCls: "text-purple-400 bg-purple-500/10" },
-  Ongoing:          { label: "Đang diễn ra", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", icon: Zap,          iconCls: "text-[#D4AF37] bg-[#D4AF37]/10"  },
-  Finished:         { label: "Đã kết thúc",  color: "bg-green-500/20 text-green-300 border-green-500/40",    icon: CheckCircle2, iconCls: "text-green-400 bg-green-500/10"   },
-  Cancelled:        { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",          icon: XCircle,      iconCls: "text-red-400 bg-red-500/10"       },
+  Scheduled:        { label: "Scheduled",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40",       icon: Clock,        iconCls: "text-blue-400 bg-blue-500/10"    },
+  RegistrationOpen: { label: "Registration Open",   color: "bg-purple-500/20 text-purple-300 border-purple-500/40", icon: Calendar,     iconCls: "text-purple-400 bg-purple-500/10" },
+  Ongoing:          { label: "Ongoing", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", icon: Zap,          iconCls: "text-[#D4AF37] bg-[#D4AF37]/10"  },
+  Finished:         { label: "Finished",  color: "bg-green-500/20 text-green-300 border-green-500/40",    icon: CheckCircle2, iconCls: "text-green-400 bg-green-500/10"   },
+  Cancelled:        { label: "Cancelled",       color: "bg-red-500/20 text-red-300 border-red-500/40",          icon: XCircle,      iconCls: "text-red-400 bg-red-500/10"       },
 };
 
 const BET_STATUS = {
-  Pending:   { label: "Chờ kết quả", cls: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40" },
-  Won:       { label: "Thắng",       cls: "bg-green-500/20 text-green-300 border-green-500/40" },
+  Pending:   { label: "Pending Result", cls: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40" },
+  Won:       { label: "Wins",       cls: "bg-green-500/20 text-green-300 border-green-500/40" },
   Lost:      { label: "Thua",        cls: "bg-red-500/20 text-red-300 border-red-500/40" },
-  Cancelled: { label: "Hoàn tiền",   cls: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+  Cancelled: { label: "Refunded",   cls: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
 };
 
 // Races that accept bets (open or live)
 const BET_STATUSES = ["Scheduled", "RegistrationOpen", "Ongoing"];
 
-// Thứ tự hiển thị 4 loại cược (BE trả betType: WIN | PLACE | SHOW | EXACT)
+// Order hiển thị 4 loại bet (BE trả betType: WIN | PLACE | SHOW | EXACT)
 const BET_TYPE_ORDER = ["WIN", "PLACE", "SHOW", "EXACT"];
 const BET_TYPE_FALLBACK = {
-  WIN:   "Về nhất",
-  PLACE: "Vào top 2",
-  SHOW:  "Vào top 3",
-  EXACT: "Đúng hạng",
+  WIN:   "Win",
+  PLACE: "Place Top 2",
+  SHOW:  "Show Top 3",
+  EXACT: "Exact Position",
 };
 
-// BE trả 1 dòng cho mỗi (ngựa × loại cược × hạng đích) → cần key gộp cả 3
+// BE trả 1 dòng cho mỗi (ngựa × loại bet × place đích) → cần key gộp cả 3
 const optKey = (o) => `${o.entryId}-${o.betType}-${o.targetPosition ?? 0}`;
 
 function RaceBetPanel({ race, onBetPlaced }) {
@@ -72,9 +72,9 @@ function RaceBetPanel({ race, onBetPlaced }) {
   }, [race.raceId]);
 
   const handlePlace = async () => {
-    if (!selected) { setError("Vui lòng chọn một kèo cược"); return; }
+    if (!selected) { setError("Please select a betting option"); return; }
     const amt = Number(amount);
-    if (!amt || amt < 10_000) { setError("Số tiền đặt cược tối thiểu 10,000 VNĐ"); return; }
+    if (!amt || amt < 10_000) { setError("Minimum bet amount is 10,000 VND"); return; }
     setPlacing(true); setError(""); setSuccess("");
     try {
       // BE tự tính odds — FE chỉ gửi kèo + số tiền
@@ -84,13 +84,13 @@ function RaceBetPanel({ race, onBetPlaced }) {
         targetPosition: selected.targetPosition ?? null,
         amount: amt,
       });
-      setSuccess(`Đặt cược thành công! ${amt.toLocaleString("vi-VN")} VNĐ · ${selected.betTypeLabel || BET_TYPE_FALLBACK[selected.betType]} · ${selected.horseName || `#${selected.entryId}`}`);
+      setSuccess(`Bet placed successfully! ${amt.toLocaleString("vi-VN")} VND · ${selected.betTypeLabel || BET_TYPE_FALLBACK[selected.betType]} · ${selected.horseName || `#${selected.entryId}`}`);
       setSelected(null); setAmount("");
       const betRes = await betService.getMyBetByRace(race.raceId);
       setMyBets(betRes.data || []);
       onBetPlaced?.();
     } catch (e) {
-      setError(e.message || "Đặt cược thất bại. Kiểm tra số dư ví.");
+      setError(e.message || "Bet failed. Please check your wallet balance.");
     } finally {
       setPlacing(false);
     }
@@ -104,13 +104,13 @@ function RaceBetPanel({ race, onBetPlaced }) {
     );
   }
 
-  // Danh sách ngựa (unique theo entryId) — chọn ngựa trước, rồi mới chọn vị trí cược
+  // Danh sách ngựa (unique theo entryId) — chọn ngựa trước, rồi mới chọn vị trí bet
   const horses = [];
   const seen = new Set();
   for (const o of options) {
     if (!seen.has(o.entryId)) { seen.add(o.entryId); horses.push(o); }
   }
-  // Kèo của ngựa đang chọn: chỉ đúng hạng 1..tổng số ngựa trong race.
+  // Kèo của ngựa đang chọn: chỉ đúng place 1..tổng số ngựa trong race.
   const horseCount = horses.length;
   const horseOptions = pickedHorse == null ? [] : options
     .filter((o) => o.entryId === pickedHorse && o.betType === "EXACT")
@@ -131,25 +131,25 @@ function RaceBetPanel({ race, onBetPlaced }) {
         </div>
       )}
 
-      {/* Cược đã đặt — được đặt bao nhiêu vé tuỳ ý, miễn đủ tiền */}
+      {/* Bet đã đặt — được đặt bao nhiêu vé tuỳ ý, miễn đủ tiền */}
       {myBets.length > 0 && (
         <div className="bg-[#D4AF37]/5 border border-[#D4AF37]/20 rounded-xl p-4 space-y-2">
           <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">
-            Vé cược của bạn ({myBets.length})
+            Your Bets ({myBets.length})
           </p>
           {myBets.map((bet) => (
             <div key={bet.betId} className="flex items-center justify-between flex-wrap gap-2 border-t border-[#D4AF37]/10 pt-2 first:border-0 first:pt-0">
               <div>
                 <p className="text-white font-semibold text-sm">
-                  {bet.horseName || `Ngựa #${bet.entryId}`}
+                  {bet.horseName || `Horse #${bet.entryId}`}
                   <span className="ml-2 text-[10px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-2 py-0.5 rounded-full">
                     {bet.betTypeLabel || BET_TYPE_FALLBACK[bet.betType] || bet.betType}
-                    {bet.targetPosition ? ` · hạng ${bet.targetPosition}` : ""}
+                    {bet.targetPosition ? ` · place ${bet.targetPosition}` : ""}
                   </span>
                 </p>
                 <p className="text-gray-500 text-xs">
-                  {Number(bet.amount).toLocaleString("vi-VN")} VNĐ · Tỉ lệ {bet.odds ?? "—"}x
-                  {bet.potentialPayout != null && ` · Thắng ${Number(bet.potentialPayout).toLocaleString("vi-VN")} VNĐ`}
+                  {Number(bet.amount).toLocaleString("vi-VN")} VND · Odds {bet.odds ?? "—"}x
+                  {bet.potentialPayout != null && ` · Wins ${Number(bet.potentialPayout).toLocaleString("vi-VN")} VND`}
                 </p>
               </div>
               <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${(BET_STATUS[bet.status] || BET_STATUS.Pending).cls}`}>
@@ -162,11 +162,11 @@ function RaceBetPanel({ race, onBetPlaced }) {
 
       {/* Bet options */}
       {options.length === 0 ? (
-        <p className="text-gray-500 text-sm text-center py-4">Chưa có lựa chọn cược cho vòng đua này</p>
+        <p className="text-gray-500 text-sm text-center py-4">No betting options available for this race</p>
       ) : (
         <>
-          {/* BƯỚC 1: chọn ngựa — list đầy đủ ngựa tham gia */}
-          <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">① Chọn ngựa</p>
+          {/* BƯỚC 1: chọn ngựa — list đầy đủ horses entered */}
+          <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">① Choose Horse</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {horses.map((h) => {
               const isOn = pickedHorse === h.entryId;
@@ -192,18 +192,18 @@ function RaceBetPanel({ race, onBetPlaced }) {
             })}
           </div>
 
-          {/* BƯỚC 2: chọn vị trí cược của ngựa đó — kèm tỉ lệ từng kèo */}
+          {/* BƯỚC 2: chọn vị trí bet của ngựa đó — kèm tỉ lệ từng kèo */}
           {pickedHorse != null && (
             <>
               <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">
-                ② Cược <span className="text-[#D4AF37]">{pickedInfo?.horseName}</span> về vị trí nào?
-                <span className="text-gray-600 normal-case font-normal tracking-normal ml-2">kèo càng khó · tỉ lệ ăn càng cao</span>
+                ② Bet <span className="text-[#D4AF37]">{pickedInfo?.horseName}</span> for which position?
+                <span className="text-gray-600 normal-case font-normal tracking-normal ml-2">harder bets have higher odds</span>
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {horseOptions.map((opt) => {
                   const isOn = selected && optKey(selected) === optKey(opt);
                   const label = opt.betType === "EXACT"
-                    ? `Hạng ${opt.targetPosition}`
+                    ? `Position ${opt.targetPosition}`
                     : (opt.betTypeLabel || BET_TYPE_FALLBACK[opt.betType] || opt.betType);
                   return (
                     <button key={optKey(opt)}
@@ -227,11 +227,11 @@ function RaceBetPanel({ race, onBetPlaced }) {
 
           {selected && (
             <>
-              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">③ Nhập số tiền</p>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">③ Enter Amount</p>
               <div className="flex gap-2">
                 <input
                   type="number"
-                  placeholder="Số tiền cược (VNĐ)"
+                  placeholder="Bet amount (VND)"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="flex-1 h-10 rounded-xl bg-[#0A0E1A]/80 border border-gray-700 text-white text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] placeholder:text-gray-600"
@@ -242,14 +242,14 @@ function RaceBetPanel({ race, onBetPlaced }) {
                   className="px-5 h-10 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-50 flex items-center gap-2 transition-colors shrink-0"
                 >
                   {placing ? <Loader2 size={13} className="animate-spin" /> : <DollarSign size={13} />}
-                  Đặt cược
+                  Betting
                 </button>
               </div>
               {amount && (
                 <p className="text-gray-500 text-xs">
-                  Tiềm năng thắng:{" "}
+                  Potential Winnings:{" "}
                   <span className="text-green-400 font-bold">
-                    {(Number(amount) * (selected.odds ?? 1)).toLocaleString("vi-VN")} VNĐ
+                    {(Number(amount) * (selected.odds ?? 1)).toLocaleString("vi-VN")} VND
                   </span>
                 </p>
               )}
@@ -269,9 +269,9 @@ export default function BettingPage() {
   const [history, setHistory]     = useState([]);
   const [histLoading, setHistLoading] = useState(false);
   const [error, setError]         = useState("");
-  const [replay, setReplay]       = useState(null); // { raceName, results } cho màn Xem lại
+  const [replay, setReplay]       = useState(null); // { raceName, results } cho màn Replay
 
-  // Mở màn xem kết quả + replay cho trận đã cược (kèm vé để hiện vị trí + tiền thắng)
+  // Mở màn xem kết quả + replay cho trận đã bet (kèm vé để hiện vị trí + tiền wins)
   const openReplay = async (bet) => {
     const raceName = bet.raceName || `Race #${bet.raceId}`;
     setReplay({ raceName, results: null, bet });
@@ -292,7 +292,7 @@ export default function BettingPage() {
       const all = res.data || [];
       setRaces(all.filter((r) => BET_STATUSES.includes(r.status)));
     } catch (e) {
-      setError(e.message || "Không thể tải danh sách vòng đua");
+      setError(e.message || "Unable to load race list");
     } finally {
       setRacesLoading(false);
     }
@@ -304,7 +304,7 @@ export default function BettingPage() {
       const res = await betService.getBetHistory();
       setHistory(res.data || []);
     } catch (e) {
-      setError(e.message || "Không thể tải lịch sử cược");
+      setError(e.message || "Unable to load bet history");
     } finally {
       setHistLoading(false);
     }
@@ -320,7 +320,7 @@ export default function BettingPage() {
     setExpanded((prev) => (prev === raceId ? null : raceId));
 
   return (
-    <AdminLayout title="Đặt cược">
+    <AdminLayout title="Betting">
       {/* Page Header */}
       <div className="page-header">
         <div className="absolute right-6 top-1/2 -translate-y-1/2 text-7xl opacity-[0.07] pointer-events-none select-none">🏆</div>
@@ -329,10 +329,10 @@ export default function BettingPage() {
             <div className="w-7 h-7 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
               <Trophy size={14} className="text-[#D4AF37]" />
             </div>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Khán giả</span>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Spectator</span>
           </div>
-          <h1 className="text-2xl font-black text-white leading-tight">Đặt cược</h1>
-          <p className="text-gray-500 text-sm mt-1">Chọn vòng đua và đặt cược yêu thích của bạn</p>
+          <h1 className="text-2xl font-black text-white leading-tight">Betting</h1>
+          <p className="text-gray-500 text-sm mt-1">Select a race and place your favorite bet</p>
         </div>
       </div>
 
@@ -346,8 +346,8 @@ export default function BettingPage() {
         {/* Tabs */}
         <div className="flex gap-2">
           {[
-            { key: "races",   label: "Vòng đua", icon: Flag },
-            { key: "history", label: "Lịch sử cược", icon: History },
+            { key: "races",   label: "Races", icon: Flag },
+            { key: "history", label: "Bet History", icon: History },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -377,8 +377,8 @@ export default function BettingPage() {
                 <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/5 border border-[#D4AF37]/10 flex items-center justify-center mb-4 animate-float">
                   <Trophy size={24} className="text-[#D4AF37]/30" />
                 </div>
-                <p className="text-white font-semibold mb-1">Không có vòng đua nào đang mở cược</p>
-                <p className="text-gray-500 text-sm">Chỉ vòng đua "Sắp diễn ra" hoặc "Đang diễn ra" mới có thể đặt cược</p>
+                <p className="text-white font-semibold mb-1">No races are open for betting</p>
+                <p className="text-gray-500 text-sm">Only scheduled or ongoing races can be bet on</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -419,7 +419,7 @@ export default function BettingPage() {
                             )}
                             {race.prizePool && (
                               <span className="text-[#D4AF37] text-xs font-bold">
-                                💰 {Number(race.prizePool).toLocaleString("vi-VN")} VNĐ
+                                💰 {Number(race.prizePool).toLocaleString("vi-VN")} VND
                               </span>
                             )}
                           </div>
@@ -430,7 +430,7 @@ export default function BettingPage() {
                               ? "bg-[#D4AF37] text-[#0A0E1A] border-[#D4AF37]"
                               : "bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/30 hover:bg-[#D4AF37]/20"
                           }`}>
-                            {isOpen ? "Đóng" : "Đặt cược"}
+                            {isOpen ? "Close" : "Betting"}
                           </span>
                           {isOpen ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
                         </div>
@@ -463,8 +463,8 @@ export default function BettingPage() {
                 <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/5 border border-[#D4AF37]/10 flex items-center justify-center mb-4 animate-float">
                   <History size={24} className="text-[#D4AF37]/30" />
                 </div>
-                <p className="text-white font-semibold mb-1">Chưa có lịch sử cược</p>
-                <p className="text-gray-500 text-sm">Đặt cược vào vòng đua để bắt đầu</p>
+                <p className="text-white font-semibold mb-1">No bet history yet</p>
+                <p className="text-gray-500 text-sm">Place a bet on a race to get started</p>
               </div>
             ) : (
               <div className="glass-card rounded-2xl overflow-hidden">
@@ -472,8 +472,8 @@ export default function BettingPage() {
                   <div className="w-6 h-6 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                     <History size={12} className="text-blue-400" />
                   </div>
-                  <h3 className="font-bold text-sm text-white">Lịch sử cược</h3>
-                  <span className="ml-auto text-xs text-gray-500">{history.length} lượt</span>
+                  <h3 className="font-bold text-sm text-white">Bet History</h3>
+                  <span className="ml-auto text-xs text-gray-500">{history.length} items</span>
                 </div>
                 <div className="divide-y divide-white/[0.04]">
                   {history.map((bet, i) => {
@@ -495,18 +495,18 @@ export default function BettingPage() {
                         </div>
                         <div className="text-right shrink-0">
                           <p className="font-data text-sm font-bold text-red-400">
-                            -{Number(bet.amount).toLocaleString("vi-VN")} VNĐ
+                            -{Number(bet.amount).toLocaleString("vi-VN")} VND
                           </p>
                           {bet.status === "Won" && bet.payout != null && (
                             <p className="font-data text-xs text-green-400 font-bold">
-                              +{Number(bet.payout).toLocaleString("vi-VN")} VNĐ
+                              +{Number(bet.payout).toLocaleString("vi-VN")} VND
                             </p>
                           )}
                         </div>
-                        {/* Xem lại trận đã cược + kết quả */}
+                        {/* Replay trận đã bet + kết quả */}
                         <button onClick={() => openReplay(bet)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sb-emerald text-white text-xs font-bold hover:opacity-90 transition-opacity shrink-0">
-                          ▶ Xem kết quả
+                          ▶ View Result
                         </button>
                       </div>
                     );

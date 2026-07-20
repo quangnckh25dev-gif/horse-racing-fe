@@ -48,17 +48,17 @@ export default function LoginPage() {
         setMaintenanceUntil(until || "");
       } else if (isLocked) {
         setFailedCount(5);
-        setErrorMsg("Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần.");
+        setErrorMsg("Username has been locked after too many failed login attempts.");
       } else if (isBadCred) {
         setFailedCount((prev) => {
           const next = Math.min(prev + 1, 5);
-          setErrorMsg(`Sai tài khoản hoặc mật khẩu. (Lần ${next}/5)`);
+          setErrorMsg(`Incorrect username or password. (Attempt ${next}/5)`);
           return next;
         });
       } else if (isPending) {
-        setInfoMsg("Tài khoản của bạn đang chờ Admin phê duyệt. Vui lòng chờ.");
+        setInfoMsg("Your account is waiting for Administrator approval. Please wait.");
       } else {
-        setErrorMsg(msg || "Đăng nhập thất bại. Vui lòng thử lại.");
+        setErrorMsg(msg || "Login failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -70,17 +70,17 @@ export default function LoginPage() {
     "placeholder:text-sb-tx-3 outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all";
 
   return (
-    <AuthShell title="Đăng nhập" subtitle="Vào sân đua · Mùa giải 2026">
+    <AuthShell title="Login" subtitle="Enter the racetrack - Season 2026">
       {maintenanceUntil !== null && (
         <div className="mb-5 rounded-xl bg-sb-gold-soft border border-sb-gold-bd p-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
             <Wrench size={15} className="text-sb-gold-2" />
-            <span className="text-sb-gold-2 font-bold text-sm">Hệ thống đang bảo trì</span>
+            <span className="text-sb-gold-2 font-bold text-sm">System is under maintenance</span>
           </div>
           {maintenanceUntil
-            ? <p className="text-sb-tx-2 text-xs flex items-center justify-center gap-1"><Clock size={11} /> Dự kiến xong: <strong>{maintenanceUntil}</strong></p>
-            : <p className="text-sb-tx-3 text-xs">Vui lòng quay lại sau</p>}
-          <p className="text-sb-tx-3 text-[11px] mt-2">Chỉ Quản trị viên đăng nhập được lúc này.</p>
+            ? <p className="text-sb-tx-2 text-xs flex items-center justify-center gap-1"><Clock size={11} /> Expected completion: <strong>{maintenanceUntil}</strong></p>
+            : <p className="text-sb-tx-3 text-xs">Please come back later</p>}
+          <p className="text-sb-tx-3 text-[11px] mt-2">Only Administrators can log in right now.</p>
         </div>
       )}
 
@@ -97,18 +97,18 @@ export default function LoginPage() {
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label htmlFor="username" className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Tài khoản</label>
+          <label htmlFor="username" className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Username</label>
           <div className="relative">
             <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sb-tx-3" size={17} />
-            <input id="username" type="text" placeholder="vd: spectator1" className={inputCls}
+            <input id="username" type="text" placeholder="e.g. spectator1" className={inputCls}
               value={formData.username} onChange={handleChange} required autoComplete="username" />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label htmlFor="password" className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest">Mật khẩu</label>
-            <Link to="/forgot-password" className="text-xs text-sb-emerald-ink hover:underline">Quên mật khẩu?</Link>
+            <label htmlFor="password" className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest">Password</label>
+            <Link to="/forgot-password" className="text-xs text-sb-emerald-ink hover:underline">Forgot Password?</Link>
           </div>
           <div className="relative">
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sb-tx-3" size={17} />
@@ -124,22 +124,22 @@ export default function LoginPage() {
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
             className="w-4 h-4 rounded border-sb-border bg-sb-s2 accent-sb-emerald cursor-pointer" />
-          <span className="text-sb-tx-2 text-sm">Duy trì đăng nhập</span>
+          <span className="text-sb-tx-2 text-sm">Keep me signed in</span>
         </label>
 
         <button type="submit" disabled={isLoading}
           className="w-full h-12 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-          {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Đang xử lý…</> : "ĐĂNG NHẬP"}
+          {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Processing...</> : "LOGIN"}
         </button>
       </form>
 
       <div className="mt-6 pt-5 border-t border-sb-border text-center space-y-2">
         <p className="text-sm text-sb-tx-3">
-          Chưa có tài khoản?{" "}
-          <Link to="/register" className="text-sb-emerald-ink font-semibold hover:underline">Đăng ký ngay</Link>
+          No account yet?{" "}
+          <Link to="/register" className="text-sb-emerald-ink font-semibold hover:underline">Register Now</Link>
         </p>
         <p className="text-sm text-sb-tx-3">
-          Hoặc <Link to="/" className="text-sb-emerald-ink font-semibold hover:underline">xem lịch đua không cần đăng nhập</Link>
+          Or <Link to="/" className="text-sb-emerald-ink font-semibold hover:underline">view the race schedule without logging in</Link>
         </p>
       </div>
     </AuthShell>

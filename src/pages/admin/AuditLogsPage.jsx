@@ -25,7 +25,7 @@ export default function AuditLogsPage() {
       const res = await adminService.getAuditLogs();
       setLogs(res.data || []);
     } catch (e) {
-      setError(e.message || "Không thể tải audit logs");
+      setError(e.message || "Unable to load audit logs");
     } finally {
       setLoading(false);
     }
@@ -56,7 +56,7 @@ export default function AuditLogsPage() {
             <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Admin</span>
           </div>
           <h1 className="text-2xl font-black text-white leading-tight">Audit Logs</h1>
-          <p className="text-sb-tx-3 text-sm mt-1">Lịch sử hoạt động hệ thống</p>
+          <p className="text-sb-tx-3 text-sm mt-1">System activity history</p>
         </div>
       </div>
 
@@ -74,13 +74,13 @@ export default function AuditLogsPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm theo hành động, người thực hiện..."
+              placeholder="Search by action or actor..."
               className="w-full bg-[#0d1117] border border-sb-border rounded-xl pl-9 pr-4 py-2.5 text-white text-sm placeholder:text-sb-tx-2 focus:outline-none focus:border-[#D4AF37]/40"
             />
           </div>
           <button onClick={load}
             className="flex items-center gap-2 px-3 py-2.5 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all shrink-0">
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
         </div>
 
@@ -94,21 +94,21 @@ export default function AuditLogsPage() {
               <div className="w-6 h-6 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
                 <FileText size={12} className="text-[#D4AF37]" />
               </div>
-              <h3 className="font-bold text-sm text-white">Nhật ký hoạt động</h3>
-              <span className="ml-auto text-xs text-sb-tx-3">{filtered.length} bản ghi</span>
+              <h3 className="font-bold text-sm text-white">Activity Logs</h3>
+              <span className="ml-auto text-xs text-sb-tx-3">{filtered.length} records</span>
             </div>
 
             {filtered.length === 0 ? (
               <div className="py-16 text-center">
                 <FileText size={28} className="text-sb-tx-2 mx-auto mb-3" />
-                <p className="text-white font-semibold">{search ? "Không tìm thấy kết quả" : "Chưa có audit log nào"}</p>
+                <p className="text-white font-semibold">{search ? "No results found" : "No audit logs yet"}</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-white/[0.06]">
-                      {["Thời gian", "Người thực hiện", "Hành động", "Đối tượng", "Mô tả"].map((h) => (
+                      {["Time", "Actor", "Action", "Target", "Description"].map((h) => (
                         <th key={h} className="text-left text-sb-tx-3 text-xs uppercase tracking-wider font-semibold px-5 py-3">{h}</th>
                       ))}
                     </tr>

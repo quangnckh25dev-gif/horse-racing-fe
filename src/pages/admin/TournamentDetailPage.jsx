@@ -14,25 +14,25 @@ import { tournamentService } from "../../services/tournament";
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  Draft:     { label: "Nháp",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
-  Open:      { label: "Mở đăng ký",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30" },
-  Ongoing:   { label: "Đang diễn ra", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
-  Finished:  { label: "Kết thúc",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd" },
-  Cancelled: { label: "Đã hủy",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30" },
+  Draft:     { label: "Draft",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
+  Open:      { label: "Registration Open",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30" },
+  Ongoing:   { label: "Ongoing", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
+  Finished:  { label: "End",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd" },
+  Cancelled: { label: "Cancelled",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30" },
 };
 
 const RACE_STATUS_CONFIG = {
-  Scheduled:        { label: "Đã lên lịch",  cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
-  RegistrationOpen: { label: "Mở ĐK ngựa",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30" },
-  Ongoing:          { label: "Đang diễn ra", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
-  Finished:         { label: "Kết thúc",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd" },
-  Cancelled:        { label: "Đã hủy",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30" },
+  Scheduled:        { label: "Scheduled",  cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
+  RegistrationOpen: { label: "Horse Registration Open",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30" },
+  Ongoing:          { label: "Ongoing", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
+  Finished:         { label: "End",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd" },
+  Cancelled:        { label: "Cancelled",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30" },
 };
 
 const STATUS_TRANSITIONS = {
-  Draft:    [{ label: "Mở đăng ký",    next: "Open",     cls: "bg-sb-info/10 hover:bg-sb-info/20 border border-sb-info/30 text-sb-info" }],
-  Open:     [{ label: "Bắt đầu giải",  next: "Ongoing",  cls: "bg-sb-gold-soft hover:bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2" }],
-  Ongoing:  [{ label: "Kết thúc giải", next: "Finished", cls: "bg-sb-emerald-soft hover:bg-sb-emerald-soft border border-sb-emerald-bd text-sb-emerald-ink" }],
+  Draft:    [{ label: "Registration Open",    next: "Open",     cls: "bg-sb-info/10 hover:bg-sb-info/20 border border-sb-info/30 text-sb-info" }],
+  Open:     [{ label: "Start Tournament",  next: "Ongoing",  cls: "bg-sb-gold-soft hover:bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2" }],
+  Ongoing:  [{ label: "Finish Tournament", next: "Finished", cls: "bg-sb-emerald-soft hover:bg-sb-emerald-soft border border-sb-emerald-bd text-sb-emerald-ink" }],
   Finished: [],
   Cancelled: [],
 };
@@ -45,7 +45,7 @@ const EMPTY_ROUND = { roundName: "", roundOrder: 1, startDate: "", endDate: "", 
 const EMPTY_RACE  = {
   raceName: "", roundId: "", raceDate: "", trackLength: "",
   trackType: "Flat", maxParticipants: "", prizeFirst: "", prizeSecond: "", prizeThird: "",
-  // B3: Thời gian mở/đóng cổng đăng ký ngựa và dự đoán
+  // B3: Time mở/đóng cổng registrations ngựa và dự đoán
   registrationOpen: "", registrationClose: "",
 };
 
@@ -106,7 +106,7 @@ export default function TournamentDetailPage() {
         prizeFund:      t.prizeFund || "",
       });
     } catch (err) {
-      setErrorMsg(err.message || "Không thể tải thông tin giải đấu.");
+      setErrorMsg(err.message || "Unable to load tournament details.");
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +122,7 @@ export default function TournamentDetailPage() {
       const res = await tournamentService.changeStatus(id, newStatus);
       setTournament(res.data);
     } catch (err) {
-      setErrorMsg(err.message || "Đổi trạng thái thất bại.");
+      setErrorMsg(err.message || "Failed to change status.");
     } finally {
       setIsChangingStatus(false);
     }
@@ -142,7 +142,7 @@ export default function TournamentDetailPage() {
       setInfoSaved(true);
       setTimeout(() => setInfoSaved(false), 2000);
     } catch (err) {
-      setErrorMsg(err.message || "Lưu thất bại.");
+      setErrorMsg(err.message || "Save failed.");
     } finally {
       setIsSavingInfo(false);
     }
@@ -152,7 +152,7 @@ export default function TournamentDetailPage() {
 
   const handleSaveRound = async (e) => {
     e.preventDefault();
-    if (!roundModal.data.roundName) { setRoundFormErr("Vui lòng nhập tên vòng đấu."); return; }
+    if (!roundModal.data.roundName) { setRoundFormErr("Please enter the round name."); return; }
     setIsSavingRound(true); setRoundFormErr("");
     try {
       if (roundModal.mode === "create") {
@@ -168,14 +168,14 @@ export default function TournamentDetailPage() {
       }
       setRoundModal(null);
     } catch (err) {
-      setRoundFormErr(err.message || "Lưu thất bại.");
+      setRoundFormErr(err.message || "Save failed.");
     } finally {
       setIsSavingRound(false);
     }
   };
 
   const handleDeleteRound = async (roundId) => {
-    if (!(await confirmBox("Xóa vòng đấu này?", { danger: true }))) return;
+    if (!(await confirmBox("Delete this round?", { danger: true }))) return;
     try {
       await tournamentService.deleteRound(roundId);
       setRounds((prev) => prev.filter((r) => r.roundId !== roundId));
@@ -187,7 +187,7 @@ export default function TournamentDetailPage() {
   const handleSaveRace = async (e) => {
     e.preventDefault();
     if (!raceModal.data.raceName || !raceModal.data.raceDate) {
-      setRaceFormErr("Vui lòng điền tên cuộc đua và ngày thi đấu."); return;
+      setRaceFormErr("Please enter race name and race date."); return;
     }
     setIsSavingRace(true); setRaceFormErr("");
     try {
@@ -214,14 +214,14 @@ export default function TournamentDetailPage() {
       }
       setRaceModal(null);
     } catch (err) {
-      setRaceFormErr(err.message || "Lưu thất bại.");
+      setRaceFormErr(err.message || "Save failed.");
     } finally {
       setIsSavingRace(false);
     }
   };
 
   const handleDeleteRace = async (raceId) => {
-    if (!(await confirmBox("Xóa cuộc đua này?", { danger: true }))) return;
+    if (!(await confirmBox("Delete this race?", { danger: true }))) return;
     try {
       await tournamentService.deleteRace(raceId);
       setRaces((prev) => prev.filter((r) => r.raceId !== raceId));
@@ -243,7 +243,7 @@ export default function TournamentDetailPage() {
 
   const handleAssignRef = async (e) => {
     e.preventDefault();
-    if (!refForm.refereeId) { setRefErr("Vui lòng chọn trọng tài."); return; }
+    if (!refForm.refereeId) { setRefErr("Please select a referee."); return; }
     setIsSavingRef(true); setRefErr("");
     try {
       const res = await tournamentService.assignReferee(
@@ -259,7 +259,7 @@ export default function TournamentDetailPage() {
         )
       );
       setRefForm({ refereeId: "", role: "Chief" });
-    } catch (err) { setRefErr(err.message || "Thêm thất bại."); }
+    } catch (err) { setRefErr(err.message || "Add failed."); }
     finally { setIsSavingRef(false); }
   };
 
@@ -277,13 +277,13 @@ export default function TournamentDetailPage() {
             : r
         )
       );
-    } catch (err) { setRefErr(err.message || "Xóa thất bại."); }
+    } catch (err) { setRefErr(err.message || "Delete failed."); }
   };
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
   if (isLoading) return (
-    <AdminLayout title="Chi tiết giải đấu">
+    <AdminLayout title="Tournament Details">
       <div className="flex justify-center py-24">
         <Loader2 size={32} className="animate-spin text-[#D4AF37]" />
       </div>
@@ -291,8 +291,8 @@ export default function TournamentDetailPage() {
   );
 
   if (!tournament) return (
-    <AdminLayout title="Chi tiết giải đấu">
-      <div className="p-6 text-sb-tx-3">{errorMsg || "Không tìm thấy giải đấu."}</div>
+    <AdminLayout title="Tournament Details">
+      <div className="p-6 text-sb-tx-3">{errorMsg || "Tournament not found."}</div>
     </AdminLayout>
   );
 
@@ -301,13 +301,13 @@ export default function TournamentDetailPage() {
   const canCancel   = CANCEL_STATUSES.includes(tournament.status);
 
   const TABS = [
-    { key: "info",   label: "Thông tin",    icon: Trophy },
-    { key: "rounds", label: "Vòng đấu",     icon: Flag },
-    { key: "races",  label: "Lịch thi đấu", icon: Calendar },
+    { key: "info",   label: "Information",    icon: Trophy },
+    { key: "rounds", label: "Rounds",     icon: Flag },
+    { key: "races",  label: "Race Schedule", icon: Calendar },
   ];
 
   return (
-    <AdminLayout title="Chi tiết giải đấu">
+    <AdminLayout title="Tournament Details">
       <div className="p-6 max-w-5xl mx-auto">
 
         {/* ── Header ── */}
@@ -347,7 +347,7 @@ export default function TournamentDetailPage() {
                 disabled={isChangingStatus}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sb-lose/10 hover:bg-sb-lose/20 border border-sb-lose/30 text-sb-lose transition-all"
               >
-                Hủy giải
+                Cancel Tournament
               </button>
             )}
           </div>
@@ -377,12 +377,12 @@ export default function TournamentDetailPage() {
         </div>
 
         {/* ══════════════════════════════════════════════════════════
-            TAB: THÔNG TIN
+            TAB: INFORMATION
         ══════════════════════════════════════════════════════════ */}
         {activeTab === "info" && (
           <form onSubmit={handleSaveInfo} className="max-w-xl space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tên giải đấu</Label>
+              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tournament Name</Label>
               <Input
                 value={infoForm.tournamentName}
                 onChange={(e) => setInfoForm({ ...infoForm, tournamentName: e.target.value })}
@@ -391,7 +391,7 @@ export default function TournamentDetailPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Địa điểm</Label>
+              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Location</Label>
               <Input
                 value={infoForm.location}
                 onChange={(e) => setInfoForm({ ...infoForm, location: e.target.value })}
@@ -400,7 +400,7 @@ export default function TournamentDetailPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Ngày bắt đầu</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Start Date</Label>
                 <Input
                   type="date" value={infoForm.startDate}
                   onChange={(e) => setInfoForm({ ...infoForm, startDate: e.target.value })}
@@ -408,7 +408,7 @@ export default function TournamentDetailPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Ngày kết thúc</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">End Date</Label>
                 <Input
                   type="date" value={infoForm.endDate}
                   onChange={(e) => setInfoForm({ ...infoForm, endDate: e.target.value })}
@@ -417,7 +417,7 @@ export default function TournamentDetailPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tổng giải thưởng (VNĐ)</Label>
+              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Total Prize (VND)</Label>
               <Input
                 type="number" min="0" value={infoForm.prizeFund}
                 onChange={(e) => setInfoForm({ ...infoForm, prizeFund: e.target.value })}
@@ -426,7 +426,7 @@ export default function TournamentDetailPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Mô tả</Label>
+              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Description</Label>
               <textarea
                 value={infoForm.description}
                 onChange={(e) => setInfoForm({ ...infoForm, description: e.target.value })}
@@ -442,8 +442,8 @@ export default function TournamentDetailPage() {
               {isSavingInfo ? (
                 <Loader2 size={15} className="animate-spin" />
               ) : infoSaved ? (
-                <><CheckCircle2 size={15} className="mr-1.5" />Đã lưu</>
-              ) : "Lưu thay đổi"}
+                <><CheckCircle2 size={15} className="mr-1.5" />Saved</>
+              ) : "Save Changes"}
             </Button>
           </form>
         )}
@@ -455,7 +455,7 @@ export default function TournamentDetailPage() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sb-tx-3 text-sm">
-                <span className="text-[#D4AF37] font-semibold">{rounds.length}</span> vòng đấu
+                <span className="text-[#D4AF37] font-semibold">{rounds.length}</span> rounds
               </p>
               <Button
                 onClick={() => {
@@ -464,14 +464,14 @@ export default function TournamentDetailPage() {
                 }}
                 className="flex items-center gap-1.5 h-8 px-3 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-semibold text-xs"
               >
-                <Plus size={14} /> Thêm vòng
+                <Plus size={14} /> Add Round
               </Button>
             </div>
 
             {rounds.length === 0 ? (
               <div className="text-center py-16 text-sb-tx-3">
                 <Flag size={40} className="mx-auto mb-3 text-sb-tx-3" />
-                <p className="text-sb-tx-3">Chưa có vòng đấu nào. Thêm vòng đấu đầu tiên!</p>
+                <p className="text-sb-tx-3">No rounds yet. Add the first round!</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -534,27 +534,27 @@ export default function TournamentDetailPage() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sb-tx-3 text-sm">
-                <span className="text-[#D4AF37] font-semibold">{races.length}</span> cuộc đua
+                <span className="text-[#D4AF37] font-semibold">{races.length}</span> races
               </p>
               <Button
                 onClick={() => { setRaceFormErr(""); setRaceModal({ mode: "create", data: { ...EMPTY_RACE } }); }}
                 className="flex items-center gap-1.5 h-8 px-3 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-semibold text-xs"
               >
-                <Plus size={14} /> Thêm cuộc đua
+                <Plus size={14} /> Add Race
               </Button>
             </div>
 
             {races.length === 0 ? (
               <div className="text-center py-16 text-sb-tx-3">
                 <Calendar size={40} className="mx-auto mb-3" />
-                <p>Chưa có cuộc đua nào. Thêm cuộc đua đầu tiên!</p>
+                <p>No races yet. Add the first race!</p>
               </div>
             ) : (
               <div className="rounded-xl border border-sb-border overflow-hidden shadow-sm">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-sb-s2 border-b border-sb-border">
-                      {["Tên cuộc đua","Vòng","Ngày thi","Trạng thái","Đường đua","Trọng tài",""].map((h) => (
+                      {["Race Name","Round","Race Date","Status","Track","Referee",""].map((h) => (
                         <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">
                           {h}
                         </th>
@@ -595,7 +595,7 @@ export default function TournamentDetailPage() {
                               className="flex items-center gap-1 text-xs text-sb-tx-3 hover:text-sb-info transition-colors"
                             >
                               <Users size={13} />
-                              {race.referees?.length || 0} trọng tài
+                              {race.referees?.length || 0} referees
                             </button>
                           </td>
                           <td className="px-4 py-3">
@@ -649,7 +649,7 @@ export default function TournamentDetailPage() {
           <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between p-5 border-b border-sb-border">
               <h2 className="text-base font-bold text-sb-tx">
-                {roundModal.mode === "create" ? "Thêm vòng đấu" : "Sửa vòng đấu"}
+                {roundModal.mode === "create" ? "Add Round" : "Edit Round"}
               </h2>
               <button onClick={() => setRoundModal(null)} className="text-sb-tx-3 hover:text-sb-tx-2 text-2xl leading-none">×</button>
             </div>
@@ -660,16 +660,16 @@ export default function TournamentDetailPage() {
                 </div>
               )}
               <div className="space-y-1.5">
-                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tên vòng đấu *</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Round Name *</Label>
                 <Input
                   value={roundModal.data.roundName}
                   onChange={(e) => setRoundModal((p) => ({ ...p, data: { ...p.data, roundName: e.target.value } }))}
-                  placeholder="VD: Vòng loại"
+                  placeholder="VD: Qualifier"
                   className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Thứ tự</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Order</Label>
                 <Input
                   type="number" min="1"
                   value={roundModal.data.roundOrder}
@@ -679,7 +679,7 @@ export default function TournamentDetailPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Từ ngày</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">From Date</Label>
                   <Input
                     type="date" value={roundModal.data.startDate}
                     onChange={(e) => setRoundModal((p) => ({ ...p, data: { ...p.data, startDate: e.target.value } }))}
@@ -687,7 +687,7 @@ export default function TournamentDetailPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Đến ngày</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">To Date</Label>
                   <Input
                     type="date" value={roundModal.data.endDate}
                     onChange={(e) => setRoundModal((p) => ({ ...p, data: { ...p.data, endDate: e.target.value } }))}
@@ -696,7 +696,7 @@ export default function TournamentDetailPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Mô tả</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Description</Label>
                 <Input
                   value={roundModal.data.description}
                   onChange={(e) => setRoundModal((p) => ({ ...p, data: { ...p.data, description: e.target.value } }))}
@@ -704,7 +704,7 @@ export default function TournamentDetailPage() {
                 />
               </div>
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setRoundModal(null)} className="flex-1 h-9 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Hủy</button>
+                <button type="button" onClick={() => setRoundModal(null)} className="flex-1 h-9 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Cancel</button>
                 <Button type="submit" disabled={isSavingRound} className="flex-1 h-9 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm">
                   {isSavingRound ? <Loader2 size={14} className="animate-spin" /> : "Lưu"}
                 </Button>
@@ -720,7 +720,7 @@ export default function TournamentDetailPage() {
           <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl">
             <div className="flex items-center justify-between p-5 border-b border-sb-border">
               <h2 className="text-base font-bold text-sb-tx">
-                {raceModal.mode === "create" ? "Thêm cuộc đua" : "Sửa cuộc đua"}
+                {raceModal.mode === "create" ? "Add Race" : "Edit Race"}
               </h2>
               <button onClick={() => setRaceModal(null)} className="text-sb-tx-3 hover:text-sb-tx-2 text-2xl leading-none">×</button>
             </div>
@@ -731,7 +731,7 @@ export default function TournamentDetailPage() {
                 </div>
               )}
               <div className="space-y-1.5">
-                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tên cuộc đua *</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Race Name *</Label>
                 <Input
                   value={raceModal.data.raceName}
                   onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, raceName: e.target.value } }))}
@@ -741,18 +741,18 @@ export default function TournamentDetailPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Vòng đấu</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Rounds</Label>
                   <select
                     value={raceModal.data.roundId}
                     onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, roundId: e.target.value } }))}
                     className="w-full h-10 rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
                   >
-                    <option value="">— Không gắn vòng —</option>
+                    <option value="">-- No Round --</option>
                     {rounds.map((r) => <option key={r.roundId} value={r.roundId}>{r.roundName}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Ngày thi đấu *</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Race Date đấu *</Label>
                   <Input
                     type="datetime-local"
                     value={raceModal.data.raceDate}
@@ -763,7 +763,7 @@ export default function TournamentDetailPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Loại đường đua</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Track Type</Label>
                   <select
                     value={raceModal.data.trackType}
                     onChange={(e) => setRaceModal((p) => ({ ...p, data: { ...p.data, trackType: e.target.value } }))}
@@ -773,7 +773,7 @@ export default function TournamentDetailPage() {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Chiều dài (m)</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Length (m)</Label>
                   <Input
                     type="number" min="0"
                     value={raceModal.data.trackLength}
@@ -784,7 +784,7 @@ export default function TournamentDetailPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Số ngựa tối đa</Label>
+                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Max Horses</Label>
                 <Input
                   type="number" min="1"
                   value={raceModal.data.maxParticipants}
@@ -794,7 +794,7 @@ export default function TournamentDetailPage() {
                 />
               </div>
               <div className="grid grid-cols-3 gap-2">
-                {[["prizeFirst","Giải 1 (VNĐ)"],["prizeSecond","Giải 2 (VNĐ)"],["prizeThird","Giải 3 (VNĐ)"]].map(([field, lbl]) => (
+                {[["prizeFirst","First Prize (VND)"],["prizeSecond","Second Prize (VND)"],["prizeThird","Third Prize (VND)"]].map(([field, lbl]) => (
                   <div key={field} className="space-y-1.5">
                     <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">{lbl}</Label>
                     <Input
@@ -808,14 +808,14 @@ export default function TournamentDetailPage() {
                 ))}
               </div>
 
-              {/* B3: Thời gian mở / đóng cổng đăng ký */}
+              {/* B3: Time mở / đóng cổng registrations */}
               <div className="rounded-lg border border-sb-gold-bd bg-sb-gold-soft p-3 space-y-3">
                 <p className="text-[#D4AF37] text-xs font-semibold uppercase tracking-widest">
-                  Cổng đăng ký ngựa &amp; dự đoán (B3)
+                  Horse Registration Gate
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Mở cổng lúc</Label>
+                    <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Opens At</Label>
                     <Input
                       type="datetime-local"
                       value={raceModal.data.registrationOpen}
@@ -824,7 +824,7 @@ export default function TournamentDetailPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Đóng cổng lúc</Label>
+                    <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Close cổng lúc</Label>
                     <Input
                       type="datetime-local"
                       value={raceModal.data.registrationClose}
@@ -833,11 +833,11 @@ export default function TournamentDetailPage() {
                     />
                   </div>
                 </div>
-                <p className="text-sb-tx-3 text-xs">Khi đến giờ mở, hệ thống tự chuyển status → RegistrationOpen (B5)</p>
+                <p className="text-sb-tx-3 text-xs">When opening time arrives, the system switches to RegistrationOpen automatically.</p>
               </div>
 
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setRaceModal(null)} className="flex-1 h-9 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Hủy</button>
+                <button type="button" onClick={() => setRaceModal(null)} className="flex-1 h-9 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Cancel</button>
                 <Button type="submit" disabled={isSavingRace} className="flex-1 h-9 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm">
                   {isSavingRace ? <Loader2 size={14} className="animate-spin" /> : "Lưu"}
                 </Button>
@@ -853,19 +853,19 @@ export default function TournamentDetailPage() {
           <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between p-5 border-b border-sb-border">
               <div>
-                <h2 className="text-base font-bold text-sb-tx">Phân công trọng tài</h2>
+                <h2 className="text-base font-bold text-sb-tx">Assign Referees</h2>
                 <p className="text-sb-tx-3 text-xs mt-0.5">{refModal.raceName}</p>
               </div>
               <button onClick={() => setRefModal(null)} className="text-sb-tx-3 hover:text-sb-tx-2 text-2xl leading-none">×</button>
             </div>
             <div className="p-5 space-y-4">
-              {/* Danh sách đã phân công */}
+              {/* Assigned List */}
               <div className="space-y-2">
                 <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">
-                  Đã phân công ({refModal.assigned.length})
+                  Assigned ({refModal.assigned.length})
                 </p>
                 {refModal.assigned.length === 0 ? (
-                  <p className="text-sb-tx-3 text-sm">Chưa có trọng tài nào.</p>
+                  <p className="text-sb-tx-3 text-sm">No referees assigned yet.</p>
                 ) : (
                   refModal.assigned.map((ref) => (
                     <div key={ref.refereeId} className="flex items-center justify-between bg-sb-s2 border border-sb-border rounded-lg px-3 py-2">
@@ -881,9 +881,9 @@ export default function TournamentDetailPage() {
                 )}
               </div>
 
-              {/* Form thêm trọng tài */}
+              {/* Form thêm referees */}
               <div className="border-t border-sb-border pt-4">
-                <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-3">Thêm trọng tài</p>
+                <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-3">Add Referee</p>
                 {refErr && (
                   <div className="mb-3 flex items-center gap-2 p-2.5 rounded-lg bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
                     <AlertCircle size={13} /> {refErr}
@@ -895,7 +895,7 @@ export default function TournamentDetailPage() {
                     onChange={(e) => setRefForm({ ...refForm, refereeId: e.target.value })}
                     className="flex-1 h-9 rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37]"
                   >
-                    <option value="">Chọn trọng tài...</option>
+                    <option value="">Select referee...</option>
                     {refereeList
                       .filter((r) => !refModal.assigned.some((a) => a.refereeId === r.refereeId))
                       .map((r) => (

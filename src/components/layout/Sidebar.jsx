@@ -12,54 +12,54 @@ import { useAuth } from "../../context/AuthContext";
 const MENU_BY_ROLE = {
   Admin: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
-    { label: "Duyệt tài khoản",     icon: UserCheck,     path: "/admin/users/pending" },
-    { label: "Quản lý người dùng",  icon: Users,         path: "/admin/users" },
-    { label: "Duyệt giải đấu",      icon: Trophy,        path: "/admin/tournaments" },
-    { label: "Duyệt nạp tiền",      icon: Wallet,        path: "/admin/deposit-requests" },
-    { label: "Nhật ký hệ thống",    icon: FileText,      path: "/admin/audit-logs" },
-    { label: "Cấu hình hệ thống",   icon: Settings,      path: "/admin/configs" },
+    { label: "Approve Accounts",     icon: UserCheck,     path: "/admin/users/pending" },
+    { label: "User Management",  icon: Users,         path: "/admin/users" },
+    { label: "Approve Tournaments",      icon: Trophy,        path: "/admin/tournaments" },
+    { label: "Approve Deposits",      icon: Wallet,        path: "/admin/deposit-requests" },
+    { label: "System Logs",    icon: FileText,      path: "/admin/audit-logs" },
+    { label: "System Configurations",   icon: Settings,      path: "/admin/configs" },
   ],
   // 1 role Organizer duy nhất (đã bỏ OrganizerHead/OrganizerMember)
   Organizer: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
-    { label: "Quản lý vòng đua",    icon: Flag,          path: "/organizer/races" },
-    { label: "Phân công trọng tài", icon: ClipboardList, path: "/organizer/referees" },
-    { label: "Duyệt kết quả",       icon: Award,         path: "/organizer/results" },
-    { label: "Hồ sơ cá nhân",       icon: User,          path: "/profile" },
+    { label: "Race Management",    icon: Flag,          path: "/organizer/races" },
+    { label: "Assign Referees", icon: ClipboardList, path: "/organizer/referees" },
+    { label: "Approve Results",       icon: Award,         path: "/organizer/results" },
+    { label: "Profile",       icon: User,          path: "/profile" },
   ],
   HorseOwner: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
-    { label: "Ngựa của tôi",        icon: PawPrint,      path: "/owner/horses" },
-    { label: "Đăng ký thi đấu",     icon: Trophy,        path: "/owner/race-registration" },
-    { label: "Lời mời Jockey",      icon: Mail,          path: "/owner/invitations" },
-    { label: "Hồ sơ cá nhân",       icon: User,          path: "/profile" },
+    { label: "My Horses",        icon: PawPrint,      path: "/owner/horses" },
+    { label: "Race Registration",     icon: Trophy,        path: "/owner/race-registration" },
+    { label: "Jockey Invitations",      icon: Mail,          path: "/owner/invitations" },
+    { label: "Profile",       icon: User,          path: "/profile" },
   ],
   Jockey: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
-    { label: "Lời mời thi đấu",     icon: Mail,          path: "/jockey/invitations" },
-    { label: "Hồ sơ cá nhân",       icon: User,          path: "/profile" },
+    { label: "Race Invitations",     icon: Mail,          path: "/jockey/invitations" },
+    { label: "Profile",       icon: User,          path: "/profile" },
   ],
   Referee: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
-    { label: "Vòng đua của tôi",    icon: Flag,          path: "/referee/races" },
-    { label: "Hồ sơ cá nhân",       icon: User,          path: "/profile" },
+    { label: "My Races",    icon: Flag,          path: "/referee/races" },
+    { label: "Profile",       icon: User,          path: "/profile" },
   ],
   Spectator: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
-    { label: "Lịch thi đấu",        icon: Calendar,      path: "/spectator/schedule" },
-    { label: "Đặt cược",            icon: DollarSign,    path: "/spectator/betting" },
-    { label: "Ví của tôi",          icon: Wallet,        path: "/spectator/wallet" },
-    { label: "Bảng xếp hạng",       icon: BarChart2,     path: "/leaderboard" },
+    { label: "Race Schedule",        icon: Calendar,      path: "/spectator/schedule" },
+    { label: "Betting",            icon: DollarSign,    path: "/spectator/betting" },
+    { label: "My Wallet",          icon: Wallet,        path: "/spectator/wallet" },
+    { label: "Leaderboard",       icon: BarChart2,     path: "/leaderboard" },
   ],
 };
 
 const ROLE_LABEL = {
   Admin:      "Admin",
-  Organizer:  "Ban tổ chức",
-  HorseOwner: "Chủ ngựa",
-  Jockey:     "Nài ngựa",
-  Referee:    "Trọng tài",
-  Spectator:  "Khán giả",
+  Organizer:  "Organizer",
+  HorseOwner: "Horse Owner",
+  Jockey:     "Jockey",
+  Referee:    "Referee",
+  Spectator:  "Spectator",
 };
 
 export default function Sidebar() {
@@ -154,7 +154,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* ── Vai trò + Đăng xuất ── */}
+      {/* ── Role + Logout ── */}
       <div className="border-t border-sb-border p-3 space-y-2 shrink-0">
         {roleLabel && !collapsed && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-sb-s2 border border-sb-border text-xs font-semibold text-sb-tx-2">
@@ -165,13 +165,13 @@ export default function Sidebar() {
 
         <button
           onClick={() => { logout(); navigate("/"); }}
-          title={collapsed ? "Đăng xuất" : undefined}
+          title={collapsed ? "Logout" : undefined}
           className={`flex items-center gap-3 w-full rounded-xl text-sm text-sb-tx-2 border border-transparent hover:text-sb-lose hover:bg-sb-lose/10 hover:border-sb-lose/25 transition-colors ${
             collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
           }`}
         >
           <LogOut size={15} className="shrink-0" />
-          {!collapsed && <span>Đăng xuất</span>}
+          {!collapsed && <span>Logout</span>}
         </button>
       </div>
     </aside>

@@ -35,7 +35,7 @@ export default function UserManagementPage() {
       const result = await adminService.getAllUsers();
       setUsers(result.data || []);
     } catch (err) {
-      setErrorMsg(err.message || "Không thể tải danh sách người dùng.");
+      setErrorMsg(err.message || "Unable to load users.");
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +61,7 @@ export default function UserManagementPage() {
       setSuccessId(user.userId);
       setTimeout(() => setSuccessId(null), 2000);
     } catch (err) {
-      setErrorMsg(`Đổi role thất bại: ${err.message}`);
+      setErrorMsg(`Failed to change role: ${err.message}`);
     } finally {
       setActionLoading(null);
     }
@@ -71,7 +71,7 @@ export default function UserManagementPage() {
     pendingRole[user.userId] && pendingRole[user.userId] !== user.roleName;
 
   return (
-    <AdminLayout title="Quản lý người dùng">
+    <AdminLayout title="User Management">
       <div className="p-6">
         <div className="max-w-6xl mx-auto">
 
@@ -82,8 +82,8 @@ export default function UserManagementPage() {
                 <Shield size={20} className="text-sb-info" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-sb-tx">Quản lý người dùng</h1>
-                <p className="text-sb-tx-3 text-sm">Xem và phân quyền tài khoản trong hệ thống</p>
+                <h1 className="text-2xl font-bold text-sb-tx">User Management</h1>
+                <p className="text-sb-tx-3 text-sm">View and assign account roles in the system</p>
               </div>
             </div>
             <button
@@ -92,7 +92,7 @@ export default function UserManagementPage() {
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-info hover:border-blue-300 hover:bg-sb-info/10 transition-all text-sm"
             >
               <RefreshCw size={15} className={isLoading ? "animate-spin" : ""} />
-              Làm mới
+              Refresh
             </button>
           </div>
 
@@ -110,24 +110,24 @@ export default function UserManagementPage() {
           ) : users.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-sb-tx-3">
               <Users size={48} className="mb-4" />
-              <p className="text-lg font-medium">Chưa có người dùng nào</p>
+              <p className="text-lg font-medium">No users yet</p>
             </div>
           ) : (
             <>
               <div className="mb-4 text-sm text-sb-tx-3">
-                Tổng cộng <span className="text-sb-info font-semibold">{users.length}</span> tài khoản
+                Total <span className="text-sb-info font-semibold">{users.length}</span> accounts
               </div>
 
               <div className="rounded-xl border border-sb-border overflow-hidden shadow-sm">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-sb-s2 border-b border-sb-border">
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Tài khoản</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Họ tên</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Username</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Full Name</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Email</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Trạng thái</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Role hiện tại</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Đổi Role</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Status</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Current Role</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Change Role</th>
                       <th className="text-center px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Lưu</th>
                     </tr>
                   </thead>
@@ -148,7 +148,7 @@ export default function UserManagementPage() {
                               ? "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd"
                               : "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd"
                           }`}>
-                            {user.isApproved ? "Đã duyệt" : "Chờ duyệt"}
+                            {user.isApproved ? "Approved" : "Pending"}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -158,7 +158,7 @@ export default function UserManagementPage() {
                         </td>
                         <td className="px-4 py-3">
                           {isAdmin ? (
-                            <span className="text-xs text-red-400 italic font-medium">Tài khoản cố định</span>
+                            <span className="text-xs text-red-400 italic font-medium">Fixed username</span>
                           ) : (
                             <select
                               value={pendingRole[user.userId] ?? user.roleName}

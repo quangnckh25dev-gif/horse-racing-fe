@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Award, AlertTriangle, FileText,
   AlertCircle, Loader2, Plus, Trash2, Edit2, X, Save,
-  Play, Flag, Send, CheckCircle2, Mail,
+  Play, Flag, Send, CheckCircle2, Mail, ClipboardCheck,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { confirmBox } from "../../lib/toast";
@@ -30,8 +30,93 @@ function Modal({ title, onClose, children }) {
   );
 }
 
+function isValidRaceEntry(entry) {
+  const status = String(entry.registrationStatus || "").toLowerCase();
+  return ["approved", "ready"].includes(status) && (entry.jockeyId || entry.jockeyName);
+}
+
+function PreRaceCheckPanel({ entries, checked, onChange }) {
+  const validEntries = entries.filter(isValidRaceEntry);
+
+  return (
+    <div className="bg-[#111827]/80 border border-sb-border rounded-2xl p-6 space-y-4">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/25 flex items-center justify-center shrink-0">
+            <ClipboardCheck size={18} className="text-[#D4AF37]" />
+          </div>
+          <div>
+            <h2 className="text-white font-bold text-base">Kiểm tra trước đua</h2>
+            <p className="text-sb-tx-3 text-sm mt-1">
+              Chỉ các đăng ký đã được duyệt và có jockey mới được nhập kết quả hoặc ghi vi phạm.
+            </p>
+          </div>
+        </div>
+        <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold cursor-pointer transition-colors ${
+          checked
+            ? "bg-sb-emerald-soft border-sb-emerald-bd text-sb-emerald-ink"
+            : "bg-[#0A0E1A] border-sb-border text-sb-tx-2 hover:text-white"
+        }`}>
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={(e) => onChange(e.target.checked)}
+            className="accent-sb-emerald"
+          />
+          Tôi đã kiểm tra thông tin ngựa trước đua
+        </label>
+      </div>
+
+      {validEntries.length === 0 ? (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
+          <AlertCircle size={14} /> Chưa có đăng ký hợp lệ để thi đấu.
+        </div>
+      ) : (
+        <div className="rounded-xl border border-sb-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] text-sm">
+              <thead>
+                <tr className="bg-sb-s2 border-b border-sb-border text-[10px] uppercase tracking-widest text-sb-tx-3">
+                  <th className="text-left px-4 py-2.5">Làn</th>
+                  <th className="text-left px-4 py-2.5">Ngựa</th>
+                  <th className="text-left px-4 py-2.5">Jockey</th>
+                  <th className="text-left px-4 py-2.5">Chủ ngựa</th>
+                  <th className="text-left px-4 py-2.5">Sức khỏe</th>
+                  <th className="text-left px-4 py-2.5">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                {validEntries.map((entry) => (
+                  <tr key={entry.entryId} className="border-b border-sb-border last:border-0">
+                    <td className="px-4 py-3 text-sb-tx-2 font-mono">{entry.laneNumber || "-"}</td>
+                    <td className="px-4 py-3">
+                      <p className="text-white font-medium">{entry.horseName || `Ngựa #${entry.horseId}`}</p>
+                      <p className="text-sb-tx-3 text-xs">Entry #{entry.entryId}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-white">{entry.jockeyName || `Jockey #${entry.jockeyId}`}</p>
+                      <p className="text-sb-tx-3 text-xs">{entry.jockeyConfirmed ? "Đã xác nhận" : "Chưa xác nhận"}</p>
+                    </td>
+                    <td className="px-4 py-3 text-sb-tx-2">{entry.ownerName || "-"}</td>
+                    <td className="px-4 py-3 text-sb-tx-2">{entry.healthStatus || "Chưa ghi nhận"}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-1 rounded-full bg-sb-emerald-soft border border-sb-emerald-bd text-sb-emerald-ink text-xs font-semibold">
+                        {entry.registrationStatus}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Results Tab ───────────────────────────────────────────────────────────────
-function ResultsTab({ raceId, entries }) {
+function ResultsTab({ raceId, entries, preRaceChecked }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -55,9 +140,13 @@ function ResultsTab({ raceId, entries }) {
   useEffect(() => { load(); }, [load]);
 
   // Chỉ ngựa CÓ jockey mới đủ điều kiện đua → chỉ nhập kết quả cho các entry này
-  const raceable = entries.filter((e) => e.jockeyId || e.jockeyName);
+  const raceable = entries.filter(isValidRaceEntry);
 
   const initForm = () => {
+    if (!preRaceChecked) {
+      alert("Vui lòng xác nhận kiểm tra thông tin ngựa trước đua.");
+      return;
+    }
     const initialForm = raceable.map((e, i) => ({
       entryId: e.entryId,
       horseName: e.horseName || `Ngựa #${e.horseId}`,
@@ -75,6 +164,10 @@ function ResultsTab({ raceId, entries }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!preRaceChecked) {
+      alert("Vui lòng xác nhận kiểm tra thông tin ngựa trước đua.");
+      return;
+    }
     // Phút + Giây → tổng số giây (BE nhận số giây thuần)
     const toFinish = (row) => {
       if (row.dnf) return null;
@@ -119,9 +212,14 @@ function ResultsTab({ raceId, entries }) {
   return (
     <div className="space-y-4">
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
+      {!preRaceChecked && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
+          <AlertCircle size={14} /> Cần xác nhận kiểm tra trước đua trước khi nhập kết quả.
+        </div>
+      )}
       <div className="flex justify-end">
-        <button onClick={initForm}
-          className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold rounded-lg text-sm transition-colors">
+        <button onClick={initForm} disabled={!preRaceChecked}
+          className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <Edit2 size={14} /> {results.length > 0 ? "Cập nhật kết quả" : "Nhập kết quả"}
         </button>
       </div>
@@ -235,7 +333,7 @@ function ResultsTab({ raceId, entries }) {
 }
 
 // ── Violations Tab ────────────────────────────────────────────────────────────
-function ViolationsTab({ raceId, entries }) {
+function ViolationsTab({ raceId, entries, preRaceChecked }) {
   const [violations, setViolations] = useState([]);
   const [violationOptions, setViolationOptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -273,6 +371,10 @@ function ViolationsTab({ raceId, entries }) {
 
   const handleAdd = async (e) => {
     e.preventDefault();
+    if (!preRaceChecked) {
+      alert("Vui lòng xác nhận kiểm tra thông tin ngựa trước đua.");
+      return;
+    }
     setFormLoading(true);
     try {
       await raceResultService.addViolation(raceId, form);
@@ -301,9 +403,14 @@ function ViolationsTab({ raceId, entries }) {
   return (
     <div className="space-y-4">
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
+      {!preRaceChecked && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
+          <AlertCircle size={14} /> Cần xác nhận kiểm tra trước đua trước khi ghi vi phạm.
+        </div>
+      )}
       <div className="flex justify-end">
-        <button onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600/20 border border-red-600/40 text-red-300 hover:bg-red-600/30 rounded-lg text-sm font-medium transition-colors">
+        <button onClick={() => setShowAdd(true)} disabled={!preRaceChecked}
+          className="flex items-center gap-2 px-4 py-2 bg-red-600/20 border border-red-600/40 text-red-300 hover:bg-red-600/30 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <Plus size={14} /> Ghi nhận vi phạm
         </button>
       </div>
@@ -345,7 +452,7 @@ function ViolationsTab({ raceId, entries }) {
               <select value={form.entryId} onChange={(e) => setForm((p) => ({ ...p, entryId: e.target.value }))} required
                 className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]">
                 <option value="">-- Chọn ngựa --</option>
-                {entries.filter((e) => e.jockeyId || e.jockeyName).map((e) => <option key={e.entryId} value={e.entryId}>{e.horseName || `Ngựa #${e.horseId}`}</option>)}
+                {entries.filter(isValidRaceEntry).map((e) => <option key={e.entryId} value={e.entryId}>{e.horseName || `Ngựa #${e.horseId}`}</option>)}
               </select>
             </div>
             <div>
@@ -512,12 +619,18 @@ function MinutesTab({ raceId }) {
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (!f) return;
+              const demoFileUrl = `demo-uploads/${f.name}`;
               setFileName(f.name);
-              setForm((p) => ({ ...p, minutesFileUrl: `demo-uploads/${f.name}` }));
+              setForm((p) => ({ ...p, minutesFileUrl: demoFileUrl }));
               // Ảnh: lưu data URL vào localStorage (theo raceId) để hiện ảnh thật khi xem biên bản (demo 1 máy)
               if (f.type.startsWith("image/")) {
                 const reader = new FileReader();
-                reader.onload = () => { try { localStorage.setItem(`minutes-img-${raceId}`, reader.result); } catch { /* ảnh quá lớn */ } };
+                reader.onload = () => {
+                  try {
+                    localStorage.setItem(`minutes-img-${raceId}`, reader.result);
+                    localStorage.setItem(`minutes-file-${demoFileUrl}`, reader.result);
+                  } catch { /* image too large */ }
+                };
                 reader.readAsDataURL(f);
               } else {
                 try { localStorage.removeItem(`minutes-img-${raceId}`); } catch { /* ignore */ }
@@ -556,6 +669,7 @@ export default function RefereeRaceDetailPage() {
   const [activeTab, setActiveTab] = useState("results");
   const [busy, setBusy] = useState("");
   const [flash, setFlash] = useState("");
+  const [preRaceChecked, setPreRaceChecked] = useState(false);
   const [sent, setSent] = useState(false);          // đã gửi biên bản cho Owner
   const [handedOff, setHandedOff] = useState(false); // đã bàn giao BTC
 
@@ -580,6 +694,24 @@ export default function RefereeRaceDetailPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  useEffect(() => {
+    try {
+      setPreRaceChecked(localStorage.getItem(`referee-precheck-${raceId}`) === "1");
+    } catch {
+      setPreRaceChecked(false);
+    }
+  }, [raceId]);
+
+  const handlePreRaceChecked = (checked) => {
+    setPreRaceChecked(checked);
+    try {
+      if (checked) localStorage.setItem(`referee-precheck-${raceId}`, "1");
+      else localStorage.removeItem(`referee-precheck-${raceId}`);
+    } catch {
+      // localStorage can be unavailable in private/test environments.
+    }
+  };
+
   const doAction = async (key, fn, okMsg, onOk) => {
     if (busy) return;              // chặn spam khi đang xử lý
     setBusy(key); setError(""); setFlash("");
@@ -597,9 +729,10 @@ export default function RefereeRaceDetailPage() {
 
   const status = race?.status;
   // Chỉ tính ngựa đủ điều kiện đua (đã có jockey)
-  const raceableCount = entries.filter((e) => e.jockeyId || e.jockeyName).length;
-  const canStart = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount >= 1;
+  const raceableCount = entries.filter(isValidRaceEntry).length;
+  const canStart = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount >= 1 && preRaceChecked;
   const startBlockedNoHorse = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount < 1;
+  const startBlockedPreCheck = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount >= 1 && !preRaceChecked;
 
   return (
     <AdminLayout title="Nhập liệu vòng đua">
@@ -650,6 +783,11 @@ export default function RefereeRaceDetailPage() {
                       <AlertCircle size={14} /> Chưa có ngựa (có nài) — không thể bắt đầu
                     </span>
                   )}
+                  {startBlockedPreCheck && (
+                    <span className="flex items-center gap-2 px-4 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm font-semibold">
+                      <AlertCircle size={14} /> Cần xác nhận kiểm tra trước đua
+                    </span>
+                  )}
                   {status === "Ongoing" && (
                     <button onClick={() => doAction("finish", () => raceResultService.changeRaceStatus(raceId, "Finished"), "Đã kết thúc vòng đua")}
                       disabled={!!busy}
@@ -677,6 +815,12 @@ export default function RefereeRaceDetailPage() {
               </div>
             </div>
 
+            <PreRaceCheckPanel
+              entries={entries}
+              checked={preRaceChecked}
+              onChange={handlePreRaceChecked}
+            />
+
             {/* Tabs */}
             <div className="flex gap-1 bg-[#111827]/60 p-1 rounded-xl border border-sb-border">
               {TABS.map((tab) => (
@@ -691,8 +835,8 @@ export default function RefereeRaceDetailPage() {
 
             {/* Tab content */}
             <div className="bg-[#111827]/80 border border-sb-border rounded-2xl p-6">
-              {activeTab === "results" && <ResultsTab raceId={raceId} entries={entries} />}
-              {activeTab === "violations" && <ViolationsTab raceId={raceId} entries={entries} />}
+              {activeTab === "results" && <ResultsTab raceId={raceId} entries={entries} preRaceChecked={preRaceChecked} />}
+              {activeTab === "violations" && <ViolationsTab raceId={raceId} entries={entries} preRaceChecked={preRaceChecked} />}
               {activeTab === "minutes" && <MinutesTab raceId={raceId} />}
             </div>
           </>

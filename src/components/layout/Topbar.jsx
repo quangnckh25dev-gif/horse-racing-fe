@@ -41,6 +41,8 @@ function normalizeNotif(n) {
   return {
     id: n.notificationId,
     text: n.title || n.body || "Thông báo mới",
+    type: n.notifType,
+    relatedEntity: n.relatedEntity,
     time: formatRelativeTime(n.createdAt),
     unread: !n.isRead,
     icon: cfg.icon,
@@ -87,6 +89,11 @@ export default function Topbar({ title }) {
   const markOneRead = async (n) => {
     try { await notificationService.markAsRead(n.id); } catch { /* vẫn đánh dấu ở FE */ }
     setReadIds((prev) => new Set([...prev, n.id]));
+    if (role === "Referee" && n.type === "RefereeAssigned" && n.raceId) {
+      setBellOpen(false);
+      navigate(`/referee/races/${n.raceId}`);
+      return;
+    }
     // Thông báo về biên bản/kết quả → mở luôn để xem
     if (n.raceId) { setViewMinutes({ raceId: n.raceId, raceName: n.text }); setBellOpen(false); }
   };

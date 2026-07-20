@@ -3,7 +3,6 @@ import { X, FileText, Trophy, Loader2, Paperclip } from "lucide-react";
 import { raceResultService } from "../../services/raceResult";
 import { spectatorService } from "../../services/spectator";
 
-// Modal xem biên bản + kết quả 1 vòng đua (dùng cho Owner nhận biên bản & BTC nhận bàn giao)
 export default function MinutesViewer({ raceId, raceName, onClose }) {
   const [minutes, setMinutes] = useState(null);
   const [results, setResults] = useState([]);
@@ -11,38 +10,52 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
 
   useEffect(() => {
     let alive = true;
+
     (async () => {
       setLoading(true);
-      const [m, r] = await Promise.all([
+      const [minutesRes, resultsRes] = await Promise.all([
         raceResultService.getMinutes(raceId).catch(() => ({ data: null })),
         spectatorService.getRaceResults(raceId).catch(() => ({ data: [] })),
       ]);
+
       if (!alive) return;
-      setMinutes(m?.data || null);
-      const rows = (r?.data || []).map((x) => ({ ...x, pos: x.finishPosition ?? x.position }))
+
+      setMinutes(minutesRes?.data || null);
+      const rows = (resultsRes?.data || [])
+        .map((row) => ({ ...row, pos: row.finishPosition ?? row.position }))
         .sort((a, b) => (a.pos || 99) - (b.pos || 99));
       setResults(rows);
       setLoading(false);
     })();
+
     return () => { alive = false; };
   }, [raceId]);
 
-  const rows = [
+  const infoRows = [
     ["Điều kiện thời tiết", minutes?.weatherCondition],
     ["Điều kiện đường đua", minutes?.trackCondition],
     ["Nội dung biên bản", minutes?.content],
     ["Ghi chú thêm", minutes?.notes],
-  ].filter(([, v]) => v);
+  ].filter(([, value]) => value);
 
-  // Ảnh biên bản đã lưu ở localStorage lúc trọng tài upload (data URL)
+  const fileUrl = minutes?.minutesFileUrl || "";
   let localImg = null;
-  try { localImg = localStorage.getItem(`minutes-img-${raceId}`); } catch { localImg = null; }
+  try {
+    localImg = localStorage.getItem(`minutes-img-${raceId}`)
+      || (fileUrl ? localStorage.getItem(`minutes-file-${fileUrl}`) : null);
+  } catch {
+    localImg = null;
+  }
+  const imageSrc = localImg || (fileUrl.startsWith("data:image/") ? fileUrl : null);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50"
-      onClick={(e) => e.target === e.currentTarget && onClose?.()}>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50"
+      onClick={(event) => event.target === event.currentTarget && onClose?.()}
+    >
       <div className="w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl bg-sb-s1 border border-sb-border shadow-2xl shadow-black/50 overflow-hidden">
         <div className="h-0.5 bg-gradient-to-r from-sb-gold to-transparent shrink-0" />
+
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-sb-border shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <FileText size={16} className="text-sb-gold-2 shrink-0" />
@@ -51,59 +64,80 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
               <p className="text-sb-tx-3 text-xs truncate">{raceName || `Race #${raceId}`}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s2 transition-colors shrink-0">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx hover:bg-sb-s2 transition-colors shrink-0"
+          >
             <X size={16} />
           </button>
         </div>
 
         <div className="p-5 overflow-y-auto space-y-4">
           {loading ? (
-            <div className="flex justify-center py-10"><Loader2 className="animate-spin text-sb-gold" size={26} /></div>
+            <div className="flex justify-center py-10">
+              <Loader2 className="animate-spin text-sb-gold" size={26} />
+            </div>
           ) : (
             <>
               {!minutes ? (
-                <p className="text-sb-tx-3 text-sm text-center py-4">Chưa có biên bản cho vòng đua này.</p>
+                <p className="text-sb-tx-3 text-sm text-center py-4">
+                  Chưa có biên bản cho vòng đua này.
+                </p>
               ) : (
                 <>
-                  {rows.map(([label, value]) => (
+                  {infoRows.map(([label, value]) => (
                     <div key={label} className="bg-sb-s2 rounded-xl p-3.5 border border-sb-border">
                       <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1">{label}</p>
                       <p className="text-sb-tx text-sm whitespace-pre-wrap">{value}</p>
                     </div>
                   ))}
-                  {/* Ảnh biên bản ký tay */}
-                  {localImg ? (
+
+                  {imageSrc ? (
                     <div>
-                      <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">Ảnh biên bản đã ký</p>
-                      <img src={localImg} alt="Biên bản ký tay"
-                        className="w-full rounded-xl border border-sb-border max-h-[420px] object-contain bg-sb-s2" />
+                      <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+                        Ảnh biên bản đã ký
+                      </p>
+                      <img
+                        src={imageSrc}
+                        alt="Biên bản ký tay"
+                        className="w-full rounded-xl border border-sb-border max-h-[420px] object-contain bg-sb-s2"
+                      />
                     </div>
                   ) : minutes.minutesFileUrl ? (
-                    <div className="flex items-center gap-2 bg-sb-gold-soft border border-sb-gold-bd rounded-xl p-3">
+                    <div className="flex items-start gap-2 bg-sb-gold-soft border border-sb-gold-bd rounded-xl p-3">
                       <Paperclip size={15} className="text-sb-gold-2 shrink-0" />
-                      <span className="text-sb-gold-2 text-sm truncate">{minutes.minutesFileUrl}</span>
+                      <div className="min-w-0">
+                        <p className="text-sb-gold-2 text-sm truncate">{minutes.minutesFileUrl}</p>
+                        <p className="text-sb-tx-3 text-xs mt-0.5">
+                          Chỉ đang có tên file demo, chưa có ảnh thật trong trình duyệt này.
+                          Referee cần chọn lại ảnh rồi lưu biên bản.
+                        </p>
+                      </div>
                     </div>
                   ) : null}
                 </>
               )}
 
-              {/* Kết quả kèm theo */}
               {results.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-2 text-sb-gold-2 font-bold text-sm">
                     <Trophy size={14} /> Kết quả chính thức
                   </div>
                   <div className="rounded-xl border border-sb-border divide-y divide-sb-border overflow-hidden">
-                    {results.map((r, i) => {
-                      const dq = r.dq || r.dnf;
+                    {results.map((result, index) => {
+                      const dq = result.dq || result.dnf;
                       return (
-                        <div key={r.resultId || i} className="flex items-center gap-3 px-4 py-2.5 bg-sb-s2/40">
+                        <div key={result.resultId || index} className="flex items-center gap-3 px-4 py-2.5 bg-sb-s2/40">
                           <span className="w-7 text-center font-mono font-bold text-sb-tx-3">
-                            {dq ? "✕" : (r.pos ?? i + 1)}
+                            {dq ? "x" : (result.pos ?? index + 1)}
                           </span>
-                          <span className="flex-1 text-sb-tx font-semibold text-sm">{r.horseName || `Ngựa #${r.horseId}`}</span>
-                          <span className="text-sb-tx-3 text-xs">🏇 {r.jockeyName || "—"}</span>
-                          <span className="font-mono text-xs text-sb-gold-2">{dq ? "DQ" : (r.finalTime || r.finishTime || "—")}</span>
+                          <span className="flex-1 text-sb-tx font-semibold text-sm">
+                            {result.horseName || `Ngựa #${result.horseId}`}
+                          </span>
+                          <span className="text-sb-tx-3 text-xs">{result.jockeyName || "-"}</span>
+                          <span className="font-mono text-xs text-sb-gold-2">
+                            {dq ? "DQ" : (result.finalTime || result.finishTime || "-")}
+                          </span>
                         </div>
                       );
                     })}

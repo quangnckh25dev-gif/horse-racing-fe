@@ -12,6 +12,7 @@ import { tournamentService } from "../../services/tournament";
 
 const STATUS_CONFIG = {
   Draft:     { label: "Nháp",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border",           strip: "from-gray-400/20 to-gray-400/5",    dot: "bg-gray-400" },
+  PendingApproval: { label: "Chờ Admin duyệt", cls: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30", strip: "from-yellow-400/20 to-yellow-400/5", dot: "bg-yellow-400" },
   Open:      { label: "Mở đăng ký",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30",           strip: "from-blue-400/20 to-blue-400/5",    dot: "bg-blue-500" },
   Ongoing:   { label: "Đang diễn ra", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd",        strip: "from-amber-400/20 to-amber-400/5",  dot: "bg-amber-500" },
   Finished:  { label: "Kết thúc",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd",        strip: "from-green-400/20 to-green-400/5",  dot: "bg-green-500" },
@@ -19,7 +20,11 @@ const STATUS_CONFIG = {
 };
 
 const STATUS_TRANSITIONS = {
-  Draft:    [{ to: "Open",      label: "Mở đăng ký",   cls: "bg-sb-info/10 border-sb-info/30 text-sb-info hover:bg-sb-info/20" }],
+  Draft:    [],
+  PendingApproval: [
+    { to: "Open", label: "Duyệt mở đăng ký", cls: "bg-sb-info/10 border-sb-info/30 text-sb-info hover:bg-sb-info/20" },
+    { to: "Draft", label: "Từ chối", cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" },
+  ],
   Open:     [{ to: "Ongoing",   label: "Bắt đầu",       cls: "bg-sb-gold-soft border-sb-gold-bd text-sb-gold-2 hover:bg-sb-gold-soft" },
              { to: "Cancelled", label: "Hủy giải",      cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" }],
   Ongoing:  [{ to: "Finished",  label: "Kết thúc giải", cls: "bg-sb-emerald-soft border-sb-emerald-bd text-sb-emerald-ink hover:bg-sb-emerald-soft" },
@@ -107,7 +112,11 @@ export default function TournamentManagementPage() {
   const handleChangeStatus = async (tournamentId, newStatus) => {
     setStatusLoading(tournamentId + "_" + newStatus);
     try {
-      await tournamentService.changeStatus(tournamentId, newStatus);
+      await tournamentService.changeStatus(
+        tournamentId,
+        newStatus,
+        newStatus === "Draft" ? "Admin từ chối giải đấu, vui lòng chỉnh sửa lại thông tin." : undefined
+      );
       setTournaments((prev) =>
         prev.map((t) => t.tournamentId === tournamentId ? { ...t, status: newStatus } : t)
       );

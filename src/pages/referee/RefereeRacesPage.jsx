@@ -25,7 +25,7 @@ export default function RefereeRacesPage() {
   const fetchRaces = useCallback(async () => {
     setLoading(true); setError("");
     try {
-      const res = await spectatorService.getRaces();
+      const res = await spectatorService.getAssignedRaces();
       setRaces(res.data || []);
     } catch (e) {
       setError(e.message || "Không thể tải vòng đua");

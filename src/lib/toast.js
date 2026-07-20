@@ -1,5 +1,5 @@
-// Toast tối giản thay cho window.alert (hộp trắng "localhost cho biết" rất xấu).
-// Gọi trực tiếp toast(msg) hoặc để nguyên alert(...) — main.jsx đã override.
+// Minimal dark toast used instead of the browser alert dialog.
+// Call toast(msg) directly, or keep alert(...) because main.jsx overrides it.
 
 let holder = null;
 
@@ -15,8 +15,7 @@ function ensureHolder() {
 }
 
 export function toast(message, type) {
-  // Đoán loại theo nội dung nếu không truyền: có "thành công/thanh cong" → success
-  const t = type || (/thành công|thanh cong|đã |da /i.test(String(message)) ? "success" : "error");
+  const t = type || (/success|successful|saved|created|approved|rejected|sent|updated|changed/i.test(String(message)) ? "success" : "error");
   const colors = t === "success"
     ? "background:#0E3A2E;border:1px solid #14543F;color:#7CE7A2;"
     : "background:#301316;border:1px solid #5B2427;color:#FCA5A5;";
@@ -27,7 +26,7 @@ export function toast(message, type) {
     "padding:11px 16px;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.45);" +
     "pointer-events:auto;max-width:520px;display:flex;gap:8px;align-items:flex-start;" +
     "opacity:0;transform:translateY(-8px);transition:opacity .2s,transform .2s;";
-  el.innerHTML = `<span style="flex-shrink:0">${t === "success" ? "✅" : "⚠️"}</span><span>${String(message)}</span>`;
+  el.innerHTML = `<span style="flex-shrink:0">${t === "success" ? "OK" : "!"}</span><span>${String(message)}</span>`;
   ensureHolder().appendChild(el);
   requestAnimationFrame(() => { el.style.opacity = "1"; el.style.transform = "translateY(0)"; });
   const ttl = Math.min(7000, 2600 + String(message).length * 30);
@@ -37,13 +36,12 @@ export function toast(message, type) {
   }, ttl);
 }
 
-// Ghi đè alert toàn app → mọi alert(...) hiện thành toast tối, không còn hộp trắng.
+// Override alert globally so user feedback stays in the app theme.
 export function installToastAlert() {
   window.alert = (msg) => toast(msg);
 }
 
-// Hộp xác nhận dark thay cho window.confirm (hộp trắng OK/Cancel của trình duyệt).
-// Dùng: if (!(await confirmBox("Delete cái này?"))) return;
+// Dark confirmation dialog used instead of the browser confirm dialog.
 export function confirmBox(message, { okText = "Confirm", cancelText = "Cancel", danger = false } = {}) {
   return new Promise((resolve) => {
     const ov = document.createElement("div");
@@ -58,7 +56,7 @@ export function confirmBox(message, { okText = "Confirm", cancelText = "Cancel",
         transform:translateY(10px) scale(.98);opacity:0;transition:opacity .18s,transform .18s;" data-card>
         <div style="height:3px;background:linear-gradient(90deg,${okBg},transparent)"></div>
         <div style="padding:20px 22px 6px;display:flex;gap:12px;align-items:flex-start">
-          <span style="font-size:22px;flex-shrink:0">${danger ? "🗑️" : "❓"}</span>
+          <span style="font-size:22px;flex-shrink:0">${danger ? "!" : "?"}</span>
           <p style="margin:2px 0 0;white-space:pre-wrap">${String(message)}</p>
         </div>
         <div style="display:flex;gap:10px;padding:18px 22px 20px">

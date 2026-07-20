@@ -24,10 +24,10 @@ export default function ForgotPasswordPage() {
     setIsLoading(true); clearMessages();
     try {
       await authService.requestPasswordReset({ email });
-      setSuccessMsg("Email đặt lại mật khẩu đã được gửi! Vui lòng kiểm tra hộp thư.");
+      setSuccessMsg("Password reset email has been sent. Please check your inbox.");
       setTimeout(() => { setSuccessMsg(""); setStep(2); }, 1800);
     } catch (err) {
-      setErrorMsg(err.message || "Không tìm thấy tài khoản với email này.");
+      setErrorMsg(err.message || "No account found with this email.");
     } finally {
       setIsLoading(false);
     }
@@ -35,15 +35,15 @@ export default function ForgotPasswordPage() {
 
   const handleResetPassword = async (e) => {
     e.preventDefault(); clearMessages();
-    if (resetData.newPassword.length < 6) { setErrorMsg("Mật khẩu mới phải có ít nhất 6 ký tự."); return; }
-    if (resetData.newPassword !== resetData.confirmPassword) { setErrorMsg("Xác nhận mật khẩu không khớp."); return; }
+    if (resetData.newPassword.length < 6) { setErrorMsg("New password must be at least 6 characters."); return; }
+    if (resetData.newPassword !== resetData.confirmPassword) { setErrorMsg("Password confirmation does not match."); return; }
     setIsLoading(true);
     try {
       await authService.resetPassword({ token: resetData.token, newPassword: resetData.newPassword });
-      setSuccessMsg("Đặt lại mật khẩu thành công! Đang chuyển về đăng nhập…");
+      setSuccessMsg("Password reset successful. Redirecting to login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setErrorMsg(err.message || "Token không hợp lệ hoặc đã hết hạn.");
+      setErrorMsg(err.message || "Token is invalid or expired.");
     } finally {
       setIsLoading(false);
     }
@@ -57,8 +57,8 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthShell
-      title={step === 1 ? "Quên mật khẩu" : "Đặt lại mật khẩu"}
-      subtitle={step === 1 ? "Nhập email để nhận mã xác nhận" : `Mã đã gửi đến ${email} · hiệu lực 15 phút`}
+      title={step === 1 ? "Forgot Password" : "Reset Password"}
+      subtitle={step === 1 ? "Enter your email to receive a verification code" : `Code sent to ${email} · valid for 15 minutes`}
     >
       {/* Bước */}
       <div className="flex items-center justify-center gap-3 mb-6">
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
       {step === 1 ? (
         <form onSubmit={handleRequestReset} className="space-y-5">
           <div>
-            <label htmlFor="email" className={labelCls}>Email đã đăng ký</label>
+            <label htmlFor="email" className={labelCls}>Registered Email</label>
             <div className="relative">
               <Mail className={iconCls} size={16} />
               <input id="email" type="email" placeholder="email@gmail.com" className={inputCls}
@@ -90,28 +90,28 @@ export default function ForgotPasswordPage() {
           </div>
           <button type="submit" disabled={isLoading}
             className="w-full h-12 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-            {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Đang gửi…</> : "GỬI MÃ XÁC NHẬN"}
+            {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Sending...</> : "SEND VERIFICATION CODE"}
           </button>
           <button type="button" onClick={() => setStep(2)}
             className="w-full text-center text-xs text-sb-tx-3 hover:text-sb-emerald-ink transition-colors">
-            Đã có mã xác nhận? Nhập ngay →
+            Already have a code? Enter it now &gt;
           </button>
         </form>
       ) : (
         <form onSubmit={handleResetPassword} className="space-y-4">
           <div>
-            <label htmlFor="token" className={labelCls}>Mã xác nhận</label>
+            <label htmlFor="token" className={labelCls}>Verification Code</label>
             <div className="relative">
               <KeyRound className={iconCls} size={16} />
-              <input id="token" placeholder="Nhập mã từ email…" className={inputCls + " tracking-widest"}
+              <input id="token" placeholder="Enter the code from email..." className={inputCls + " tracking-widest"}
                 value={resetData.token} onChange={(e) => { setResetData({ ...resetData, token: e.target.value }); clearMessages(); }} required />
             </div>
           </div>
           <div>
-            <label htmlFor="newPassword" className={labelCls}>Mật khẩu mới</label>
+            <label htmlFor="newPassword" className={labelCls}>New Password</label>
             <div className="relative">
               <Lock className={iconCls} size={16} />
-              <input id="newPassword" type={showPassword ? "text" : "password"} placeholder="Tối thiểu 6 ký tự"
+              <input id="newPassword" type={showPassword ? "text" : "password"} placeholder="At least 6 characters"
                 className={inputCls + " pr-11"} value={resetData.newPassword}
                 onChange={(e) => { setResetData({ ...resetData, newPassword: e.target.value }); clearMessages(); }} required />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
@@ -121,29 +121,29 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
           <div>
-            <label htmlFor="confirmPassword" className={labelCls}>Xác nhận mật khẩu</label>
+            <label htmlFor="confirmPassword" className={labelCls}>Confirm Password</label>
             <div className="relative">
               <Lock className={iconCls} size={16} />
-              <input id="confirmPassword" type="password" placeholder="Nhập lại mật khẩu mới" className={inputCls}
+              <input id="confirmPassword" type="password" placeholder="Re-enter new password" className={inputCls}
                 value={resetData.confirmPassword}
                 onChange={(e) => { setResetData({ ...resetData, confirmPassword: e.target.value }); clearMessages(); }} required />
             </div>
           </div>
           <button type="submit" disabled={isLoading}
             className="w-full h-12 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-            {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Đang xử lý…</> : "ĐẶT LẠI MẬT KHẨU"}
+            {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Processing...</> : "RESET PASSWORD"}
           </button>
           <button type="button" onClick={() => { setStep(1); clearMessages(); }}
             className="w-full flex items-center justify-center gap-1 text-xs text-sb-tx-3 hover:text-sb-emerald-ink transition-colors">
-            <ArrowLeft size={13} /> Quay lại nhập email
+            <ArrowLeft size={13} /> Back to Email
           </button>
         </form>
       )}
 
       <div className="mt-6 pt-5 border-t border-sb-border text-center">
         <p className="text-sm text-sb-tx-3">
-          Nhớ mật khẩu rồi?{" "}
-          <Link to="/login" className="text-sb-emerald-ink font-semibold hover:underline">Đăng nhập ngay</Link>
+          Remember your password?{" "}
+          <Link to="/login" className="text-sb-emerald-ink font-semibold hover:underline">Login now</Link>
         </p>
       </div>
     </AuthShell>

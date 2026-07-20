@@ -42,9 +42,9 @@ export function installToastAlert() {
   window.alert = (msg) => toast(msg);
 }
 
-// Hộp xác nhận dark thay cho window.confirm (hộp trắng OK/Hủy của trình duyệt).
-// Dùng: if (!(await confirmBox("Xoá cái này?"))) return;
-export function confirmBox(message, { okText = "Xác nhận", cancelText = "Huỷ", danger = false } = {}) {
+// Hộp xác nhận dark thay cho window.confirm (hộp trắng OK/Cancel của trình duyệt).
+// Dùng: if (!(await confirmBox("Delete cái này?"))) return;
+export function confirmBox(message, { okText = "Confirm", cancelText = "Cancel", danger = false } = {}) {
   return new Promise((resolve) => {
     const ov = document.createElement("div");
     ov.style.cssText =

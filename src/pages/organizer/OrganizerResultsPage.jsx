@@ -9,7 +9,7 @@ import { confirmBox } from "../../lib/toast";
 import { organizerService } from "../../services/organizer";
 import { raceResultService } from "../../services/raceResult";
 
-// Trạng thái duyệt của cả race suy từ approvalStatus các kết quả (Published > Rejected > Approved > Pending)
+// Status duyệt của cả race suy từ approvalStatus các kết quả (Published > Rejected > Approved > Pending)
 function deriveResultStatus(results) {
   if (!results || results.length === 0) return "NoResults";
   const st = results.map((r) => r.approvalStatus || "Pending");
@@ -21,23 +21,23 @@ function deriveResultStatus(results) {
 
 const RESULT_STATUS_CONFIG = {
   Pending:   {
-    label: "Chờ duyệt",  color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow",
+    label: "Pending",  color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow",
     borderCls: "border-l-gold-glow",  icon: Clock,        iconCls: "text-yellow-400 bg-yellow-500/10",
   },
   Approved:  {
-    label: "Đã duyệt",   color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",
+    label: "Approved",   color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",
     borderCls: "border-l-blue-glow",  icon: CheckCircle2, iconCls: "text-blue-400 bg-blue-500/10",
   },
   Rejected:  {
-    label: "Từ chối",    color: "bg-red-500/20 text-red-300 border-red-500/40",
+    label: "Rejected",    color: "bg-red-500/20 text-red-300 border-red-500/40",
     borderCls: "border-l-red-glow",   icon: XCircle,      iconCls: "text-red-400 bg-red-500/10",
   },
   Published: {
-    label: "Đã công bố", color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",
+    label: "Published", color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",
     borderCls: "border-l-green-glow", icon: Globe,        iconCls: "text-green-400 bg-green-500/10",
   },
   NoResults: {
-    label: "Chờ nhập kết quả", color: "bg-sb-s2 text-sb-tx-3 border-sb-border",
+    label: "Awaiting Results", color: "bg-sb-s2 text-sb-tx-3 border-sb-border",
     borderCls: "", icon: Clock, iconCls: "text-sb-tx-3 bg-sb-s2",
   },
 };
@@ -75,7 +75,7 @@ export default function OrganizerResultsPage() {
     try {
       const res = await organizerService.getRaces();
       const finished = (res.data || []).filter((r) => r.status === "Finished");
-      // /races không trả trạng thái duyệt → lấy kết quả từng race để biết đã duyệt/công bố chưa
+      // /races không trả trạng thái duyệt → lấy kết quả từng race để biết approved/công bố chưa
       const withStatus = await Promise.all(finished.map(async (r) => {
         try {
           const rr = await raceResultService.getResults(r.raceId);
@@ -87,7 +87,7 @@ export default function OrganizerResultsPage() {
       }));
       setRaces(withStatus);
     } catch (e) {
-      setError(e.message || "Không thể tải dữ liệu");
+      setError(e.message || "Unable to load data");
     } finally {
       setLoading(false);
     }
@@ -101,7 +101,7 @@ export default function OrganizerResultsPage() {
       await organizerService.approveResults(raceId);
       fetchRaces();
     } catch (err) {
-      alert(err.message || "Duyệt thất bại");
+      alert(err.message || "Approval failed");
     } finally {
       setActionLoading("");
     }
@@ -116,20 +116,20 @@ export default function OrganizerResultsPage() {
       setRejectReason("");
       fetchRaces();
     } catch (err) {
-      alert(err.message || "Từ chối thất bại");
+      alert(err.message || "Rejection failed");
     } finally {
       setActionLoading("");
     }
   };
 
   const handlePublish = async (raceId) => {
-    if (!(await confirmBox("Xác nhận công bố kết quả vòng đua này công khai?", { okText: "Công bố" }))) return;
+    if (!(await confirmBox("Confirm publishing this race result publicly?", { okText: "Publish" }))) return;
     setActionLoading(raceId + "_publish");
     try {
       await organizerService.publishResults(raceId);
       fetchRaces();
     } catch (err) {
-      alert(err.message || "Công bố thất bại");
+      alert(err.message || "Publish failed");
     } finally {
       setActionLoading("");
     }
@@ -140,7 +140,7 @@ export default function OrganizerResultsPage() {
   const publishedCount = races.filter((r) => r.resultStatus === "Published").length;
 
   return (
-    <AdminLayout title="Duyệt kết quả">
+    <AdminLayout title="Approve Results">
 
       {/* ── Page Header Banner ── */}
       <div className="page-header">
@@ -152,23 +152,23 @@ export default function OrganizerResultsPage() {
               <div className="w-7 h-7 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
                 <Award size={14} className="text-[#D4AF37]" />
               </div>
-              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Trưởng ban tổ chức</span>
+              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Organizer Lead</span>
             </div>
-            <h1 className="text-2xl font-black text-white leading-tight">Duyệt kết quả vòng đua</h1>
+            <h1 className="text-2xl font-black text-white leading-tight">Approve Race Results</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <span className="stat-pill"><span className="text-white font-bold">{races.length}</span> vòng đã kết thúc</span>
+              <span className="stat-pill"><span className="text-white font-bold">{races.length}</span> finished races</span>
               {pendingCount > 0 && (
                 <span className="stat-pill text-yellow-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {pendingCount} chờ duyệt
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {pendingCount} pending approval
                 </span>
               )}
-              {approvedCount > 0 && <span className="stat-pill text-blue-400">{approvedCount} đã duyệt</span>}
-              {publishedCount > 0 && <span className="stat-pill text-green-400">{publishedCount} đã công bố</span>}
+              {approvedCount > 0 && <span className="stat-pill text-blue-400">{approvedCount} approved</span>}
+              {publishedCount > 0 && <span className="stat-pill text-green-400">{publishedCount} published</span>}
             </div>
           </div>
           <button onClick={fetchRaces}
             className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all shrink-0">
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
         </div>
       </div>
@@ -178,10 +178,10 @@ export default function OrganizerResultsPage() {
         {!loading && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Chờ duyệt",  count: pendingCount,   icon: Clock,        cls: "text-yellow-400 neon-gold", bg: "bg-yellow-500/5", border: "border-yellow-500/15" },
-              { label: "Đã duyệt",   count: approvedCount,  icon: CheckCircle2, cls: "text-blue-400 neon-blue",   bg: "bg-blue-500/5",   border: "border-blue-500/15" },
-              { label: "Đã công bố", count: publishedCount, icon: Globe,        cls: "text-green-400 neon-green", bg: "bg-green-500/5",  border: "border-green-500/15" },
-              { label: "Từ chối",    count: races.filter(r => r.resultStatus === "Rejected").length, icon: XCircle, cls: "text-red-400", bg: "bg-red-500/5", border: "border-red-500/15" },
+              { label: "Pending",  count: pendingCount,   icon: Clock,        cls: "text-yellow-400 neon-gold", bg: "bg-yellow-500/5", border: "border-yellow-500/15" },
+              { label: "Approved",   count: approvedCount,  icon: CheckCircle2, cls: "text-blue-400 neon-blue",   bg: "bg-blue-500/5",   border: "border-blue-500/15" },
+              { label: "Published", count: publishedCount, icon: Globe,        cls: "text-green-400 neon-green", bg: "bg-green-500/5",  border: "border-green-500/15" },
+              { label: "Rejected",    count: races.filter(r => r.resultStatus === "Rejected").length, icon: XCircle, cls: "text-red-400", bg: "bg-red-500/5", border: "border-red-500/15" },
             ].map(({ label, count, icon: Icon, cls, bg, border }) => (
               <div key={label} className={`flex items-center gap-3 p-3.5 rounded-xl border ${bg} ${border} card-hover`}>
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${bg} border ${border}`}>
@@ -215,8 +215,8 @@ export default function OrganizerResultsPage() {
             <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/5 border border-[#D4AF37]/10 flex items-center justify-center mb-4 animate-float">
               <Trophy size={24} className="text-[#D4AF37]/30" />
             </div>
-            <p className="text-white font-semibold mb-1">Không có vòng đua nào cần duyệt kết quả</p>
-            <p className="text-sb-tx-3 text-sm">Các vòng đua kết thúc sẽ hiển thị ở đây</p>
+            <p className="text-white font-semibold mb-1">No races need result approval</p>
+            <p className="text-sb-tx-3 text-sm">Finished races will appear here</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -257,7 +257,7 @@ export default function OrganizerResultsPage() {
                         {race.distance && <span className="stat-pill">📏 {race.distance}m</span>}
                         {race.prizePool && (
                           <span className="text-xs font-bold text-[#D4AF37] neon-gold">
-                            💰 {Number(race.prizePool).toLocaleString("vi-VN")} VNĐ
+                            💰 {Number(race.prizePool).toLocaleString("vi-VN")} VND
                           </span>
                         )}
                       </div>
@@ -267,7 +267,7 @@ export default function OrganizerResultsPage() {
                     <div className="flex items-center gap-2 flex-wrap shrink-0">
                       <button onClick={() => navigate(`/organizer/races/${race.raceId}`)}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-gray-600 rounded-xl text-xs transition-all">
-                        <Eye size={12} /> Chi tiết
+                        <Eye size={12} /> Details
                       </button>
 
                       {isPending && (
@@ -275,11 +275,11 @@ export default function OrganizerResultsPage() {
                           <button onClick={() => handleApprove(race.raceId)} disabled={busy}
                             className="flex items-center gap-1.5 px-3 py-2 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-xl text-xs font-bold transition-all disabled:opacity-50">
                             {actionLoading === race.raceId + "_approve" ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
-                            Duyệt kết quả
+                            Approve Results
                           </button>
                           <button onClick={() => { setShowReject(race); setRejectReason(""); }} disabled={busy}
                             className="flex items-center gap-1.5 px-3 py-2 bg-red-600/10 border border-red-600/20 text-red-400 hover:bg-red-600/20 rounded-xl text-xs font-medium transition-all disabled:opacity-50">
-                            <XCircle size={12} /> Từ chối
+                            <XCircle size={12} /> Rejected
                           </button>
                         </>
                       )}
@@ -288,7 +288,7 @@ export default function OrganizerResultsPage() {
                         <button onClick={() => handlePublish(race.raceId)} disabled={busy}
                           className="flex items-center gap-1.5 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] rounded-xl text-xs font-bold transition-all disabled:opacity-50 btn-gold-glow">
                           {actionLoading === race.raceId + "_publish" ? <Loader2 size={12} className="animate-spin" /> : <Globe size={12} />}
-                          Công bố ngay
+                          Publish Now
                         </button>
                       )}
                     </div>
@@ -302,22 +302,22 @@ export default function OrganizerResultsPage() {
 
       {/* ── Reject Modal ── */}
       {showReject && (
-        <Modal title={`Từ chối kết quả: ${showReject.raceName}`} accentColor="rgb(239,68,68)" onClose={() => setShowReject(null)}>
-          <p className="text-sb-tx-3 text-sm mb-3">Vui lòng nhập lý do từ chối để trọng tài biết cần chỉnh sửa gì:</p>
+        <Modal title={`Reject Result: ${showReject.raceName}`} accentColor="rgb(239,68,68)" onClose={() => setShowReject(null)}>
+          <p className="text-sb-tx-3 text-sm mb-3">Please enter the rejection reason so the referee knows what to fix:</p>
           <textarea
             value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
-            placeholder="VD: Thiếu thời gian về đích của ngựa số 3..." rows={4}
+            placeholder="VD: Missing finish time for horse number 3..." rows={4}
             className={inputCls + " mb-4"}
           />
           <div className="flex gap-3">
             <button onClick={() => setShowReject(null)}
               className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">
-              Huỷ
+              Cancel
             </button>
             <button onClick={handleReject} disabled={!!actionLoading}
               className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
               {actionLoading.includes("_reject") && <Loader2 size={14} className="animate-spin" />}
-              Xác nhận từ chối
+              Confirm Rejection
             </button>
           </div>
         </Modal>

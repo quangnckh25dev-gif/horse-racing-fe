@@ -50,9 +50,9 @@ import ProfilePage from "./pages/ProfilePage";
 const UnauthorizedPage = () => (
   <div className="flex h-screen w-full items-center justify-center text-gray-900" style={{ background: "#FAFAF5" }}>
     <div className="text-center">
-      <h1 className="text-4xl font-bold text-red-500 mb-4">403 — Không có quyền truy cập</h1>
-      <p className="text-gray-500 mb-6 text-sm">Tài khoản của bạn không có quyền truy cập trang này.</p>
-      <a href="/login" className="text-[#D4AF37] hover:underline font-semibold">Quay về đăng nhập</a>
+      <h1 className="text-4xl font-bold text-red-500 mb-4">403 - Access Denied</h1>
+      <p className="text-gray-500 mb-6 text-sm">Your account does not have permission to access this page.</p>
+      <a href="/login" className="text-[#D4AF37] hover:underline font-semibold">Back to Login</a>
     </div>
   </div>
 );
@@ -67,7 +67,7 @@ const anyAuth = (element) => <PrivateRoute>{element}</PrivateRoute>;
 function LeaderboardRoute() {
   const { user } = useAuth();
   return user
-    ? <AdminLayout title="Bảng xếp hạng"><LeaderboardPage /></AdminLayout>
+    ? <AdminLayout title="Leaderboard"><LeaderboardPage /></AdminLayout>
     : <PublicLayout><LeaderboardPage /></PublicLayout>;
 }
 

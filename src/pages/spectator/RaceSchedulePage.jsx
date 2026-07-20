@@ -11,35 +11,35 @@ import { spectatorService } from "../../services/spectator";
 
 const STATUS_CONFIG = {
   Scheduled:        {
-    label: "Sắp diễn ra",  shortLabel: "SẮP",
+    label: "Scheduled",  shortLabel: "SOON",
     color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",
     borderCls: "border-l-blue-glow",
     cardBg: "from-blue-500/[0.06] to-transparent",
     icon: Clock, iconCls: "text-blue-400 bg-blue-500/10",
   },
   RegistrationOpen: {
-    label: "Mở đăng ký",   shortLabel: "REG",
+    label: "Registration Open",   shortLabel: "REG",
     color: "bg-purple-500/20 text-purple-300 border-purple-500/40",
     borderCls: "border-l-purple-glow",
     cardBg: "from-purple-500/[0.06] to-transparent",
     icon: Calendar, iconCls: "text-purple-400 bg-purple-500/10",
   },
   Ongoing: {
-    label: "Đang diễn ra", shortLabel: "LIVE",
+    label: "Ongoing", shortLabel: "LIVE",
     color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow",
     borderCls: "border-l-gold-glow",
     cardBg: "from-yellow-500/[0.07] to-transparent",
     icon: Zap, iconCls: "text-[#D4AF37] bg-[#D4AF37]/10",
   },
   Finished:   {
-    label: "Đã kết thúc",  shortLabel: "KT",
+    label: "Finished",  shortLabel: "DONE",
     color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",
     borderCls: "border-l-green-glow",
     cardBg: "from-green-500/[0.05] to-transparent",
     icon: CheckCircle2, iconCls: "text-green-400 bg-green-500/10",
   },
   Cancelled:  {
-    label: "Đã huỷ",       shortLabel: "HUỶ",
+    label: "Cancelled",       shortLabel: "CANCELLED",
     color: "bg-red-500/20 text-red-300 border-red-500/40",
     borderCls: "border-l-red-glow",
     cardBg: "from-red-500/[0.04] to-transparent",
@@ -48,11 +48,11 @@ const STATUS_CONFIG = {
 };
 
 const FILTER_TABS = [
-  { key: "all",              label: "Tất cả",       icon: null },
-  { key: "Scheduled",        label: "Sắp diễn ra",  icon: Clock },
-  { key: "RegistrationOpen", label: "Mở đăng ký",   icon: Calendar },
-  { key: "Ongoing",          label: "Đang diễn ra", icon: Zap },
-  { key: "Finished",         label: "Đã kết thúc",  icon: CheckCircle2 },
+  { key: "all",              label: "All",       icon: null },
+  { key: "Scheduled",        label: "Scheduled",  icon: Clock },
+  { key: "RegistrationOpen", label: "Registration Open",   icon: Calendar },
+  { key: "Ongoing",          label: "Ongoing", icon: Zap },
+  { key: "Finished",         label: "Finished",  icon: CheckCircle2 },
 ];
 
 export default function RaceSchedulePage() {
@@ -89,7 +89,7 @@ export default function RaceSchedulePage() {
       const res = await spectatorService.getRaces();
       setRaces(res.data || []);
     } catch (e) {
-      setError(e.message || "Không thể tải lịch thi đấu");
+      setError(e.message || "Unable to load race schedule");
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export default function RaceSchedulePage() {
   };
 
   return (
-    <AdminLayout title="Lịch thi đấu">
+    <AdminLayout title="Race Schedule">
 
       {/* ── Page Header Banner ── */}
       <div className="page-header">
@@ -125,22 +125,22 @@ export default function RaceSchedulePage() {
               <div className="w-7 h-7 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
                 <Calendar size={14} className="text-[#D4AF37]" />
               </div>
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Khán giả</span>
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Spectator</span>
             </div>
-            <h1 className="text-2xl font-black text-white leading-tight">Lịch thi đấu</h1>
+            <h1 className="text-2xl font-black text-white leading-tight">Race Schedule</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <span className="stat-pill"><span className="text-white font-bold">{races.length}</span> vòng đua</span>
+              <span className="stat-pill"><span className="text-white font-bold">{races.length}</span> races</span>
               {counts.Ongoing > 0 && (
                 <span className="stat-pill text-yellow-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {counts.Ongoing} ĐANG LIVE
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {counts.Ongoing} LIVE
                 </span>
               )}
-              {(counts.Scheduled + counts.RegistrationOpen) > 0 && <span className="stat-pill text-blue-400">{counts.Scheduled + counts.RegistrationOpen} sắp tới</span>}
+              {(counts.Scheduled + counts.RegistrationOpen) > 0 && <span className="stat-pill text-blue-400">{counts.Scheduled + counts.RegistrationOpen} upcoming</span>}
             </div>
           </div>
           <button onClick={fetchRaces}
             className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] border border-gray-700/60 rounded-xl text-gray-400 hover:text-white text-sm transition-all shrink-0">
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
         </div>
       </div>
@@ -150,11 +150,11 @@ export default function RaceSchedulePage() {
         {/* ── Mini stat strip ── */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
-            { key: "Scheduled",        label: "Sắp diễn ra",  num: counts.Scheduled,        cls: "text-blue-400",    border: "border-blue-500/20",    bg: "bg-blue-500/5",    icon: Clock },
-            { key: "RegistrationOpen", label: "Mở đăng ký",   num: counts.RegistrationOpen, cls: "text-purple-400",  border: "border-purple-500/20",  bg: "bg-purple-500/5",  icon: Calendar },
-            { key: "Ongoing",          label: "Đang diễn ra", num: counts.Ongoing,          cls: "text-[#D4AF37] neon-gold", border: "border-[#D4AF37]/25", bg: "bg-[#D4AF37]/5", icon: Zap },
-            { key: "Finished",         label: "Đã kết thúc",  num: counts.Finished,         cls: "text-green-400",   border: "border-green-500/20",   bg: "bg-green-500/5",   icon: CheckCircle2 },
-            { key: "Cancelled",        label: "Đã huỷ",       num: counts.Cancelled,        cls: "text-red-400",     border: "border-red-500/20",     bg: "bg-red-500/5",     icon: XCircle },
+            { key: "Scheduled",        label: "Scheduled",  num: counts.Scheduled,        cls: "text-blue-400",    border: "border-blue-500/20",    bg: "bg-blue-500/5",    icon: Clock },
+            { key: "RegistrationOpen", label: "Registration Open",   num: counts.RegistrationOpen, cls: "text-purple-400",  border: "border-purple-500/20",  bg: "bg-purple-500/5",  icon: Calendar },
+            { key: "Ongoing",          label: "Ongoing", num: counts.Ongoing,          cls: "text-[#D4AF37] neon-gold", border: "border-[#D4AF37]/25", bg: "bg-[#D4AF37]/5", icon: Zap },
+            { key: "Finished",         label: "Finished",  num: counts.Finished,         cls: "text-green-400",   border: "border-green-500/20",   bg: "bg-green-500/5",   icon: CheckCircle2 },
+            { key: "Cancelled",        label: "Cancelled",       num: counts.Cancelled,        cls: "text-red-400",     border: "border-red-500/20",     bg: "bg-red-500/5",     icon: XCircle },
           ].map(({ key, label, num, cls, border, bg, icon: Icon }) => (
             <button key={key} onClick={() => setFilterStatus(filterStatus === key ? "all" : key)}
               className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left card-hover ${
@@ -177,7 +177,7 @@ export default function RaceSchedulePage() {
             <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
             <input
               value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm kiếm vòng đua..."
+              placeholder="Search races..."
               className="w-full bg-[#0d1117] border border-gray-800/60 rounded-xl pl-9 pr-4 py-2.5 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#D4AF37]/40 transition-all" />
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -214,8 +214,8 @@ export default function RaceSchedulePage() {
             <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/5 border border-[#D4AF37]/10 flex items-center justify-center mb-4 animate-float">
               <Calendar size={24} className="text-[#D4AF37]/30" />
             </div>
-            <p className="text-white font-semibold mb-1">Không tìm thấy vòng đua nào</p>
-            <p className="text-gray-500 text-sm">{search ? `Không có kết quả cho "${search}"` : "Chưa có vòng đua nào"}</p>
+            <p className="text-white font-semibold mb-1">No races found</p>
+            <p className="text-gray-500 text-sm">{search ? `No results for "${search}"` : "No races yet"}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -260,7 +260,7 @@ export default function RaceSchedulePage() {
                         {race.distance && <span className="stat-pill">📏 {race.distance}m</span>}
                         {race.prizePool && (
                           <span className="text-xs font-bold text-[#D4AF37] neon-gold">
-                            💰 {Number(race.prizePool).toLocaleString("vi-VN")} VNĐ
+                            💰 {Number(race.prizePool).toLocaleString("vi-VN")} VND
                           </span>
                         )}
                       </div>
@@ -271,18 +271,18 @@ export default function RaceSchedulePage() {
                       {(race.status === "Scheduled" || race.status === "RegistrationOpen") && (
                         <button onClick={() => navigate("/spectator/betting")}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded-xl text-xs font-semibold transition-all">
-                          <Star size={11} /> Đặt cược
+                          <Star size={11} /> Betting
                         </button>
                       )}
                       {race.status === "Ongoing" && (
                         <span className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 rounded-xl text-xs font-bold">
-                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" /> ĐANG LIVE
+                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot" /> LIVE
                         </span>
                       )}
                       {race.status === "Finished" && (
                         <button onClick={() => openResults(race)}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-xl text-xs font-semibold transition-all">
-                          <Trophy size={11} /> Kết quả
+                          <Trophy size={11} /> Results
                         </button>
                       )}
                     </div>
@@ -301,13 +301,13 @@ export default function RaceSchedulePage() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/60 shrink-0">
               <div>
                 <h3 className="text-white font-bold">{showResults.raceName}</h3>
-                <p className="text-gray-500 text-xs mt-0.5">Kết quả chính thức</p>
+                <p className="text-gray-500 text-xs mt-0.5">Official Results</p>
               </div>
               <div className="flex items-center gap-2">
                 {results.length > 0 && (
                   <button onClick={() => setReplayOpen(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sb-emerald text-white text-xs font-bold hover:opacity-90 transition-opacity">
-                    ▶ Xem lại đường đua
+                    ▶ Race Replay
                   </button>
                 )}
                 <button onClick={() => setShowResults(null)}
@@ -324,7 +324,7 @@ export default function RaceSchedulePage() {
               ) : results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
                   <Trophy size={28} className="text-gray-600 mb-3" />
-                  <p className="text-gray-400 text-sm">Kết quả chưa được công bố</p>
+                  <p className="text-gray-400 text-sm">Results have not been published</p>
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -358,7 +358,7 @@ export default function RaceSchedulePage() {
                         "bg-white/[0.03] text-gray-500 border-gray-700/40"
                       }`}>{r.position ?? "—"}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-semibold text-sm">{r.horseName || `Ngựa #${r.horseId}`}</p>
+                        <p className="text-white font-semibold text-sm">{r.horseName || `Horse #${r.horseId}`}</p>
                         <p className="text-gray-500 text-xs">🏇 {r.jockeyName || "—"}{r.finishTime ? ` · ⏱ ${r.finishTime}` : ""}</p>
                       </div>
                     </div>

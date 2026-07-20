@@ -8,11 +8,11 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { spectatorService } from "../../services/spectator";
 
 const STATUS_CONFIG = {
-  Scheduled:        { label: "Sắp diễn ra",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",       borderCls: "border-l-blue-glow",   icon: Clock,        iconCls: "text-blue-400 bg-blue-500/10"    },
-  RegistrationOpen: { label: "Mở đăng ký",   color: "bg-purple-500/20 text-purple-300 border-purple-500/40",                 borderCls: "border-l-purple-glow", icon: Calendar,     iconCls: "text-purple-400 bg-purple-500/10" },
-  Ongoing:          { label: "Đang diễn ra", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", borderCls: "border-l-gold-glow",   icon: Zap,          iconCls: "text-[#D4AF37] bg-[#D4AF37]/10"  },
-  Finished:         { label: "Đã kết thúc",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",   borderCls: "border-l-green-glow",  icon: CheckCircle2, iconCls: "text-green-400 bg-green-500/10"   },
-  Cancelled:        { label: "Đã huỷ",       color: "bg-red-500/20 text-red-300 border-red-500/40",                          borderCls: "border-l-red-glow",    icon: Flag,         iconCls: "text-red-400 bg-red-500/10"       },
+  Scheduled:        { label: "Scheduled",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",       borderCls: "border-l-blue-glow",   icon: Clock,        iconCls: "text-blue-400 bg-blue-500/10"    },
+  RegistrationOpen: { label: "Registration Open",   color: "bg-purple-500/20 text-purple-300 border-purple-500/40",                 borderCls: "border-l-purple-glow", icon: Calendar,     iconCls: "text-purple-400 bg-purple-500/10" },
+  Ongoing:          { label: "Ongoing", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", borderCls: "border-l-gold-glow",   icon: Zap,          iconCls: "text-[#D4AF37] bg-[#D4AF37]/10"  },
+  Finished:         { label: "Finished",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",   borderCls: "border-l-green-glow",  icon: CheckCircle2, iconCls: "text-green-400 bg-green-500/10"   },
+  Cancelled:        { label: "Cancelled",       color: "bg-red-500/20 text-red-300 border-red-500/40",                          borderCls: "border-l-red-glow",    icon: Flag,         iconCls: "text-red-400 bg-red-500/10"       },
 };
 
 export default function RefereeRacesPage() {
@@ -28,7 +28,7 @@ export default function RefereeRacesPage() {
       const res = await spectatorService.getAssignedRaces();
       setRaces(res.data || []);
     } catch (e) {
-      setError(e.message || "Không thể tải vòng đua");
+      setError(e.message || "Unable to load races");
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,7 @@ export default function RefereeRacesPage() {
   };
 
   return (
-    <AdminLayout title="Vòng đua của tôi">
+    <AdminLayout title="My Races">
 
       {/* ── Page Header Banner ── */}
       <div className="page-header">
@@ -58,22 +58,22 @@ export default function RefereeRacesPage() {
               <div className="w-7 h-7 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
                 <ClipboardList size={14} className="text-yellow-400" />
               </div>
-              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Trọng tài</span>
+              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Referee</span>
             </div>
-            <h1 className="text-2xl font-black text-white leading-tight">Vòng đua của tôi</h1>
+            <h1 className="text-2xl font-black text-white leading-tight">My Races</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <span className="stat-pill"><span className="text-white font-bold">{races.length}</span> vòng đua</span>
+              <span className="stat-pill"><span className="text-white font-bold">{races.length}</span> races</span>
               {counts.Ongoing > 0 && (
                 <span className="stat-pill text-yellow-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {counts.Ongoing} ĐANG LIVE
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {counts.Ongoing} LIVE
                 </span>
               )}
-              {(counts.Scheduled + counts.RegistrationOpen) > 0 && <span className="stat-pill text-blue-400">{counts.Scheduled + counts.RegistrationOpen} sắp tới</span>}
+              {(counts.Scheduled + counts.RegistrationOpen) > 0 && <span className="stat-pill text-blue-400">{counts.Scheduled + counts.RegistrationOpen} upcoming</span>}
             </div>
           </div>
           <button onClick={fetchRaces}
             className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all shrink-0">
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function RefereeRacesPage() {
         {/* ── Filter ── */}
         <div className="flex gap-2 flex-wrap">
           {[
-            { key: "all",              label: "Tất cả", count: races.length },
+            { key: "all",              label: "All", count: races.length },
             { key: "Scheduled",        count: counts.Scheduled },
             { key: "RegistrationOpen", count: counts.RegistrationOpen },
             { key: "Ongoing",          count: counts.Ongoing },
@@ -120,8 +120,8 @@ export default function RefereeRacesPage() {
             <div className="w-16 h-16 rounded-2xl bg-yellow-500/5 border border-yellow-500/10 flex items-center justify-center mb-4 animate-float">
               <Flag size={24} className="text-yellow-500/30" />
             </div>
-            <p className="text-white font-semibold mb-1">Không có vòng đua nào</p>
-            <p className="text-sb-tx-3 text-sm">Bạn chưa được phân công vào vòng đua nào</p>
+            <p className="text-white font-semibold mb-1">No races</p>
+            <p className="text-sb-tx-3 text-sm">You have not been assigned to any races</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -176,7 +176,7 @@ export default function RefereeRacesPage() {
                           ? "bg-[#D4AF37] text-[#0A0E1A] btn-gold-glow"
                           : "bg-[#D4AF37]/10 border border-[#D4AF37]/25 text-[#D4AF37] hover:bg-[#D4AF37]/20"
                       }`}>
-                      <Eye size={14} /> {isLive ? "Nhập liệu ngay" : "Vào nhập liệu"}
+                      <Eye size={14} /> {isLive ? "Enter Data Now" : "Enter Data"}
                     </button>
                   </div>
                 </div>

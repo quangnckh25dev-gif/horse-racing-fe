@@ -11,7 +11,7 @@ import { entryService } from "../../services/entry";
 
 const STATUS_CONFIG = {
   Pending:  {
-    label: "Chờ phản hồi",
+    label: "Pending Response",
     color: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd",
     borderCls: "border-l-4 border-l-yellow-400",
     icon: Clock,
@@ -20,7 +20,7 @@ const STATUS_CONFIG = {
     border: "border-sb-gold-bd",
   },
   Accepted: {
-    label: "Đã chấp nhận",
+    label: "Accepted",
     color: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd",
     borderCls: "border-l-4 border-l-green-400",
     icon: CheckCircle2,
@@ -29,7 +29,7 @@ const STATUS_CONFIG = {
     border: "border-sb-emerald-bd",
   },
   Declined: {
-    label: "Đã từ chối",
+    label: "Declined",
     color: "bg-sb-lose/10 text-sb-lose border-sb-lose/30",
     borderCls: "border-l-4 border-l-red-400",
     icon: XCircle,
@@ -87,7 +87,7 @@ export default function OwnerInvitationsPage() {
       const res = await invitationService.getSentInvitations();
       setInvitations(res.data || []);
     } catch (e) {
-      setError(e.message || "Không thể tải lời mời");
+      setError(e.message || "Unable to load invitations");
     } finally {
       setLoading(false);
     }
@@ -108,26 +108,26 @@ export default function OwnerInvitationsPage() {
       setEntries(entryRes.data || []);
       setJockeys(jockeyRes.data || []);
     } catch (e) {
-      setModalError(e.message || "Không thể tải dữ liệu");
+      setModalError(e.message || "Unable to load data");
     } finally {
       setModalLoading(false);
     }
   };
 
   const handleSend = async () => {
-    if (!selectedEntry)  { setModalError("Vui lòng chọn entry (đăng ký thi đấu)"); return; }
-    if (!selectedJockey) { setModalError("Vui lòng chọn Jockey"); return; }
+    if (!selectedEntry)  { setModalError("Please select a race entry"); return; }
+    if (!selectedJockey) { setModalError("Please select a jockey"); return; }
     setSending(true); setModalError(""); setModalSuccess("");
     try {
       await invitationService.sendInvitation(Number(selectedEntry), {
         jockeyId: Number(selectedJockey),
         message: message.trim() || undefined,
       });
-      setModalSuccess("Gửi lời mời thành công!");
+      setModalSuccess("Send Invitation thành công!");
       setSelectedEntry(""); setSelectedJockey(""); setMessage("");
       fetchInvitations();
     } catch (e) {
-      setModalError(e.message || "Gửi lời mời thất bại");
+      setModalError(e.message || "Failed to send invitation");
     } finally {
       setSending(false);
     }
@@ -140,23 +140,23 @@ export default function OwnerInvitationsPage() {
     Cancelled: invitations.filter((i) => i.status === "Cancelled").length,
   };
 
-  // Thu hồi lời mời đang chờ phản hồi
+  // Withdraw lời mời đang pending responses
   const [cancelBusy, setCancelBusy] = useState(null);
   const handleCancel = async (inv) => {
-    if (!(await confirmBox(`Thu hồi lời mời gửi ${inv.jockeyName || "jockey này"}?`, { okText: "Thu hồi", danger: true }))) return;
+    if (!(await confirmBox(`Withdraw invitation sent to ${inv.jockeyName || "this jockey"}?`, { okText: "Withdraw", danger: true }))) return;
     setCancelBusy(inv.invitationId);
     try {
       await invitationService.cancelInvitation(inv.invitationId);
       fetchInvitations();
     } catch (e) {
-      alert(e.message || "Thu hồi thất bại");
+      alert(e.message || "Withdraw thất bại");
     } finally {
       setCancelBusy(null);
     }
   };
 
   return (
-    <AdminLayout title="Lời mời Jockey">
+    <AdminLayout title="Jockey Invitations">
 
       {/* ── Page Header ── */}
       <div className="relative p-6 pb-5 border-b border-sb-border bg-sb-s1 overflow-hidden">
@@ -167,21 +167,21 @@ export default function OwnerInvitationsPage() {
               <div className="w-7 h-7 rounded-lg bg-pink-500/10 border border-pink-500/30 flex items-center justify-center">
                 <Send size={14} className="text-pink-400" />
               </div>
-              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Chủ ngựa</span>
+              <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Horse Owner</span>
             </div>
-            <h1 className="text-2xl font-black text-sb-tx leading-tight">Lời mời Jockey</h1>
+            <h1 className="text-2xl font-black text-sb-tx leading-tight">Jockey Invitations</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs font-semibold">
                 <span className="font-bold text-sb-tx mr-1">{invitations.length}</span> đã gửi
               </span>
               {counts.Pending > 0 && (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2 text-xs font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" /> {counts.Pending} chờ phản hồi
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" /> {counts.Pending} pending responses
                 </span>
               )}
               {counts.Accepted > 0 && (
                 <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-sb-emerald-soft border border-sb-emerald-bd text-sb-emerald-ink text-xs font-semibold">
-                  {counts.Accepted} đã chấp nhận
+                  {counts.Accepted} accepted
                 </span>
               )}
             </div>
@@ -189,11 +189,11 @@ export default function OwnerInvitationsPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={fetchInvitations}
               className="flex items-center gap-2 px-3 py-2 bg-sb-s1 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-info hover:border-blue-300 hover:bg-sb-info/10 text-sm transition-all">
-              <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
+              <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
             </button>
             <button onClick={openModal}
               className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm rounded-xl transition-colors">
-              <Plus size={14} /> Gửi lời mời
+              <Plus size={14} /> Send Invitation
             </button>
           </div>
         </div>
@@ -239,11 +239,11 @@ export default function OwnerInvitationsPage() {
             <div className="w-20 h-20 rounded-2xl bg-pink-500/10 border border-pink-100 flex items-center justify-center mb-4">
               <Mail size={32} className="text-pink-300" />
             </div>
-            <p className="text-sb-tx-2 font-semibold mb-1">Chưa có lời mời nào</p>
-            <p className="text-sb-tx-3 text-sm mb-4">Nhấn "Gửi lời mời" để mời Jockey tham gia cùng ngựa của bạn</p>
+            <p className="text-sb-tx-2 font-semibold mb-1">No invitations yet</p>
+            <p className="text-sb-tx-3 text-sm mb-4">Click "Send Invitation" to invite a jockey to race with your horse</p>
             <button onClick={openModal}
               className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm rounded-xl transition-colors">
-              <Plus size={14} /> Gửi lời mời đầu tiên
+              <Plus size={14} /> Send Invitation đầu tiên
             </button>
           </div>
         ) : (
@@ -302,7 +302,7 @@ export default function OwnerInvitationsPage() {
                       <button onClick={() => handleCancel(inv)} disabled={cancelBusy === inv.invitationId}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20 text-xs font-bold disabled:opacity-50 transition-colors shrink-0">
                         {cancelBusy === inv.invitationId ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={12} />}
-                        Thu hồi lời mời
+                        Withdraw lời mời
                       </button>
                     ) : (
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${cfg.bg} ${cfg.border}`}>
@@ -319,7 +319,7 @@ export default function OwnerInvitationsPage() {
 
       {/* ── Send Invitation Modal ── */}
       {showModal && (
-        <Modal title="Gửi lời mời Jockey" onClose={() => setShowModal(false)}>
+        <Modal title="Send Invitation Jockey" onClose={() => setShowModal(false)}>
           {modalLoading ? (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="animate-spin text-sb-info" size={28} />
@@ -340,49 +340,49 @@ export default function OwnerInvitationsPage() {
               {/* Entry select */}
               <div>
                 <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-2">
-                  Đăng ký thi đấu (đã được BTC duyệt)
+                  Race Registration (đã được BTC duyệt)
                 </label>
                 <div className="relative">
                   <select value={selectedEntry} onChange={(e) => setSelectedEntry(e.target.value)} className={selectCls}>
                     <option value="">-- Chọn entry --</option>
                     {entries.map((en) => (
                       <option key={en.entryId} value={en.entryId}>
-                        {en.horseName || `Ngựa #${en.horseId}`} — {en.raceName || `Race #${en.raceId}`}
+                        {en.horseName || `Horse #${en.horseId}`} — {en.raceName || `Race #${en.raceId}`}
                       </option>
                     ))}
                   </select>
                   <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-sb-tx-3 pointer-events-none" />
                 </div>
                 {entries.length === 0 && (
-                  <p className="text-sb-tx-3 text-xs mt-1">Chưa có đăng ký nào được BTC duyệt. Hãy đăng ký và chờ ban tổ chức xét duyệt.</p>
+                  <p className="text-sb-tx-3 text-xs mt-1">No registrations yet được BTC duyệt. Hãy registrations và chờ ban tổ chức xét duyệt.</p>
                 )}
               </div>
 
               {/* Jockey select */}
               <div>
                 <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-2">
-                  <span className="flex items-center gap-1.5"><Users size={12} /> Chọn Jockey</span>
+                  <span className="flex items-center gap-1.5"><Users size={12} /> Select Jockey</span>
                 </label>
                 <div className="relative">
                   <select value={selectedJockey} onChange={(e) => setSelectedJockey(e.target.value)} className={selectCls}>
-                    <option value="">-- Chọn Jockey --</option>
+                    <option value="">-- Select Jockey --</option>
                     {jockeys.map((j) => (
                       <option key={j.jockeyId} value={j.jockeyId}>
-                        {j.fullName || j.username} {j.experienceYear ? `(${j.experienceYear} năm KN)` : ""}
+                        {j.fullName || j.username} {j.experienceYear ? `(${j.experienceYear} years exp.)` : ""}
                       </option>
                     ))}
                   </select>
                   <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-sb-tx-3 pointer-events-none" />
                 </div>
                 {jockeys.length === 0 && (
-                  <p className="text-sb-tx-3 text-xs mt-1">Không tìm thấy Jockey nào trong hệ thống.</p>
+                  <p className="text-sb-tx-3 text-xs mt-1">No jockeys found in the system.</p>
                 )}
               </div>
 
               {/* Message */}
               <div>
                 <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-2">
-                  Tin nhắn (tuỳ chọn)
+                  Tin nhắn (optional)
                 </label>
                 <textarea
                   rows={3}
@@ -398,7 +398,7 @@ export default function OwnerInvitationsPage() {
                   onClick={() => setShowModal(false)}
                   className="flex-1 h-10 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-sb-border-2 text-sm font-semibold transition-colors"
                 >
-                  Huỷ
+                  Cancel
                 </button>
                 <button
                   onClick={handleSend}
@@ -406,7 +406,7 @@ export default function OwnerInvitationsPage() {
                   className="flex-1 h-10 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
                 >
                   {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                  Gửi lời mời
+                  Send Invitation
                 </button>
               </div>
             </div>

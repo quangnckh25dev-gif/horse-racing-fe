@@ -6,12 +6,12 @@ import { notificationService } from "../../services/notification";
 import MinutesViewer from "../sb/MinutesViewer";
 
 const ROLE_LABEL = {
-  Admin:      "Quản trị viên",
-  Organizer:  "Ban tổ chức",
-  HorseOwner: "Chủ ngựa",
-  Jockey:     "Nài ngựa",
-  Referee:    "Trọng tài",
-  Spectator:  "Khán giả",
+  Admin:      "Administrator",
+  Organizer:  "Organizer",
+  HorseOwner: "Horse Owner",
+  Jockey:     "Jockey",
+  Referee:    "Referee",
+  Spectator:  "Spectator",
 };
 
 const NOTIF_TYPE_CONFIG = {
@@ -26,10 +26,10 @@ function formatRelativeTime(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   const mins = Math.floor((Date.now() - d.getTime()) / 60000);
-  if (mins < 1)  return "Vừa xong";
-  if (mins < 60) return `${mins} phút trước`;
+  if (mins < 1)  return "Just now";
+  if (mins < 60) return `${mins} minutes ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} giờ trước`;
+  if (hours < 24) return `${hours} hours ago`;
   return d.toLocaleDateString("vi-VN");
 }
 
@@ -40,7 +40,7 @@ function normalizeNotif(n) {
     /biên bản|kết quả/i.test(n.title || "");
   return {
     id: n.notificationId,
-    text: n.title || n.body || "Thông báo mới",
+    text: n.title || n.body || "New notification",
     type: n.notifType,
     relatedEntity: n.relatedEntity,
     time: formatRelativeTime(n.createdAt),
@@ -94,7 +94,7 @@ export default function Topbar({ title }) {
       navigate(`/referee/races/${n.raceId}`);
       return;
     }
-    // Thông báo về biên bản/kết quả → mở luôn để xem
+    // Notifications về biên bản/kết quả → mở luôn để xem
     if (n.raceId) { setViewMinutes({ raceId: n.raceId, raceName: n.text }); setBellOpen(false); }
   };
 
@@ -127,7 +127,7 @@ export default function Topbar({ title }) {
                 <div className="flex items-center justify-between px-4 py-3 border-b border-sb-border">
                   <div className="flex items-center gap-2">
                     <Bell size={13} className="text-sb-emerald-ink" />
-                    <span className="text-sb-tx text-sm font-bold">Thông báo</span>
+                    <span className="text-sb-tx text-sm font-bold">Notifications</span>
                     {unreadCount > 0 && (
                       <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-sb-emerald-soft text-sb-emerald-ink border border-sb-emerald-bd">
                         {unreadCount} mới
@@ -137,7 +137,7 @@ export default function Topbar({ title }) {
                   <div className="flex items-center gap-2">
                     {unreadCount > 0 && (
                       <button onClick={markAllRead} className="text-[10px] text-sb-tx-3 hover:text-sb-tx transition-colors">
-                        Đọc tất cả
+                        Mark all as read
                       </button>
                     )}
                     <button onClick={() => { setNotifLoaded(false); fetchNotifications(); }}
@@ -149,7 +149,7 @@ export default function Topbar({ title }) {
                   {notifications.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <Bell size={22} className="text-sb-tx-3 mb-2 opacity-50" />
-                      <p className="text-sb-tx-3 text-xs">Không có thông báo</p>
+                      <p className="text-sb-tx-3 text-xs">No notifications</p>
                     </div>
                   ) : (
                     <div className="p-1.5 space-y-0.5">
@@ -216,16 +216,16 @@ export default function Topbar({ title }) {
                   {HAS_PROFILE.includes(role) && (
                     <button onClick={() => { closeBoth(); navigate("/profile"); }}
                       className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm text-sb-tx-2 hover:text-sb-tx hover:bg-sb-s2 transition-colors">
-                      <User size={14} /> Hồ sơ cá nhân
+                      <User size={14} /> Profile
                     </button>
                   )}
                   <button onClick={() => { closeBoth(); navigate("/change-password"); }}
                     className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm text-sb-tx-2 hover:text-sb-tx hover:bg-sb-s2 transition-colors">
-                    <KeyRound size={14} /> Đổi mật khẩu
+                    <KeyRound size={14} /> Change Password
                   </button>
                   <button onClick={() => { closeBoth(); logout(); navigate("/"); }}
                     className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-sm text-sb-tx-3 hover:text-sb-lose hover:bg-sb-lose/10 transition-colors">
-                    <LogOut size={14} /> Đăng xuất
+                    <LogOut size={14} /> Logout
                   </button>
                 </div>
               </div>

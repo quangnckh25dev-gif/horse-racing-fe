@@ -11,7 +11,7 @@ const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 const STATUS = {
   Pending: { label: "Cho duyet", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd", icon: Clock3 },
   Approved: { label: "Da duyet", cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", icon: CheckCircle2 },
-  Rejected: { label: "Tu choi", cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30", icon: XCircle },
+  Rejected: { label: "Reject", cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30", icon: XCircle },
 };
 
 function StatusBadge({ status }) {
@@ -28,7 +28,7 @@ function RejectModal({ request, busy, onClose, onSubmit }) {
   const [note, setNote] = useState("");
 
   return (
-    <SbModal title="Tu choi yeu cau nap" subtitle={`Request #${request.depositRequestId}`} tone="danger" onClose={busy ? undefined : onClose}>
+    <SbModal title="Reject Deposit Request" subtitle={`Request #${request.depositRequestId}`} tone="danger" onClose={busy ? undefined : onClose}>
       <div className="space-y-4">
         <div className="rounded-xl bg-sb-s2 border border-sb-border p-3 text-sm">
           <p className="text-sb-tx font-bold">{fmt(request.amount)} VND</p>
@@ -38,15 +38,15 @@ function RejectModal({ request, busy, onClose, onSubmit }) {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={4}
-          placeholder="Nhap ly do tu choi..."
+          placeholder="Enter rejection reason..."
           className="w-full rounded-xl bg-sb-s1 border border-sb-border px-3 py-2 text-sm text-sb-tx outline-none focus:border-sb-lose"
         />
         <div className="flex gap-3">
           <button onClick={onClose} disabled={busy} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm disabled:opacity-50">
-            Huy
+            Cancel
           </button>
           <button onClick={() => onSubmit(note)} disabled={busy} className="flex-1 py-2.5 rounded-xl bg-sb-lose text-white font-bold text-sm disabled:opacity-50">
-            {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : "Tu choi"}
+            {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : "Reject"}
           </button>
         </div>
       </div>
@@ -69,7 +69,7 @@ export default function DepositRequestsPage() {
       const res = await adminService.getDepositRequests();
       setItems(res.data || []);
     } catch (e) {
-      setError(e.message || "Khong the tai danh sach yeu cau nap tien");
+      setError(e.message || "Unable to load deposit requests");
     } finally {
       setLoading(false);
     }
@@ -83,10 +83,10 @@ export default function DepositRequestsPage() {
     setSuccess("");
     try {
       await adminService.approveDepositRequest(req.depositRequestId);
-      setSuccess(`Da duyet yeu cau #${req.depositRequestId} va cong ${fmt(req.amount)} VND vao vi.`);
+      setSuccess(`Approved request #${req.depositRequestId} and credited ${fmt(req.amount)} VND to wallet.`);
       await load();
     } catch (e) {
-      setError(e.message || "Duyet yeu cau that bai");
+      setError(e.message || "Failed to approve request");
     } finally {
       setBusyId(null);
     }
@@ -99,11 +99,11 @@ export default function DepositRequestsPage() {
     setSuccess("");
     try {
       await adminService.rejectDepositRequest(rejecting.depositRequestId, note);
-      setSuccess(`Da tu choi yeu cau #${rejecting.depositRequestId}.`);
+      setSuccess(`Rejected request #${rejecting.depositRequestId}.`);
       setRejecting(null);
       await load();
     } catch (e) {
-      setError(e.message || "Tu choi yeu cau that bai");
+      setError(e.message || "Failed to reject request");
     } finally {
       setBusyId(null);
     }
@@ -112,15 +112,15 @@ export default function DepositRequestsPage() {
   const pendingCount = items.filter((x) => x.status === "Pending").length;
 
   return (
-    <AdminLayout title="Duyet nap tien">
+    <AdminLayout title="Approve Deposits">
       <SbPageHeader
         eyebrow="Admin"
-        title="Duyet nap tien"
+        title="Approve Deposits"
         icon={Wallet}
-        stats={[`${items.length} yeu cau`, `${pendingCount} cho duyet`]}
+        stats={[`${items.length} yeu cau`, `${pendingCount} pending`]}
         actions={
           <button onClick={load} disabled={loading} className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm disabled:opacity-50">
-            <RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Lam moi
+            <RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
         }
       />
@@ -129,7 +129,7 @@ export default function DepositRequestsPage() {
         {error && <SbAlert tone="error">{error}</SbAlert>}
         {success && <SbAlert tone="success">{success}</SbAlert>}
         {loading ? <SbSpinner /> : items.length === 0 ? (
-          <SbEmpty icon="VND" title="Chua co yeu cau nap tien" hint="Yeu cau moi tu nguoi dung se hien thi tai day" />
+          <SbEmpty icon="VND" title="No deposit requests yet" hint="New user requests will appear here" />
         ) : (
           <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
             <div className="overflow-x-auto">
@@ -138,10 +138,10 @@ export default function DepositRequestsPage() {
                   <tr>
                     <th className="px-5 py-3 text-left">Request</th>
                     <th className="px-5 py-3 text-left">User / Wallet</th>
-                    <th className="px-5 py-3 text-left">Thanh toan</th>
-                    <th className="px-5 py-3 text-right">So tien</th>
-                    <th className="px-5 py-3 text-left">Trang thai</th>
-                    <th className="px-5 py-3 text-right">Thao tac</th>
+                    <th className="px-5 py-3 text-left">Payment</th>
+                    <th className="px-5 py-3 text-right">Amount</th>
+                    <th className="px-5 py-3 text-left">Status</th>
+                    <th className="px-5 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-sb-border">
@@ -174,14 +174,14 @@ export default function DepositRequestsPage() {
                               disabled={!isPending || busy}
                               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-emerald text-white text-xs font-bold disabled:opacity-40"
                             >
-                              {busy ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />} Duyet
+                              {busy ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />} Approve
                             </button>
                             <button
                               onClick={() => setRejecting(req)}
                               disabled={!isPending || busy}
                               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-lose text-white text-xs font-bold disabled:opacity-40"
                             >
-                              <XCircle size={13} /> Tu choi
+                              <XCircle size={13} /> Reject
                             </button>
                           </div>
                         </td>

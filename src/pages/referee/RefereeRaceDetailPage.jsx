@@ -11,9 +11,9 @@ import { raceResultService } from "../../services/raceResult";
 import { spectatorService } from "../../services/spectator";
 
 const TABS = [
-  { id: "results",    label: "Kết quả vòng đua", icon: Award },
-  { id: "violations", label: "Vi phạm",           icon: AlertTriangle },
-  { id: "minutes",    label: "Biên bản",           icon: FileText },
+  { id: "results",    label: "Race Results", icon: Award },
+  { id: "violations", label: "Violations",           icon: AlertTriangle },
+  { id: "minutes",    label: "Minutes",           icon: FileText },
 ];
 
 function Modal({ title, onClose, children }) {
@@ -46,9 +46,9 @@ function PreRaceCheckPanel({ entries, checked, onChange }) {
             <ClipboardCheck size={18} className="text-[#D4AF37]" />
           </div>
           <div>
-            <h2 className="text-white font-bold text-base">Kiểm tra trước đua</h2>
+            <h2 className="text-white font-bold text-base">Pre-Race Check</h2>
             <p className="text-sb-tx-3 text-sm mt-1">
-              Chỉ các đăng ký đã được duyệt và có jockey mới được nhập kết quả hoặc ghi vi phạm.
+              Only approved registrations with jockeys can have results or violations recorded.
             </p>
           </div>
         </div>
@@ -63,13 +63,13 @@ function PreRaceCheckPanel({ entries, checked, onChange }) {
             onChange={(e) => onChange(e.target.checked)}
             className="accent-sb-emerald"
           />
-          Tôi đã kiểm tra thông tin ngựa trước đua
+          I have checked horse information before the race
         </label>
       </div>
 
       {validEntries.length === 0 ? (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
-          <AlertCircle size={14} /> Chưa có đăng ký hợp lệ để thi đấu.
+          <AlertCircle size={14} /> No valid registrations to race.
         </div>
       ) : (
         <div className="rounded-xl border border-sb-border overflow-hidden">
@@ -77,12 +77,12 @@ function PreRaceCheckPanel({ entries, checked, onChange }) {
             <table className="w-full min-w-[680px] text-sm">
               <thead>
                 <tr className="bg-sb-s2 border-b border-sb-border text-[10px] uppercase tracking-widest text-sb-tx-3">
-                  <th className="text-left px-4 py-2.5">Làn</th>
-                  <th className="text-left px-4 py-2.5">Ngựa</th>
+                  <th className="text-left px-4 py-2.5">Lane</th>
+                  <th className="text-left px-4 py-2.5">Horse</th>
                   <th className="text-left px-4 py-2.5">Jockey</th>
-                  <th className="text-left px-4 py-2.5">Chủ ngựa</th>
-                  <th className="text-left px-4 py-2.5">Sức khỏe</th>
-                  <th className="text-left px-4 py-2.5">Trạng thái</th>
+                  <th className="text-left px-4 py-2.5">Horse Owner</th>
+                  <th className="text-left px-4 py-2.5">Health</th>
+                  <th className="text-left px-4 py-2.5">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -90,15 +90,15 @@ function PreRaceCheckPanel({ entries, checked, onChange }) {
                   <tr key={entry.entryId} className="border-b border-sb-border last:border-0">
                     <td className="px-4 py-3 text-sb-tx-2 font-mono">{entry.laneNumber || "-"}</td>
                     <td className="px-4 py-3">
-                      <p className="text-white font-medium">{entry.horseName || `Ngựa #${entry.horseId}`}</p>
+                      <p className="text-white font-medium">{entry.horseName || `Horse #${entry.horseId}`}</p>
                       <p className="text-sb-tx-3 text-xs">Entry #{entry.entryId}</p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-white">{entry.jockeyName || `Jockey #${entry.jockeyId}`}</p>
-                      <p className="text-sb-tx-3 text-xs">{entry.jockeyConfirmed ? "Đã xác nhận" : "Chưa xác nhận"}</p>
+                      <p className="text-sb-tx-3 text-xs">{entry.jockeyConfirmed ? "Confirmed" : "Not Confirmed"}</p>
                     </td>
                     <td className="px-4 py-3 text-sb-tx-2">{entry.ownerName || "-"}</td>
-                    <td className="px-4 py-3 text-sb-tx-2">{entry.healthStatus || "Chưa ghi nhận"}</td>
+                    <td className="px-4 py-3 text-sb-tx-2">{entry.healthStatus || "Not Recorded"}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-1 rounded-full bg-sb-emerald-soft border border-sb-emerald-bd text-sb-emerald-ink text-xs font-semibold">
                         {entry.registrationStatus}
@@ -144,16 +144,16 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
 
   const initForm = () => {
     if (!preRaceChecked) {
-      alert("Vui lòng xác nhận kiểm tra thông tin ngựa trước đua.");
+      alert("Please confirm the pre-race horse information check.");
       return;
     }
     const initialForm = raceable.map((e, i) => ({
       entryId: e.entryId,
-      horseName: e.horseName || `Ngựa #${e.horseId}`,
+      horseName: e.horseName || `Horse #${e.horseId}`,
       jockeyName: e.jockeyName || "—",
       position: i + 1,
-      mm: "",   // phút
-      ss: "",   // giây (có thể lẻ .SSS)
+      mm: "",   // minutes
+      ss: "",   // seconds (có thể lẻ .SSS)
       dnf: false,
       note: "",
     }));
@@ -165,10 +165,10 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!preRaceChecked) {
-      alert("Vui lòng xác nhận kiểm tra thông tin ngựa trước đua.");
+      alert("Please confirm the pre-race horse information check.");
       return;
     }
-    // Phút + Giây → tổng số giây (BE nhận số giây thuần)
+    // Phút + Giây → tổng số seconds (BE nhận số seconds thuần)
     const toFinish = (row) => {
       if (row.dnf) return null;
       if (row.mm === "" && row.ss === "") return null;
@@ -201,7 +201,7 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
       setShowForm(false);
       load();
     } catch (err) {
-      alert(err.message || "Lưu kết quả thất bại");
+      alert(err.message || "Failed to save result");
     } finally {
       setFormLoading(false);
     }
@@ -214,37 +214,37 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
       {!preRaceChecked && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
-          <AlertCircle size={14} /> Cần xác nhận kiểm tra trước đua trước khi nhập kết quả.
+          <AlertCircle size={14} /> Pre-race check confirmation is required before entering results.
         </div>
       )}
       <div className="flex justify-end">
         <button onClick={initForm} disabled={!preRaceChecked}
           className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-          <Edit2 size={14} /> {results.length > 0 ? "Cập nhật kết quả" : "Nhập kết quả"}
+          <Edit2 size={14} /> {results.length > 0 ? "Update Results" : "Enter Results"}
         </button>
       </div>
 
       {results.length === 0 ? (
         <div className="text-center py-10 text-sb-tx-3">
           <Award size={32} className="mx-auto mb-2 opacity-30" />
-          <p className="text-sm">Chưa có kết quả. Hãy nhập kết quả vòng đua.</p>
+          <p className="text-sm">No result yet. Please enter race results.</p>
         </div>
       ) : (
         <div className="space-y-3">
           <p className="text-sb-tx-3 text-xs">
-            Hệ thống đã tính: <b className="text-sb-tx-2">Giờ chính thức = Giờ về đích + Phạt</b>. Ngựa DQ/DNF xếp cuối.
+            Hệ thống đã tính: <b className="text-sb-tx-2">Official time = finish time + penalty</b>. Horse DQ/DNF xếp cuối.
           </p>
-          {/* Bảng kết quả đã tính — hạng · giờ về đích · phạt · giờ chính thức */}
+          {/* Bảng kết quả đã tính — place · giờ về đích · phạt · giờ chính thức */}
           <div className="rounded-xl border border-sb-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] text-sm">
                 <thead>
                   <tr className="bg-sb-s2 border-b border-sb-border text-[10px] uppercase tracking-widest text-sb-tx-3">
-                    <th className="text-left px-4 py-2.5">Hạng</th>
-                    <th className="text-left px-4 py-2.5">Ngựa / Nài</th>
+                    <th className="text-left px-4 py-2.5">Position</th>
+                    <th className="text-left px-4 py-2.5">Horse / Jockey</th>
                     <th className="text-right px-4 py-2.5">Về đích</th>
-                    <th className="text-right px-4 py-2.5">Phạt</th>
-                    <th className="text-right px-4 py-2.5">Chính thức</th>
+                    <th className="text-right px-4 py-2.5">Penalty</th>
+                    <th className="text-right px-4 py-2.5">Official</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -265,12 +265,12 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
                             }`}>{dq ? "✕" : (r.pos ?? "—")}</span>
                           </td>
                           <td className="px-4 py-3">
-                            <p className="text-white font-medium">{r.horseName || `Ngựa #${r.horseId}`}</p>
+                            <p className="text-white font-medium">{r.horseName || `Horse #${r.horseId}`}</p>
                             <p className="text-sb-tx-3 text-xs">🏇 {r.jockeyName || "—"}{dq && <span className="text-red-400 ml-1">· {r.dq ? "DQ" : "DNF"}</span>}</p>
                           </td>
                           <td className="px-4 py-3 text-right font-mono text-sb-tx-2">{r.finishTime || "—"}</td>
                           <td className="px-4 py-3 text-right font-mono text-red-300">{r.penaltyTime && Number(String(r.penaltyTime).replace(/[^0-9.]/g,"")) > 0 ? `+${r.penaltyTime}` : "0"}</td>
-                          <td className="px-4 py-3 text-right font-mono font-bold text-sb-gold-2">{dq ? "LOẠI" : (r.finalTime || r.finishTime || "—")}</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-sb-gold-2">{dq ? "DQ" : (r.finalTime || r.finishTime || "—")}</td>
                         </tr>
                       );
                     })}
@@ -282,14 +282,14 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
       )}
 
       {showForm && (
-        <Modal title={isEditing ? "Cập nhật kết quả" : "Nhập kết quả vòng đua"} onClose={() => setShowForm(false)}>
+        <Modal title={isEditing ? "Update Results" : "Enter Results races"} onClose={() => setShowForm(false)}>
           <form onSubmit={handleSave} className="space-y-3">
-            <p className="text-sb-tx-3 text-xs mb-4">Sắp xếp thứ hạng và nhập thời gian cho từng ngựa</p>
+            <p className="text-sb-tx-3 text-xs mb-4">Set positions and enter times for each horse</p>
             {form.map((row, idx) => (
               <div key={row.entryId || idx} className="bg-[#0A0E1A]/60 rounded-xl p-3 space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <label className="text-sb-tx-3 text-xs">Hạng</label>
+                    <label className="text-sb-tx-3 text-xs">Position</label>
                     <input type="number" min="1" value={row.position}
                       onChange={(e) => setForm((prev) => prev.map((r, i) => i === idx ? { ...r, position: Number(e.target.value) } : r))}
                       className="w-14 bg-[#0A0E1A] border border-sb-border rounded px-2 py-1 text-white text-sm text-center focus:outline-none focus:border-[#D4AF37]" />
@@ -300,29 +300,29 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sb-tx-3 text-xs">Thời gian:</span>
+                  <span className="text-sb-tx-3 text-xs">Time:</span>
                   <select value={row.mm} disabled={row.dnf}
                     onChange={(e) => setForm((prev) => prev.map((r, i) => i === idx ? { ...r, mm: e.target.value } : r))}
                     className="bg-[#0A0E1A] border border-sb-border rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:border-[#D4AF37] disabled:opacity-40">
-                    <option value="">-- phút --</option>
-                    {[0,1,2,3,4,5].map((m) => <option key={m} value={m}>{m} phút</option>)}
+                    <option value="">-- minutes --</option>
+                    {[0,1,2,3,4,5].map((m) => <option key={m} value={m}>{m} minutes</option>)}
                   </select>
-                  <input type="number" step="0.001" min="0" max="59.999" placeholder="giây (vd 23.456)"
+                  <input type="number" step="0.001" min="0" max="59.999" placeholder="seconds (vd 23.456)"
                     value={row.ss} disabled={row.dnf}
                     onChange={(e) => setForm((prev) => prev.map((r, i) => i === idx ? { ...r, ss: e.target.value } : r))}
                     className="w-32 bg-[#0A0E1A] border border-sb-border rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:border-[#D4AF37] disabled:opacity-40" />
                   <label className="flex items-center gap-1.5 text-xs text-sb-tx-2 cursor-pointer ml-auto">
                     <input type="checkbox" checked={row.dnf} className="accent-sb-lose"
                       onChange={(e) => setForm((prev) => prev.map((r, i) => i === idx ? { ...r, dnf: e.target.checked } : r))} />
-                    Bỏ cuộc (DNF)
+                    Did Not Finish (DNF)
                   </label>
                 </div>
               </div>
             ))}
             <div className="flex gap-3 pt-2">
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm">Huỷ</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm">Cancel</button>
               <button type="submit" disabled={formLoading} className="flex-1 py-2 rounded-lg bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
-                {formLoading && <Loader2 size={14} className="animate-spin" />} <Save size={14} /> Lưu kết quả
+                {formLoading && <Loader2 size={14} className="animate-spin" />} <Save size={14} /> Save Result
               </button>
             </div>
           </form>
@@ -372,7 +372,7 @@ function ViolationsTab({ raceId, entries, preRaceChecked }) {
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!preRaceChecked) {
-      alert("Vui lòng xác nhận kiểm tra thông tin ngựa trước đua.");
+      alert("Please confirm the pre-race horse information check.");
       return;
     }
     setFormLoading(true);
@@ -382,19 +382,19 @@ function ViolationsTab({ raceId, entries, preRaceChecked }) {
       setForm({ entryId: "", violationType: "", description: "", penalty: "" });
       load();
     } catch (err) {
-      alert(err.message || "Thêm vi phạm thất bại");
+      alert(err.message || "Failed to add violation");
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleDelete = async (violationId) => {
-    if (!(await confirmBox("Xác nhận xoá vi phạm này?", { okText: "Xoá", danger: true }))) return;
+    if (!(await confirmBox("Confirm deleting this violation?", { okText: "Delete", danger: true }))) return;
     try {
       await raceResultService.deleteViolation(violationId);
       load();
     } catch (err) {
-      alert(err.message || "Xoá thất bại");
+      alert(err.message || "Delete failed");
     }
   };
 
@@ -405,34 +405,34 @@ function ViolationsTab({ raceId, entries, preRaceChecked }) {
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
       {!preRaceChecked && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
-          <AlertCircle size={14} /> Cần xác nhận kiểm tra trước đua trước khi ghi vi phạm.
+          <AlertCircle size={14} /> Pre-race check confirmation is required before recording violations.
         </div>
       )}
       <div className="flex justify-end">
         <button onClick={() => setShowAdd(true)} disabled={!preRaceChecked}
           className="flex items-center gap-2 px-4 py-2 bg-red-600/20 border border-red-600/40 text-red-300 hover:bg-red-600/30 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-          <Plus size={14} /> Ghi nhận vi phạm
+          <Plus size={14} /> Record Violation
         </button>
       </div>
 
       {violations.length === 0 ? (
         <div className="text-center py-10 text-sb-tx-3">
           <AlertTriangle size={32} className="mx-auto mb-2 opacity-30" />
-          <p className="text-sm">Không có vi phạm nào được ghi nhận</p>
+          <p className="text-sm">No violations recorded</p>
         </div>
       ) : (
         <div className="space-y-2">
           {violations.map((v) => {
             // BE trả vi phạm không kèm tên ngựa → tra từ entries theo entryId
             const ent = entries.find((e) => e.entryId === v.entryId) || {};
-            const horse = v.horseName || ent.horseName || (ent.horseId ? `Ngựa #${ent.horseId}` : "Ngựa —");
+            const horse = v.horseName || ent.horseName || (ent.horseId ? `Horse #${ent.horseId}` : "Horse -");
             return (
             <div key={v.violationId} className="flex items-start justify-between bg-red-950/10 border border-red-900/30 rounded-xl p-4">
               <div className="flex-1">
                 <p className="text-white font-medium text-sm">{horse}</p>
                 <p className="text-orange-300 text-xs font-medium mt-0.5">{v.violationType}</p>
                 {v.description && <p className="text-sb-tx-3 text-xs mt-1">{v.description}</p>}
-                {v.penalty && <p className="text-red-300 text-xs mt-0.5">Hình phạt: {v.penalty}</p>}
+                {v.penalty && <p className="text-red-300 text-xs mt-0.5">Penalty: {v.penalty}</p>}
               </div>
               <button onClick={() => handleDelete(v.violationId)}
                 className="p-2 text-sb-tx-3 hover:text-red-400 transition-colors ml-2">
@@ -445,24 +445,24 @@ function ViolationsTab({ raceId, entries, preRaceChecked }) {
       )}
 
       {showAdd && (
-        <Modal title="Ghi nhận vi phạm" onClose={() => setShowAdd(false)}>
+        <Modal title="Record Violation" onClose={() => setShowAdd(false)}>
           <form onSubmit={handleAdd} className="space-y-3">
             <div>
-              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Ngựa vi phạm *</label>
+              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Violating Horse *</label>
               <select value={form.entryId} onChange={(e) => setForm((p) => ({ ...p, entryId: e.target.value }))} required
                 className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]">
-                <option value="">-- Chọn ngựa --</option>
-                {entries.filter(isValidRaceEntry).map((e) => <option key={e.entryId} value={e.entryId}>{e.horseName || `Ngựa #${e.horseId}`}</option>)}
+                <option value="">-- Choose Horse --</option>
+                {entries.filter(isValidRaceEntry).map((e) => <option key={e.entryId} value={e.entryId}>{e.horseName || `Horse #${e.horseId}`}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Loại vi phạm *</label>
+              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Violation Type *</label>
               {violationOptions.length > 0 ? (
                 <select value={form.violationType}
                   onChange={(e) => handleViolationTypeChange(e.target.value)}
                   required
                   className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]">
-                  <option value="">-- Chọn loại vi phạm --</option>
+                  <option value="">-- Select violation type --</option>
                   {violationOptions.map((o) => {
                     const label = o.violationType || o.type || o.name || "";
                     return <option key={label} value={label}>{label}</option>;
@@ -470,28 +470,28 @@ function ViolationsTab({ raceId, entries, preRaceChecked }) {
                 </select>
               ) : (
                 <input value={form.violationType} onChange={(e) => setForm((p) => ({ ...p, violationType: e.target.value }))} required
-                  placeholder="VD: Cản đường, Xuất phát sớm..."
+                  placeholder="VD: Blocking, false start..."
                   className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]" />
               )}
             </div>
             <div>
-              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Mô tả chi tiết</label>
+              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Detailed Description</label>
               <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={2}
                 className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37] resize-none" />
             </div>
             <div>
               <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">
-                Hình phạt {form.violationType && <span className="text-[#D4AF37] normal-case">(tự động từ loại vi phạm)</span>}
+                Penalty {form.violationType && <span className="text-[#D4AF37] normal-case">(auto-filled from violation type)</span>}
               </label>
               <input value={form.penalty}
                 onChange={(e) => setForm((p) => ({ ...p, penalty: e.target.value }))}
-                placeholder="Tự điền khi chọn loại vi phạm..."
+                placeholder="Auto-filled when selecting violation type..."
                 className={`w-full bg-[#0A0E1A] border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#D4AF37] ${form.penalty ? "border-amber-600/50 text-amber-300" : "border-sb-border text-white"}`} />
             </div>
             <div className="flex gap-3 pt-2">
-              <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm">Huỷ</button>
+              <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm">Cancel</button>
               <button type="submit" disabled={formLoading} className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
-                {formLoading && <Loader2 size={14} className="animate-spin" />} Ghi nhận
+                {formLoading && <Loader2 size={14} className="animate-spin" />} Record
               </button>
             </div>
           </form>
@@ -536,7 +536,7 @@ function MinutesTab({ raceId }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!form.minutesFileUrl) { alert("Vui lòng đính kèm file biên bản (ảnh/PDF đã ký)."); return; }
+    if (!form.minutesFileUrl) { alert("Please attach the signed minutes file (image/PDF)."); return; }
     setFormLoading(true);
     try {
       if (minutes) await raceResultService.updateMinutes(raceId, form);
@@ -544,7 +544,7 @@ function MinutesTab({ raceId }) {
       setEditing(false);
       load();
     } catch (err) {
-      alert(err.message || "Lưu biên bản thất bại");
+      alert(err.message || "Failed to save minutes");
     } finally {
       setFormLoading(false);
     }
@@ -556,10 +556,10 @@ function MinutesTab({ raceId }) {
     return (
       <div className="text-center py-10 text-sb-tx-3">
         <FileText size={32} className="mx-auto mb-2 opacity-30" />
-        <p className="text-sm mb-4">Chưa có biên bản vòng đua</p>
+        <p className="text-sm mb-4">No race minutes yet</p>
         <button onClick={() => setEditing(true)}
           className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold rounded-lg text-sm transition-colors mx-auto">
-          <Plus size={14} /> Tạo biên bản
+          <Plus size={14} /> Create Minutes
         </button>
       </div>
     );
@@ -571,16 +571,16 @@ function MinutesTab({ raceId }) {
         <div className="flex justify-end">
           <button onClick={() => setEditing(true)}
             className="flex items-center gap-2 px-4 py-2 bg-[#111827] border border-sb-border text-sb-tx-3 hover:text-sb-tx rounded-lg text-sm transition-colors">
-            <Edit2 size={14} /> Chỉnh sửa biên bản
+            <Edit2 size={14} /> Edit Minutes
           </button>
         </div>
         <div className="space-y-3">
           {[
-            ["Điều kiện thời tiết", minutes.weatherCondition],
-            ["Điều kiện đường đua", minutes.trackCondition],
-            ["Nội dung biên bản", minutes.content],
-            ["File biên bản", minutes.minutesFileUrl],
-            ["Ghi chú thêm", minutes.notes],
+            ["Weather Conditions", minutes.weatherCondition],
+            ["Track Conditions", minutes.trackCondition],
+            ["Minutes Content", minutes.content],
+            ["Minutes File", minutes.minutesFileUrl],
+            ["Additional Notes", minutes.notes],
           ].filter(([, v]) => v).map(([label, value]) => (
             <div key={label} className="bg-[#0A0E1A]/60 rounded-xl p-4">
               <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-1">{label}</p>
@@ -595,8 +595,8 @@ function MinutesTab({ raceId }) {
   return (
     <form onSubmit={handleSave} className="space-y-4">
       {[
-        { label: "Điều kiện thời tiết", field: "weatherCondition", placeholder: "VD: Nắng, Mưa nhẹ..." },
-        { label: "Điều kiện đường đua", field: "trackCondition", placeholder: "VD: Khô ráo, Ướt..." },
+        { label: "Weather Conditions", field: "weatherCondition", placeholder: "VD: Sunny, light rain..." },
+        { label: "Track Conditions", field: "trackCondition", placeholder: "VD: Dry, wet..." },
       ].map(({ label, field, placeholder }) => (
         <div key={field}>
           <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">{label}</label>
@@ -605,14 +605,14 @@ function MinutesTab({ raceId }) {
         </div>
       ))}
       <div>
-        <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Nội dung biên bản *</label>
+        <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Minutes Content *</label>
         <textarea value={form.content} onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))} rows={6} required
-          placeholder="Mô tả diễn biến vòng đua, sự cố, quyết định của trọng tài..."
+          placeholder="Describe race events, incidents, and referee decisions..."
           className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37] resize-none" />
       </div>
       <div>
         <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">
-          File biên bản đã ký <span className="text-red-400">*</span>
+          Signed Minutes File <span className="text-red-400">*</span>
         </label>
         <label className="flex items-center gap-3 bg-[#0A0E1A] border border-dashed border-sb-border-2 rounded-lg px-3 py-3 cursor-pointer hover:border-[#D4AF37] transition-colors">
           <input type="file" accept="image/*,application/pdf" hidden
@@ -638,20 +638,20 @@ function MinutesTab({ raceId }) {
             }} />
           <span className="text-lg">📎</span>
           <span className="text-sm text-sb-tx-2">
-            {fileName || form.minutesFileUrl || "Bấm để đính kèm ảnh/PDF biên bản có chữ ký..."}
+            {fileName || form.minutesFileUrl || "Click to attach signed minutes image/PDF..."}
           </span>
         </label>
-        <p className="text-sb-tx-3 text-[11px] mt-1">Đây là môi trường demo — chỉ lưu tên file làm minh chứng, không upload thật.</p>
+        <p className="text-sb-tx-3 text-[11px] mt-1">This is a demo environment - only the file name is saved as evidence; no real upload occurs.</p>
       </div>
       <div>
-        <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Ghi chú thêm</label>
+        <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Additional Notes</label>
         <textarea value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={2}
           className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37] resize-none" />
       </div>
       <div className="flex gap-3">
-        <button type="button" onClick={() => setEditing(false)} className="flex-1 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm">Huỷ</button>
+        <button type="button" onClick={() => setEditing(false)} className="flex-1 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm">Cancel</button>
         <button type="submit" disabled={formLoading} className="flex-1 py-2 rounded-lg bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
-          {formLoading && <Loader2 size={14} className="animate-spin" />} <Save size={14} /> Lưu biên bản
+          {formLoading && <Loader2 size={14} className="animate-spin" />} <Save size={14} /> Save Minutes
         </button>
       </div>
     </form>
@@ -686,7 +686,7 @@ export default function RefereeRaceDetailPage() {
       // Nếu biên bản đã gửi Owner từ trước → giữ nút khoá kể cả khi reload
       if (minRes?.data?.sentToOwners) setSent(true);
     } catch (e) {
-      setError(e.message || "Không thể tải dữ liệu");
+      setError(e.message || "Unable to load data");
     } finally {
       setLoading(false);
     }
@@ -721,7 +721,7 @@ export default function RefereeRaceDetailPage() {
       if (onOk) onOk();            // đánh dấu đã xong (khoá nút)
       await fetchData();
     } catch (e) {
-      setError(e.message || "Thao tác thất bại");
+      setError(e.message || "Action failed");
     } finally {
       setBusy("");
     }
@@ -735,11 +735,11 @@ export default function RefereeRaceDetailPage() {
   const startBlockedPreCheck = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount >= 1 && !preRaceChecked;
 
   return (
-    <AdminLayout title="Nhập liệu vòng đua">
+    <AdminLayout title="Race Data Entry">
       <div className="p-6 space-y-6">
         <button onClick={() => navigate("/referee/races")}
           className="flex items-center gap-2 text-sb-tx-3 hover:text-sb-tx transition-colors text-sm">
-          <ArrowLeft size={16} /> Quay về danh sách
+          <ArrowLeft size={16} /> Back to List
         </button>
 
         {loading ? (
@@ -764,50 +764,50 @@ export default function RefereeRaceDetailPage() {
                   <div className="flex items-center gap-4 mt-2 text-sb-tx-3 text-sm flex-wrap">
                     {race?.startTime && <span>{new Date(race.startTime).toLocaleString("vi-VN")}</span>}
                     {race?.distance && <span>{race.distance}m</span>}
-                    <span className="text-[#D4AF37]">{entries.length} ngựa tham gia</span>
+                    <span className="text-[#D4AF37]">{entries.length} horses entered</span>
                     <span className="px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs font-semibold">{status}</span>
                   </div>
                 </div>
 
-                {/* Trọng tài là NGƯỜI DUY NHẤT đổi trạng thái đua */}
+                {/* Referee là NGƯỜI DUY NHẤT đổi trạng thái đua */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {canStart && (
-                    <button onClick={() => doAction("start", () => raceResultService.changeRaceStatus(raceId, "Ongoing"), "Đã bắt đầu vòng đua")}
+                    <button onClick={() => doAction("start", () => raceResultService.changeRaceStatus(raceId, "Ongoing"), "Race started")}
                       disabled={!!busy}
                       className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-50 hover:opacity-90 transition-opacity">
-                      {busy === "start" ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} Bắt đầu đua
+                      {busy === "start" ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} Start Race
                     </button>
                   )}
                   {startBlockedNoHorse && (
                     <span className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm font-semibold">
-                      <AlertCircle size={14} /> Chưa có ngựa (có nài) — không thể bắt đầu
+                      <AlertCircle size={14} /> No horse with jockey available - cannot start
                     </span>
                   )}
                   {startBlockedPreCheck && (
                     <span className="flex items-center gap-2 px-4 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm font-semibold">
-                      <AlertCircle size={14} /> Cần xác nhận kiểm tra trước đua
+                      <AlertCircle size={14} /> Pre-race check required
                     </span>
                   )}
                   {status === "Ongoing" && (
-                    <button onClick={() => doAction("finish", () => raceResultService.changeRaceStatus(raceId, "Finished"), "Đã kết thúc vòng đua")}
+                    <button onClick={() => doAction("finish", () => raceResultService.changeRaceStatus(raceId, "Finished"), "Finished races")}
                       disabled={!!busy}
                       className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-gold text-[#0B0F14] font-bold text-sm disabled:opacity-50 hover:opacity-90 transition-opacity">
-                      {busy === "finish" ? <Loader2 size={14} className="animate-spin" /> : <Flag size={14} />} Kết thúc đua
+                      {busy === "finish" ? <Loader2 size={14} className="animate-spin" /> : <Flag size={14} />} Finish Race
                     </button>
                   )}
                   {status === "Finished" && (
                     <>
-                      <button onClick={() => doAction("send", () => raceResultService.sendMinutes(raceId), "Đã gửi biên bản cho toàn bộ Owner", () => setSent(true))}
+                      <button onClick={() => doAction("send", () => raceResultService.sendMinutes(raceId), "Minutes sent to all owners", () => setSent(true))}
                         disabled={!!busy || sent}
                         className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                         {busy === "send" ? <Loader2 size={14} className="animate-spin" /> : sent ? <CheckCircle2 size={14} /> : <Mail size={14} />}
-                        {sent ? "Đã gửi Owner" : "Gửi cho Owner"}
+                        {sent ? "Sent to Owners" : "Send to Owners"}
                       </button>
-                      <button onClick={() => doAction("handoff", () => raceResultService.handoff(raceId), "Đã bàn giao cho Ban tổ chức", () => setHandedOff(true))}
+                      <button onClick={() => doAction("handoff", () => raceResultService.handoff(raceId), "Handed Off cho Organizer", () => setHandedOff(true))}
                         disabled={!!busy || handedOff}
                         className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity">
                         {busy === "handoff" ? <Loader2 size={14} className="animate-spin" /> : handedOff ? <CheckCircle2 size={14} /> : <Send size={14} />}
-                        {handedOff ? "Đã bàn giao" : "Bàn giao BTC"}
+                        {handedOff ? "Handed Off" : "Hand Off to Organizer"}
                       </button>
                     </>
                   )}

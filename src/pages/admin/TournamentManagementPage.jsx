@@ -11,24 +11,24 @@ import { Label } from "../../components/ui/label";
 import { tournamentService } from "../../services/tournament";
 
 const STATUS_CONFIG = {
-  Draft:     { label: "Nháp",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border",           strip: "from-gray-400/20 to-gray-400/5",    dot: "bg-gray-400" },
-  PendingApproval: { label: "Chờ Admin duyệt", cls: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30", strip: "from-yellow-400/20 to-yellow-400/5", dot: "bg-yellow-400" },
-  Open:      { label: "Mở đăng ký",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30",           strip: "from-blue-400/20 to-blue-400/5",    dot: "bg-blue-500" },
-  Ongoing:   { label: "Đang diễn ra", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd",        strip: "from-amber-400/20 to-amber-400/5",  dot: "bg-amber-500" },
-  Finished:  { label: "Kết thúc",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd",        strip: "from-green-400/20 to-green-400/5",  dot: "bg-green-500" },
-  Cancelled: { label: "Đã hủy",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30",              strip: "from-red-400/20 to-red-400/5",      dot: "bg-red-500" },
+  Draft:     { label: "Draft",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border",           strip: "from-gray-400/20 to-gray-400/5",    dot: "bg-gray-400" },
+  PendingApproval: { label: "Pending Admin Approval", cls: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30", strip: "from-yellow-400/20 to-yellow-400/5", dot: "bg-yellow-400" },
+  Open:      { label: "Registration Open",   cls: "bg-sb-info/10 text-sb-info border-sb-info/30",           strip: "from-blue-400/20 to-blue-400/5",    dot: "bg-blue-500" },
+  Ongoing:   { label: "Ongoing", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd",        strip: "from-amber-400/20 to-amber-400/5",  dot: "bg-amber-500" },
+  Finished:  { label: "End",     cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd",        strip: "from-green-400/20 to-green-400/5",  dot: "bg-green-500" },
+  Cancelled: { label: "Cancelled",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30",              strip: "from-red-400/20 to-red-400/5",      dot: "bg-red-500" },
 };
 
 const STATUS_TRANSITIONS = {
   Draft:    [],
   PendingApproval: [
-    { to: "Open", label: "Duyệt mở đăng ký", cls: "bg-sb-info/10 border-sb-info/30 text-sb-info hover:bg-sb-info/20" },
-    { to: "Draft", label: "Từ chối", cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" },
+    { to: "Open", label: "Approve Registration Opening", cls: "bg-sb-info/10 border-sb-info/30 text-sb-info hover:bg-sb-info/20" },
+    { to: "Draft", label: "Rejected", cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" },
   ],
-  Open:     [{ to: "Ongoing",   label: "Bắt đầu",       cls: "bg-sb-gold-soft border-sb-gold-bd text-sb-gold-2 hover:bg-sb-gold-soft" },
-             { to: "Cancelled", label: "Hủy giải",      cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" }],
-  Ongoing:  [{ to: "Finished",  label: "Kết thúc giải", cls: "bg-sb-emerald-soft border-sb-emerald-bd text-sb-emerald-ink hover:bg-sb-emerald-soft" },
-             { to: "Cancelled", label: "Hủy giải",      cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" }],
+  Open:     [{ to: "Ongoing",   label: "Start",       cls: "bg-sb-gold-soft border-sb-gold-bd text-sb-gold-2 hover:bg-sb-gold-soft" },
+             { to: "Cancelled", label: "Cancel Tournament",      cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" }],
+  Ongoing:  [{ to: "Finished",  label: "Finish Tournament", cls: "bg-sb-emerald-soft border-sb-emerald-bd text-sb-emerald-ink hover:bg-sb-emerald-soft" },
+             { to: "Cancelled", label: "Cancel Tournament",      cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" }],
   Finished:  [],
   Cancelled: [],
 };
@@ -58,7 +58,7 @@ export default function TournamentManagementPage() {
       const res = await tournamentService.getAll();
       setTournaments(res.data || []);
     } catch (err) {
-      setErrorMsg(err.message || "Không thể tải danh sách giải đấu.");
+      setErrorMsg(err.message || "Unable to load tournaments.");
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +86,7 @@ export default function TournamentManagementPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.tournamentName || !form.startDate || !form.endDate) {
-      setFormError("Vui lòng điền tên giải đấu, ngày bắt đầu và ngày kết thúc.");
+      setFormError("Please enter tournament name, start date, and end date.");
       return;
     }
     setIsSaving(true); setFormError("");
@@ -103,7 +103,7 @@ export default function TournamentManagementPage() {
       }
       setModal(null);
     } catch (err) {
-      setFormError(err.message || "Lưu thất bại.");
+      setFormError(err.message || "Save failed.");
     } finally {
       setIsSaving(false);
     }
@@ -115,20 +115,20 @@ export default function TournamentManagementPage() {
       await tournamentService.changeStatus(
         tournamentId,
         newStatus,
-        newStatus === "Draft" ? "Admin từ chối giải đấu, vui lòng chỉnh sửa lại thông tin." : undefined
+        newStatus === "Draft" ? "Admin rejected the tournament. Please update the information." : undefined
       );
       setTournaments((prev) =>
         prev.map((t) => t.tournamentId === tournamentId ? { ...t, status: newStatus } : t)
       );
     } catch (err) {
-      setErrorMsg(err.message || "Thay đổi trạng thái thất bại.");
+      setErrorMsg(err.message || "Failed to change status.");
     } finally {
       setStatusLoading("");
     }
   };
 
   return (
-    <AdminLayout title="Quản lý giải đấu">
+    <AdminLayout title="Tournament Management">
 
       {/* ── Page Header Banner ── */}
       <div className="page-header">
@@ -142,13 +142,13 @@ export default function TournamentManagementPage() {
               </div>
               <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Admin</span>
             </div>
-            <h1 className="text-2xl font-black text-sb-tx leading-tight">Quản lý giải đấu</h1>
+            <h1 className="text-2xl font-black text-sb-tx leading-tight">Tournament Management</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <span className="stat-pill"><span className="text-sb-tx font-bold">{tournaments.length}</span> giải đấu</span>
+              <span className="stat-pill"><span className="text-sb-tx font-bold">{tournaments.length}</span> tournaments</span>
               {tournaments.filter(t => t.status === "Ongoing").length > 0 && (
                 <span className="stat-pill text-yellow-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" />
-                  {tournaments.filter(t => t.status === "Ongoing").length} đang diễn ra
+                  {tournaments.filter(t => t.status === "Ongoing").length} ongoing
                 </span>
               )}
             </div>
@@ -160,7 +160,7 @@ export default function TournamentManagementPage() {
             </button>
             <Button onClick={openCreate}
               className="flex items-center gap-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm h-10 px-4 rounded-xl btn-gold-glow transition-all">
-              <Plus size={15} /> Tạo giải đấu
+              <Plus size={15} /> Create Tournament
             </Button>
           </div>
         </div>
@@ -184,10 +184,10 @@ export default function TournamentManagementPage() {
             <div className="w-20 h-20 rounded-2xl bg-sb-gold-soft border border-amber-100 flex items-center justify-center mb-4">
               <Trophy size={32} className="text-amber-300" />
             </div>
-            <p className="text-sb-tx font-semibold mb-1">Chưa có giải đấu nào</p>
-            <p className="text-sb-tx-3 text-sm mb-4">Tạo giải đấu đầu tiên để bắt đầu mùa giải</p>
+            <p className="text-sb-tx font-semibold mb-1">No tournaments yet</p>
+            <p className="text-sb-tx-3 text-sm mb-4">Create the first tournament to start the season</p>
             <Button onClick={openCreate} className="bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold btn-gold-glow">
-              <Plus size={15} className="mr-2" /> Tạo giải đấu
+              <Plus size={15} className="mr-2" /> Create Tournament
             </Button>
           </div>
         ) : (
@@ -263,7 +263,7 @@ export default function TournamentManagementPage() {
 
                     <button onClick={() => navigate(`/admin/tournaments/${t.tournamentId}`)}
                       className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-info hover:border-blue-300 hover:bg-sb-info/10 text-xs transition-all mt-auto">
-                      Quản lý chi tiết <ChevronRight size={12} />
+                      Manage Details <ChevronRight size={12} />
                     </button>
                   </div>
                 </div>
@@ -280,7 +280,7 @@ export default function TournamentManagementPage() {
             <div className="h-0.5 w-full rounded-t-2xl bg-gradient-to-r from-[#D4AF37] to-transparent" />
             <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border">
               <h2 className="text-lg font-bold text-sb-tx">
-                {modal === "create" ? "Tạo giải đấu mới" : "Chỉnh sửa giải đấu"}
+                {modal === "create" ? "Create New Tournament" : "Edit Tournament"}
               </h2>
               <button
                 onClick={() => setModal(null)}
@@ -299,12 +299,12 @@ export default function TournamentManagementPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">
-                  Tên giải đấu *
+                  Tournament Name *
                 </Label>
                 <Input
                   value={form.tournamentName}
                   onChange={(e) => setForm({ ...form, tournamentName: e.target.value })}
-                  placeholder="VD: Giải Đua Mùa Hè 2026"
+                  placeholder="VD: Summer Racing Tournament 2026"
                   className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                   required
                 />
@@ -312,12 +312,12 @@ export default function TournamentManagementPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">
-                  Địa điểm
+                  Location
                 </Label>
                 <Input
                   value={form.location}
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  placeholder="VD: Hồ Chí Minh"
+                  placeholder="VD: Ho Chi Minh City"
                   className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
@@ -325,7 +325,7 @@ export default function TournamentManagementPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">
-                    Ngày bắt đầu *
+                    Start Date *
                   </Label>
                   <Input
                     type="date"
@@ -337,7 +337,7 @@ export default function TournamentManagementPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">
-                    Ngày kết thúc *
+                    End Date *
                   </Label>
                   <Input
                     type="date"
@@ -351,7 +351,7 @@ export default function TournamentManagementPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">
-                  Tổng giải thưởng (VNĐ)
+                  Total Prize (VND)
                 </Label>
                 <Input
                   type="number"
@@ -365,12 +365,12 @@ export default function TournamentManagementPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">
-                  Mô tả
+                  Description
                 </Label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Mô tả về giải đấu..."
+                  placeholder="Description về tournaments..."
                   rows={3}
                   className="w-full rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] resize-none placeholder:text-sb-tx-3"
                 />
@@ -382,7 +382,7 @@ export default function TournamentManagementPage() {
                   onClick={() => setModal(null)}
                   className="flex-1 h-10 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-sb-border-2 text-sm transition-colors"
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <Button
                   type="submit"
@@ -392,9 +392,9 @@ export default function TournamentManagementPage() {
                   {isSaving ? (
                     <Loader2 size={16} className="animate-spin" />
                   ) : modal === "create" ? (
-                    "Tạo giải đấu"
+                    "Create Tournament"
                   ) : (
-                    "Lưu thay đổi"
+                    "Save Changes"
                   )}
                 </Button>
               </div>

@@ -32,10 +32,10 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
   }, [raceId]);
 
   const infoRows = [
-    ["Điều kiện thời tiết", minutes?.weatherCondition],
-    ["Điều kiện đường đua", minutes?.trackCondition],
-    ["Nội dung biên bản", minutes?.content],
-    ["Ghi chú thêm", minutes?.notes],
+    ["Weather Conditions", minutes?.weatherCondition],
+    ["Track Conditions", minutes?.trackCondition],
+    ["Minutes Content", minutes?.content],
+    ["Additional Notes", minutes?.notes],
   ].filter(([, value]) => value);
 
   const fileUrl = minutes?.minutesFileUrl || "";
@@ -60,7 +60,7 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
           <div className="flex items-center gap-2 min-w-0">
             <FileText size={16} className="text-sb-gold-2 shrink-0" />
             <div className="min-w-0">
-              <h3 className="text-sb-tx font-bold text-sm truncate">Biên bản cuộc đua</h3>
+              <h3 className="text-sb-tx font-bold text-sm truncate">Race Minutes</h3>
               <p className="text-sb-tx-3 text-xs truncate">{raceName || `Race #${raceId}`}</p>
             </div>
           </div>
@@ -81,7 +81,7 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
             <>
               {!minutes ? (
                 <p className="text-sb-tx-3 text-sm text-center py-4">
-                  Chưa có biên bản cho vòng đua này.
+                  No minutes are available for this race.
                 </p>
               ) : (
                 <>
@@ -95,11 +95,11 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
                   {imageSrc ? (
                     <div>
                       <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">
-                        Ảnh biên bản đã ký
+                        Signed minutes image
                       </p>
                       <img
                         src={imageSrc}
-                        alt="Biên bản ký tay"
+                        alt="Hand-signed minutes"
                         className="w-full rounded-xl border border-sb-border max-h-[420px] object-contain bg-sb-s2"
                       />
                     </div>
@@ -109,8 +109,8 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
                       <div className="min-w-0">
                         <p className="text-sb-gold-2 text-sm truncate">{minutes.minutesFileUrl}</p>
                         <p className="text-sb-tx-3 text-xs mt-0.5">
-                          Chỉ đang có tên file demo, chưa có ảnh thật trong trình duyệt này.
-                          Referee cần chọn lại ảnh rồi lưu biên bản.
+                          Only a demo file name is available; no real image is stored in this browser.
+                          The referee needs to select the image again and save the minutes.
                         </p>
                       </div>
                     </div>
@@ -121,7 +121,7 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
               {results.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-2 text-sb-gold-2 font-bold text-sm">
-                    <Trophy size={14} /> Kết quả chính thức
+                    <Trophy size={14} /> Official Results
                   </div>
                   <div className="rounded-xl border border-sb-border divide-y divide-sb-border overflow-hidden">
                     {results.map((result, index) => {
@@ -132,7 +132,7 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
                             {dq ? "x" : (result.pos ?? index + 1)}
                           </span>
                           <span className="flex-1 text-sb-tx font-semibold text-sm">
-                            {result.horseName || `Ngựa #${result.horseId}`}
+                            {result.horseName || `Horse #${result.horseId}`}
                           </span>
                           <span className="text-sb-tx-3 text-xs">{result.jockeyName || "-"}</span>
                           <span className="font-mono text-xs text-sb-gold-2">

@@ -19,10 +19,10 @@ export default function PublicLayout({ children }) {
 
         <nav className="hidden md:flex items-center gap-1">
           <Link to="/" className="text-sm font-bold text-sb-tx-2 hover:text-sb-emerald px-3 py-2 rounded-lg hover:bg-white/5 transition flex items-center gap-1.5">
-            <Calendar size={14} /> Lịch đua
+            <Calendar size={14} /> Race Calendar
           </Link>
           <Link to="/leaderboard" className="text-sm font-bold text-sb-tx-2 hover:text-sb-emerald px-3 py-2 rounded-lg hover:bg-white/5 transition flex items-center gap-1.5">
-            <BarChart2 size={14} /> Bảng xếp hạng
+            <BarChart2 size={14} /> Leaderboard
           </Link>
         </nav>
 
@@ -34,7 +34,7 @@ export default function PublicLayout({ children }) {
           ) : (
             <>
               <Link to="/login" className="text-sm font-bold text-sb-tx-2 hover:text-sb-tx hidden sm:block transition">
-                Đăng nhập
+                Login
               </Link>
               <Link to="/register" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-extrabold bg-sb-emerald text-[#04241B] shadow-[0_6px_20px_rgba(16,185,129,.35)] hover:brightness-110 transition">
                 <LogIn size={13} /> Tham gia
@@ -53,7 +53,7 @@ export default function PublicLayout({ children }) {
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-sb-emerald to-[#0B7A5A] flex items-center justify-center text-xs">🏇</div>
             <span className="font-extrabold text-xs tracking-widest uppercase">HorseRacing Vietnam</span>
           </div>
-          <p className="text-sb-tx-3 text-xs">Nền tảng quản lý đua ngựa chuyên nghiệp tại Việt Nam</p>
+          <p className="text-sb-tx-3 text-xs">Professional horse racing management platform in Vietnam</p>
         </div>
       </footer>
     </div>

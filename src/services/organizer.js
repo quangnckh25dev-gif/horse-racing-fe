@@ -9,7 +9,7 @@ export const organizerService = {
   deleteRace: (raceId) => api.delete(`/organizer/races/${raceId}`),
 
   // ── Race status ───────────────────────────────────────────
-  // Trọng tài mới là người đổi trạng thái đua → BE đặt ở /races/{id}/status
+  // Referee mới là người đổi trạng thái đua → BE đặt ở /races/{id}/status
   changeRaceStatus: (raceId, status) =>
     api.patch(`/races/${raceId}/status`, { status }),
 
@@ -31,7 +31,7 @@ export const organizerService = {
     api.put(`/organizer/races/${raceId}/results/approve`, {}),
   rejectResults: (raceId, reason) =>
     api.put(`/organizer/races/${raceId}/results/reject`, { reason }),
-  // Chạy sp_PublishRaceResult: xếp hạng → chốt cược → trao thưởng
+  // Chạy sp_PublishRaceResult: xếp place → chốt bet → trao thưởng
   publishResults: (raceId) =>
     api.post(`/organizer/races/${raceId}/results/publish`, {}),
 

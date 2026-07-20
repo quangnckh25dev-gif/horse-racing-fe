@@ -30,11 +30,11 @@ function Reveal({ children, className = "", delay = "" }) {
 
 /* ── Status config ── */
 const STATUS = {
-  Scheduled:        { label: "Sắp diễn ra",  variant: "sched", bar: "bg-sb-info",    live: false, icon: Clock },
-  RegistrationOpen: { label: "Mở đăng ký",   variant: "open",  bar: "bg-sb-emerald", live: false, icon: Calendar },
-  Ongoing:          { label: "Đang diễn ra", variant: "live",  bar: "bg-sb-live",    live: true,  icon: Zap },
-  Finished:         { label: "Đã kết thúc",  variant: "fin",   bar: "bg-sb-tx-3",    live: false, icon: CheckCircle2 },
-  Cancelled:        { label: "Đã huỷ",       variant: "lose",  bar: "bg-sb-lose",    live: false, icon: XCircle },
+  Scheduled:        { label: "Scheduled",  variant: "sched", bar: "bg-sb-info",    live: false, icon: Clock },
+  RegistrationOpen: { label: "Registration Open",   variant: "open",  bar: "bg-sb-emerald", live: false, icon: Calendar },
+  Ongoing:          { label: "Ongoing", variant: "live",  bar: "bg-sb-live",    live: true,  icon: Zap },
+  Finished:         { label: "Finished",  variant: "fin",   bar: "bg-sb-tx-3",    live: false, icon: CheckCircle2 },
+  Cancelled:        { label: "Cancelled",       variant: "lose",  bar: "bg-sb-lose",    live: false, icon: XCircle },
 };
 
 /* ── Race card ── */
@@ -46,13 +46,13 @@ function RaceCard({ race, index }) {
   const handleBetClick = () => {
     if (!isAuthenticated) { navigate("/login"); return; }
     if (role === "Spectator") { navigate("/spectator/betting"); return; }
-    setNoPermMsg("Bạn không có quyền đặt cược");
+    setNoPermMsg("You do not have permission to bet");
     setTimeout(() => setNoPermMsg(null), 3000);
   };
   const handleResultClick = () => {
     if (!isAuthenticated) { navigate("/login"); return; }
     if (role === "Spectator") { navigate("/spectator/schedule"); return; }
-    setNoPermMsg("Bạn không có quyền xem kết quả");
+    setNoPermMsg("You do not have permission to view results");
     setTimeout(() => setNoPermMsg(null), 3000);
   };
 
@@ -72,7 +72,7 @@ function RaceCard({ race, index }) {
           <div className="flex items-start justify-between gap-3 mb-4">
             <div className="flex-1 min-w-0">
               <h3 className="text-sb-tx font-extrabold text-sm leading-snug line-clamp-2">
-                {race.raceName || race.name || "Vòng đua"}
+                {race.raceName || race.name || "Races"}
               </h3>
               {race.tournamentName && (
                 <p className="text-[11px] text-sb-tx-3 mt-1 flex items-center gap-1 truncate">
@@ -95,12 +95,12 @@ function RaceCard({ race, index }) {
             </div>
             {race.distance && (
               <div className="flex items-center gap-2 text-xs text-sb-tx-2">
-                <TrendingUp size={11} className="text-sb-tx-3 shrink-0" /> Cự ly {race.distance}m
+                <TrendingUp size={11} className="text-sb-tx-3 shrink-0" /> Distance {race.distance}m
               </div>
             )}
             {race.totalEntries !== undefined && (
               <div className="flex items-center gap-2 text-xs text-sb-tx-2">
-                <Users size={11} className="text-sb-tx-3 shrink-0" /> {race.totalEntries} ngựa tham gia
+                <Users size={11} className="text-sb-tx-3 shrink-0" /> {race.totalEntries} horses entered
               </div>
             )}
           </div>
@@ -126,9 +126,9 @@ function RaceCard({ race, index }) {
             className="w-full"
             onClick={race.status === "Finished" ? handleResultClick : handleBetClick}
           >
-            {race.status === "Finished" ? "Xem kết quả"
-              : race.status === "Ongoing" ? <><Zap size={12} /> Đặt cược LIVE</>
-              : "Đặt cược"}
+            {race.status === "Finished" ? "View Result"
+              : race.status === "Ongoing" ? <><Zap size={12} /> Betting LIVE</>
+              : "Betting"}
           </SbButton>
         </div>
       </SbCard>
@@ -150,11 +150,11 @@ function SkeletonCard() {
 }
 
 const FILTERS = [
-  { key: "all",              label: "Tất cả" },
-  { key: "Ongoing",          label: "Đang diễn ra" },
-  { key: "RegistrationOpen", label: "Mở đăng ký" },
-  { key: "Scheduled",        label: "Sắp diễn ra" },
-  { key: "Finished",         label: "Kết thúc" },
+  { key: "all",              label: "All" },
+  { key: "Ongoing",          label: "Ongoing" },
+  { key: "RegistrationOpen", label: "Registration Open" },
+  { key: "Scheduled",        label: "Scheduled" },
+  { key: "Finished",         label: "End" },
 ];
 
 /* ── Page ── */
@@ -185,7 +185,7 @@ export default function PublicRacesPage() {
       leaderboardService.getGlobalHorseLeaderboard(),
     ])
       .then(([jRes, hRes]) => { setJockeys(jRes.data || []); setHorses(hRes.data || []); })
-      .catch((e) => setLbError(e.message || "Không thể tải bảng xếp hạng"))
+      .catch((e) => setLbError(e.message || "Unable to load leaderboard"))
       .finally(() => setLbLoading(false));
   }, []);
 
@@ -221,23 +221,23 @@ export default function PublicRacesPage() {
         <div className="relative z-10 max-w-5xl mx-auto px-6 py-16">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sb-emerald-soft border border-sb-emerald-bd text-xs font-bold text-sb-emerald-ink mb-6">
             {counts.Ongoing > 0
-              ? <><span className="w-1.5 h-1.5 rounded-full bg-sb-live live-dot" /> {counts.Ongoing} cuộc đua đang diễn ra</>
-              : <><Calendar size={11} /> Lịch thi đấu đua ngựa Việt Nam</>}
+              ? <><span className="w-1.5 h-1.5 rounded-full bg-sb-live live-dot" /> {counts.Ongoing} races ongoing</>
+              : <><Calendar size={11} /> Vietnam Horse Racing Schedule</>}
           </div>
           <h1 className="text-5xl md:text-6xl font-black tracking-tight text-sb-tx mb-5 leading-[1.05]">
-            Đua Ngựa<br />
-            <span className="bg-gradient-to-r from-sb-gold-2 to-sb-gold bg-clip-text text-transparent">Việt Nam</span>
+            Horse Racing<br />
+            <span className="bg-gradient-to-r from-sb-gold-2 to-sb-gold bg-clip-text text-transparent">Vietnam</span>
           </h1>
           <p className="text-sb-tx-2 text-lg mb-8 max-w-lg leading-relaxed">
-            Theo dõi lịch thi đấu real-time, kết quả và đặt cược trực tuyến — không cần đăng nhập để xem.
+            Follow real-time schedules, results, and online betting without logging in.
           </p>
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
-              <Link to="/dashboard"><SbButton variant="bet">Vào Dashboard</SbButton></Link>
+              <Link to="/dashboard"><SbButton variant="bet">Go to Dashboard</SbButton></Link>
             ) : (
               <>
                 <Link to="/register"><SbButton variant="bet">Tham gia ngay <ChevronRight size={15} /></SbButton></Link>
-                <Link to="/login"><SbButton variant="ghost">Đăng nhập</SbButton></Link>
+                <Link to="/login"><SbButton variant="ghost">Login</SbButton></Link>
               </>
             )}
           </div>
@@ -248,9 +248,9 @@ export default function PublicRacesPage() {
       <div className="bg-sb-s1 border-b border-sb-border">
         <div className="max-w-5xl mx-auto px-6 grid grid-cols-3 divide-x divide-sb-border">
           {[
-            { label: "Đang diễn ra", value: counts.Ongoing,  cls: "bg-sb-live/10 text-sb-live" },
-            { label: "Sắp diễn ra",  value: counts.upcoming, cls: "bg-sb-info/10 text-sb-info" },
-            { label: "Đã kết thúc",  value: counts.Finished, cls: "bg-sb-emerald-soft text-sb-emerald-ink" },
+            { label: "Ongoing", value: counts.Ongoing,  cls: "bg-sb-live/10 text-sb-live" },
+            { label: "Scheduled",  value: counts.upcoming, cls: "bg-sb-info/10 text-sb-info" },
+            { label: "Finished",  value: counts.Finished, cls: "bg-sb-emerald-soft text-sb-emerald-ink" },
           ].map((s) => (
             <div key={s.label} className="px-6 py-5 flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${s.cls}`}>
@@ -258,7 +258,7 @@ export default function PublicRacesPage() {
               </div>
               <div>
                 <p className="text-xs text-sb-tx-2 font-semibold">{s.label}</p>
-                <p className="text-[10px] text-sb-tx-3">cuộc đua</p>
+                <p className="text-[10px] text-sb-tx-3">races</p>
               </div>
             </div>
           ))}
@@ -291,7 +291,7 @@ export default function PublicRacesPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-24">
             <Trophy size={44} className="text-sb-tx-3 mx-auto mb-4 opacity-40" />
-            <p className="text-sb-tx-3 text-sm">Không có cuộc đua nào</p>
+            <p className="text-sb-tx-3 text-sm">No races</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -310,12 +310,12 @@ export default function PublicRacesPage() {
                   <Trophy size={16} className="text-sb-gold-2" />
                 </div>
                 <div>
-                  <h2 className="text-sb-tx font-extrabold text-sm">Bảng xếp hạng</h2>
-                  <p className="text-sb-tx-3 text-[11px]">Top nài ngựa và ngựa đua xuất sắc nhất</p>
+                  <h2 className="text-sb-tx font-extrabold text-sm">Leaderboard</h2>
+                  <p className="text-sb-tx-3 text-[11px]">Top jockeys and racehorses</p>
                 </div>
               </div>
               <div className="flex bg-sb-s2 rounded-xl p-1 border border-sb-border">
-                {[{ id: "jockey", label: "🏇 Nài ngựa" }, { id: "horse", label: "🐴 Ngựa đua" }].map((t) => (
+                {[{ id: "jockey", label: "🏇 Jockey" }, { id: "horse", label: "🐴 Racehorse" }].map((t) => (
                   <button key={t.id} onClick={() => setLbTab(t.id)}
                     className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
                       lbTab === t.id ? "bg-sb-emerald-soft text-sb-emerald-ink" : "text-sb-tx-2 hover:text-sb-tx"
@@ -337,8 +337,8 @@ export default function PublicRacesPage() {
             ) : lbData.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-sb-tx-3">
                 <Trophy size={36} className="mb-3 opacity-30" />
-                <p className="text-sm font-semibold text-sb-tx-2">Chưa có dữ liệu xếp hạng</p>
-                <p className="text-xs mt-1">Dữ liệu sẽ xuất hiện sau khi có kết quả đua</p>
+                <p className="text-sm font-semibold text-sb-tx-2">No leaderboard data yet</p>
+                <p className="text-xs mt-1">Data will appear after race results are available</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -347,11 +347,11 @@ export default function PublicRacesPage() {
                     <tr className="bg-sb-s2 border-b border-sb-border">
                       <th className="text-left px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest w-12">#</th>
                       <th className="text-left px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">
-                        {lbTab === "jockey" ? "Nài ngựa" : "Ngựa đua"}
+                        {lbTab === "jockey" ? "Jockey" : "Racehorse"}
                       </th>
-                      <th className="text-center px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">Thắng</th>
-                      <th className="text-center px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">Điểm</th>
-                      <th className="text-center px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">Số cuộc</th>
+                      <th className="text-center px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">Wins</th>
+                      <th className="text-center px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">Points</th>
+                      <th className="text-center px-5 py-3 text-[10px] font-extrabold text-sb-tx-3 uppercase tracking-widest">Races</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -21,7 +21,7 @@ export default function SystemConfigsPage() {
       const res = await adminService.getConfigs();
       setConfigs(res.data || []);
     } catch (e) {
-      setError(e.message || "Không thể tải cấu hình hệ thống");
+      setError(e.message || "Unable to load system configurations");
     } finally {
       setLoading(false);
     }
@@ -42,18 +42,18 @@ export default function SystemConfigsPage() {
     setSaving(true); setError("");
     try {
       await adminService.updateConfig(key, editVal);
-      setSuccess(`Đã lưu cấu hình "${key}"`);
+      setSuccess(`Saved configuration "${key}"`);
       setEditing(null);
       load();
     } catch (e) {
-      setError(e.message || "Lưu cấu hình thất bại");
+      setError(e.message || "Failed to save configuration");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <AdminLayout title="Cấu hình hệ thống">
+    <AdminLayout title="System Configurations">
       <div className="page-header">
         <div className="absolute right-6 top-1/2 -translate-y-1/2 text-7xl opacity-[0.07] pointer-events-none select-none">⚙️</div>
         <div className="relative">
@@ -63,8 +63,8 @@ export default function SystemConfigsPage() {
             </div>
             <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Admin</span>
           </div>
-          <h1 className="text-2xl font-black text-white leading-tight">Cấu hình hệ thống</h1>
-          <p className="text-sb-tx-3 text-sm mt-1">Quản lý các thông số cấu hình toàn cục</p>
+          <h1 className="text-2xl font-black text-white leading-tight">System Configurations</h1>
+          <p className="text-sb-tx-3 text-sm mt-1">Manage global system configuration values</p>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export default function SystemConfigsPage() {
         <div className="flex justify-end">
           <button onClick={load}
             className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all">
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Làm mới
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
         </div>
 
@@ -94,7 +94,7 @@ export default function SystemConfigsPage() {
         ) : configs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Settings size={28} className="text-sb-tx-2 mx-auto mb-3" />
-            <p className="text-white font-semibold">Chưa có cấu hình nào</p>
+            <p className="text-white font-semibold">No configurations yet</p>
           </div>
         ) : (
           <div className="glass-card rounded-2xl overflow-hidden">
@@ -102,8 +102,8 @@ export default function SystemConfigsPage() {
               <div className="w-6 h-6 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
                 <Settings size={12} className="text-[#D4AF37]" />
               </div>
-              <h3 className="font-bold text-sm text-white">Danh sách cấu hình</h3>
-              <span className="ml-auto text-xs text-sb-tx-3">{configs.length} mục</span>
+              <h3 className="font-bold text-sm text-white">Configuration List</h3>
+              <span className="ml-auto text-xs text-sb-tx-3">{configs.length} items</span>
             </div>
 
             <div className="divide-y divide-white/[0.04]">

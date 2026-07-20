@@ -26,7 +26,7 @@ export default function UserApprovalPage() {
       const result = await adminService.getPendingUsers();
       setUsers(result.data || []);
     } catch (err) {
-      setErrorMsg(err.message || "Không thể tải danh sách người dùng.");
+      setErrorMsg(err.message || "Unable to load users.");
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +40,7 @@ export default function UserApprovalPage() {
       await adminService.approveUser(userId, currentUser.userId);
       setUsers((prev) => prev.filter((u) => u.userId !== userId));
     } catch (err) {
-      setErrorMsg(err.message || "Duyệt tài khoản thất bại.");
+      setErrorMsg(err.message || "Failed to approve account.");
     } finally {
       setActionLoading(null);
     }
@@ -52,14 +52,14 @@ export default function UserApprovalPage() {
       await adminService.rejectUser(userId, currentUser.userId);
       setUsers((prev) => prev.filter((u) => u.userId !== userId));
     } catch (err) {
-      setErrorMsg(err.message || "Từ chối tài khoản thất bại.");
+      setErrorMsg(err.message || "Failed to reject account.");
     } finally {
       setActionLoading(null);
     }
   };
 
   return (
-    <AdminLayout title="Duyệt tài khoản">
+    <AdminLayout title="Approve Accounts">
       <div className="p-6 max-w-4xl mx-auto">
 
         {/* Header */}
@@ -69,12 +69,12 @@ export default function UserApprovalPage() {
               <Users size={20} className="text-sb-gold-2" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-sb-tx">Duyệt tài khoản</h1>
+              <h1 className="text-2xl font-bold text-sb-tx">Approve Accounts</h1>
               <p className="text-sb-tx-3 text-sm">
                 {users.length > 0
-                  ? <span className="text-sb-gold-2 font-semibold">{users.length} tài khoản</span>
-                  : <span className="text-sb-emerald-ink font-semibold">Đã xử lý hết</span>
-                } chờ phê duyệt
+                  ? <span className="text-sb-gold-2 font-semibold">{users.length} accounts</span>
+                  : <span className="text-sb-emerald-ink font-semibold">All handled</span>
+                } pending approval
               </p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function UserApprovalPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-info hover:border-blue-300 hover:bg-sb-info/10 transition-all text-sm"
           >
             <RefreshCw size={15} className={isLoading ? "animate-spin" : ""} />
-            Làm mới
+            Refresh
           </button>
         </div>
 
@@ -105,8 +105,8 @@ export default function UserApprovalPage() {
             <div className="w-20 h-20 rounded-2xl bg-sb-emerald-soft border border-sb-emerald-bd flex items-center justify-center mb-4">
               <CheckCircle2 size={32} className="text-green-500" />
             </div>
-            <p className="text-sb-tx font-semibold mb-1">Không có tài khoản chờ duyệt</p>
-            <p className="text-sb-tx-3 text-sm">Tất cả tài khoản đã được xử lý</p>
+            <p className="text-sb-tx font-semibold mb-1">No accounts pending approval</p>
+            <p className="text-sb-tx-3 text-sm">All accounts have been handled</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -137,7 +137,7 @@ export default function UserApprovalPage() {
                           {user.roleName}
                         </span>
                         <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-sb-gold-soft text-sb-gold-2 border border-sb-gold-bd font-semibold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 live-dot" /> Chờ duyệt
+                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 live-dot" /> Pending
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs text-sb-tx-3">
@@ -156,7 +156,7 @@ export default function UserApprovalPage() {
                         className="flex items-center gap-1.5 h-9 px-4 bg-sb-emerald-soft hover:bg-sb-emerald-soft text-sb-emerald-ink border border-green-300 hover:border-green-400 rounded-xl text-xs font-bold transition-all"
                       >
                         {approveLoading ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
-                        Duyệt
+                        Approve
                       </Button>
                       <Button
                         size="sm"
@@ -165,7 +165,7 @@ export default function UserApprovalPage() {
                         className="flex items-center gap-1.5 h-9 px-4 bg-sb-lose/10 hover:bg-sb-lose/20 text-sb-lose border border-sb-lose/30 hover:border-red-300 rounded-xl text-xs font-medium transition-all"
                       >
                         {rejectLoading ? <Loader2 size={13} className="animate-spin" /> : <XCircle size={13} />}
-                        Từ chối
+                        Rejected
                       </Button>
                     </div>
                   </div>

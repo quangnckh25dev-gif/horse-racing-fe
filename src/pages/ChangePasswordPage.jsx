@@ -40,10 +40,10 @@ export default function ChangePasswordPage() {
   };
 
   const validate = () => {
-    if (!formData.oldPassword) return "Vui lòng nhập mật khẩu hiện tại.";
-    if (formData.newPassword.length < 6) return "Mật khẩu mới phải có ít nhất 6 ký tự.";
-    if (formData.newPassword === formData.oldPassword) return "Mật khẩu mới phải khác mật khẩu cũ.";
-    if (formData.newPassword !== formData.confirmPassword) return "Xác nhận mật khẩu không khớp.";
+    if (!formData.oldPassword) return "Please enter your current password.";
+    if (formData.newPassword.length < 6) return "New password must be at least 6 characters.";
+    if (formData.newPassword === formData.oldPassword) return "New password must be different from the old password.";
+    if (formData.newPassword !== formData.confirmPassword) return "Password confirmation does not match.";
     return null;
   };
 
@@ -54,17 +54,17 @@ export default function ChangePasswordPage() {
     setIsLoading(true);
     try {
       await authService.changePassword({ oldPassword: formData.oldPassword, newPassword: formData.newPassword });
-      setSuccessMsg("Đổi mật khẩu thành công!");
+      setSuccessMsg("Password changed successfully!");
       setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
-      setErrorMsg(err.message || "Có lỗi xảy ra, vui lòng thử lại.");
+      setErrorMsg(err.message || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <AuthShell title="Đổi mật khẩu" subtitle="Nhập mật khẩu hiện tại và mật khẩu mới">
+    <AuthShell title="Change Password" subtitle="Enter your current password and a new password">
       {errorMsg && (
         <div className="mb-4 flex items-center gap-2.5 p-3.5 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
           <AlertCircle size={16} className="shrink-0" /><span>{errorMsg}</span>
@@ -77,20 +77,20 @@ export default function ChangePasswordPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <PasswordField id="oldPassword"     label="Mật khẩu hiện tại"  placeholder="••••••••"              value={formData.oldPassword}     show={show.old}     onToggle={() => setShow((s) => ({ ...s, old: !s.old }))}         onChange={handleChange} />
-        <PasswordField id="newPassword"     label="Mật khẩu mới"       placeholder="Tối thiểu 6 ký tự"     value={formData.newPassword}     show={show.new}     onToggle={() => setShow((s) => ({ ...s, new: !s.new }))}         onChange={handleChange} />
-        <PasswordField id="confirmPassword" label="Xác nhận mật khẩu"  placeholder="Nhập lại mật khẩu mới" value={formData.confirmPassword} show={show.confirm} onToggle={() => setShow((s) => ({ ...s, confirm: !s.confirm }))} onChange={handleChange} />
+        <PasswordField id="oldPassword"     label="Current Password"  placeholder="••••••••"              value={formData.oldPassword}     show={show.old}     onToggle={() => setShow((s) => ({ ...s, old: !s.old }))}         onChange={handleChange} />
+        <PasswordField id="newPassword"     label="New Password"       placeholder="At least 6 characters"     value={formData.newPassword}     show={show.new}     onToggle={() => setShow((s) => ({ ...s, new: !s.new }))}         onChange={handleChange} />
+        <PasswordField id="confirmPassword" label="Confirm Password"  placeholder="Re-enter new password" value={formData.confirmPassword} show={show.confirm} onToggle={() => setShow((s) => ({ ...s, confirm: !s.confirm }))} onChange={handleChange} />
 
         <button type="submit" disabled={isLoading}
           className="w-full h-12 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-          {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Đang xử lý…</> : "CẬP NHẬT MẬT KHẨU"}
+          {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Processing...</> : "UPDATE PASSWORD"}
         </button>
       </form>
 
       <div className="mt-6 pt-5 border-t border-sb-border text-center">
         <button onClick={() => navigate("/dashboard")}
           className="text-sm text-sb-emerald-ink font-semibold hover:underline">
-          ← Quay về Dashboard
+          ← Back to Dashboard
         </button>
       </div>
     </AuthShell>

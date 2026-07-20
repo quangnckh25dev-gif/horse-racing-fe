@@ -12,49 +12,49 @@ import { useAuth } from "../../context/AuthContext";
 
 const ROLE_LINKS = {
   Organizer: [
-    { label: "Quản lý vòng đua",    icon: Flag,   path: "/organizer/races",    color: "text-sb-info",    bg: "bg-sb-info/10",    border: "border-sb-info/30 hover:border-blue-400" },
-    { label: "Phân công trọng tài", icon: Users,  path: "/organizer/referees", color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30 hover:border-purple-400" },
-    { label: "Duyệt kết quả",       icon: Award,  path: "/organizer/results",  color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password",    color: "text-sb-tx-3",    bg: "bg-sb-s2",         border: "border-sb-border hover:border-sb-border-2" },
+    { label: "Race Management",    icon: Flag,   path: "/organizer/races",    color: "text-sb-info",    bg: "bg-sb-info/10",    border: "border-sb-info/30 hover:border-blue-400" },
+    { label: "Assign Referees", icon: Users,  path: "/organizer/referees", color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30 hover:border-purple-400" },
+    { label: "Approve Results",       icon: Award,  path: "/organizer/results",  color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
+    { label: "Change Password",        icon: Target, path: "/change-password",    color: "text-sb-tx-3",    bg: "bg-sb-s2",         border: "border-sb-border hover:border-sb-border-2" },
   ],
   HorseOwner: [
-    { label: "Ngựa của tôi",        icon: PawPrint, path: "/owner/horses",            color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/30 hover:border-orange-400" },
-    { label: "Đăng ký thi đấu",     icon: Trophy,   path: "/owner/race-registration", color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "Lời mời Jockey",      icon: Mail,     path: "/owner/invitations",       color: "text-pink-400",   bg: "bg-pink-500/10",   border: "border-pink-500/30 hover:border-pink-400" },
-    { label: "Đổi mật khẩu",        icon: Target,   path: "/change-password",         color: "text-sb-tx-3",   bg: "bg-sb-s2",   border: "border-sb-border hover:border-sb-border-2" },
+    { label: "My Horses",        icon: PawPrint, path: "/owner/horses",            color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/30 hover:border-orange-400" },
+    { label: "Race Registration",     icon: Trophy,   path: "/owner/race-registration", color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
+    { label: "Jockey Invitations",      icon: Mail,     path: "/owner/invitations",       color: "text-pink-400",   bg: "bg-pink-500/10",   border: "border-pink-500/30 hover:border-pink-400" },
+    { label: "Change Password",        icon: Target,   path: "/change-password",         color: "text-sb-tx-3",   bg: "bg-sb-s2",   border: "border-sb-border hover:border-sb-border-2" },
   ],
   Jockey: [
-    { label: "Lời mời thi đấu",     icon: Mail,   path: "/jockey/invitations", color: "text-sb-gold-2", bg: "bg-sb-gold-soft", border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password",    color: "text-sb-tx-3",  bg: "bg-sb-s2",  border: "border-sb-border hover:border-sb-border-2" },
+    { label: "Race Invitations",     icon: Mail,   path: "/jockey/invitations", color: "text-sb-gold-2", bg: "bg-sb-gold-soft", border: "border-sb-gold-bd hover:border-amber-400" },
+    { label: "Change Password",        icon: Target, path: "/change-password",    color: "text-sb-tx-3",  bg: "bg-sb-s2",  border: "border-sb-border hover:border-sb-border-2" },
   ],
   Referee: [
-    { label: "Vòng đua của tôi",    icon: Flag,   path: "/referee/races",   color: "text-sb-info",  bg: "bg-sb-info/10", border: "border-sb-info/30 hover:border-blue-400" },
-    { label: "Đổi mật khẩu",        icon: Target, path: "/change-password", color: "text-sb-tx-3",  bg: "bg-sb-s2", border: "border-sb-border hover:border-sb-border-2" },
+    { label: "My Races",    icon: Flag,   path: "/referee/races",   color: "text-sb-info",  bg: "bg-sb-info/10", border: "border-sb-info/30 hover:border-blue-400" },
+    { label: "Change Password",        icon: Target, path: "/change-password", color: "text-sb-tx-3",  bg: "bg-sb-s2", border: "border-sb-border hover:border-sb-border-2" },
   ],
   Spectator: [
-    { label: "Lịch thi đấu",        icon: Calendar,  path: "/spectator/schedule",    color: "text-sb-info",   bg: "bg-sb-info/10",   border: "border-sb-info/30 hover:border-blue-400" },
-    { label: "Đặt cược",            icon: DollarSign, path: "/spectator/betting",    color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "Bảng xếp hạng",       icon: BarChart2, path: "/leaderboard",           color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30 hover:border-purple-400" },
-    { label: "Ví của tôi",          icon: Wallet,    path: "/spectator/wallet",      color: "text-sb-emerald-ink",  bg: "bg-sb-emerald-soft",  border: "border-sb-emerald-bd hover:border-green-400" },
-    { label: "Đổi mật khẩu",        icon: Target,    path: "/change-password",       color: "text-sb-tx-3",   bg: "bg-sb-s2",   border: "border-sb-border hover:border-sb-border-2" },
+    { label: "Race Schedule",        icon: Calendar,  path: "/spectator/schedule",    color: "text-sb-info",   bg: "bg-sb-info/10",   border: "border-sb-info/30 hover:border-blue-400" },
+    { label: "Betting",            icon: DollarSign, path: "/spectator/betting",    color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
+    { label: "Leaderboard",       icon: BarChart2, path: "/leaderboard",           color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30 hover:border-purple-400" },
+    { label: "My Wallet",          icon: Wallet,    path: "/spectator/wallet",      color: "text-sb-emerald-ink",  bg: "bg-sb-emerald-soft",  border: "border-sb-emerald-bd hover:border-green-400" },
+    { label: "Change Password",        icon: Target,    path: "/change-password",       color: "text-sb-tx-3",   bg: "bg-sb-s2",   border: "border-sb-border hover:border-sb-border-2" },
   ],
 };
 
 const ROLE_LABELS = {
-  Admin: "Quản trị viên",
-  Organizer: "Ban tổ chức",
-  HorseOwner: "Chủ ngựa",
-  Jockey: "Nài ngựa",
-  Referee: "Trọng tài",
-  Spectator: "Khán giả",
+  Admin: "Administrator",
+  Organizer: "Organizer",
+  HorseOwner: "Horse Owner",
+  Jockey: "Jockey",
+  Referee: "Referee",
+  Spectator: "Spectator",
 };
 
 const ROLE_TAGLINE = {
-  Organizer: "Tạo giải, duyệt đăng ký, phân công trọng tài và công bố kết quả.",
-  HorseOwner: "Quản lý ngựa, đăng ký thi đấu và xem các lời mời Jockey.",
-  Jockey: "Xem và phản hồi các lời mời thi đấu từ chủ ngựa.",
-  Referee: "Xem lịch trọng tài và quản lý kết quả các vòng đua.",
-  Spectator: "Theo dõi lịch thi đấu, đặt cược và xem bảng xếp hạng.",
+  Organizer: "Create tournaments, approve registrations, assign referees, and publish results.",
+  HorseOwner: "Manage horses, register for races, and view jockey invitations.",
+  Jockey: "View and respond to race invitations from horse owners.",
+  Referee: "View referee schedules and manage race results.",
+  Spectator: "Follow race schedules, place bets, and view the leaderboard.",
 };
 
 function RoleDashboard({ user, role, navigate }) {
@@ -76,21 +76,21 @@ function RoleDashboard({ user, role, navigate }) {
               </span>
             </div>
             <h2 className="font-display text-2xl font-black text-white leading-tight">
-              Xin chào, <span className="text-gold-gradient">{user?.fullName || user?.username}</span>
+              Hello, <span className="text-gold-gradient">{user?.fullName || user?.username}</span>
             </h2>
-            <p className="text-sb-tx-3 text-sm mt-1">{ROLE_TAGLINE[role] || "Chào mừng trở lại hệ thống."}</p>
+            <p className="text-sb-tx-3 text-sm mt-1">{ROLE_TAGLINE[role] || "Welcome back to the system."}</p>
             <button
               onClick={() => navigate("/")}
               className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sb-s1/10 hover:bg-sb-s1/20 border border-white/20 text-white/80 hover:text-sb-tx text-xs font-medium transition-all"
             >
-              <Home size={12} /> Quay về trang chủ
+              <Home size={12} /> Back to Home
             </button>
           </div>
         </div>
 
         {/* ── Quick links grid ── */}
         <div className="mb-2">
-          <p className="text-[10px] font-semibold text-sb-tx-3 uppercase tracking-widest mb-4 font-data">Truy cập nhanh</p>
+          <p className="text-[10px] font-semibold text-sb-tx-3 uppercase tracking-widest mb-4 font-data">Quick Access</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {links.map((item) => (
@@ -160,7 +160,7 @@ export default function DashboardPage() {
       const res = await adminService.getDashboardStats();
       setStats(res.data);
     } catch (err) {
-      setError(err.message || "Không thể tải thống kê.");
+      setError(err.message || "Unable to load statistics.");
     } finally {
       setLoading(false);
     }
@@ -169,22 +169,22 @@ export default function DashboardPage() {
   useEffect(() => { fetchStats(); }, []); // eslint-disable-line
 
   const QUICK_ACTIONS = [
-    { label: "Duyệt tài khoản",    icon: UserCheck,   path: "/admin/users/pending", color: "text-sb-gold-2", bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "Quản lý người dùng", icon: Users,       path: "/admin/users",          color: "text-sb-info",  bg: "bg-sb-info/10",   border: "border-sb-info/30 hover:border-blue-400" },
-    { label: "Quản lý giải đấu",   icon: Trophy,      path: "/admin/tournaments",    color: "text-sb-gold-2", bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
+    { label: "Approve Accounts",    icon: UserCheck,   path: "/admin/users/pending", color: "text-sb-gold-2", bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
+    { label: "User Management", icon: Users,       path: "/admin/users",          color: "text-sb-info",  bg: "bg-sb-info/10",   border: "border-sb-info/30 hover:border-blue-400" },
+    { label: "Tournament Management",   icon: Trophy,      path: "/admin/tournaments",    color: "text-sb-gold-2", bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
   ];
 
   const STAT_CARDS = [
-    { icon: Users,     label: "Người dùng",     value: stats?.totalActiveUsers,   color: "text-sb-info",   bg: "bg-sb-info/10",   sub: undefined, onClick: () => navigate("/admin/users") },
-    { icon: UserCheck, label: "Chờ duyệt",      value: stats?.pendingApprovals,   color: stats?.pendingApprovals > 0 ? "text-sb-gold-2" : "text-sb-emerald-ink", bg: stats?.pendingApprovals > 0 ? "bg-sb-gold-soft" : "bg-sb-emerald-soft", sub: stats?.pendingApprovals > 0 ? "⚠ Cần xử lý" : "✓ Đã xử lý hết", onClick: () => navigate("/admin/users/pending") },
-    { icon: Trophy,    label: "Giải đang diễn", value: stats?.ongoingTournaments, color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  sub: undefined, onClick: () => navigate("/admin/tournaments"), accent: true },
+    { icon: Users,     label: "Users",     value: stats?.totalActiveUsers,   color: "text-sb-info",   bg: "bg-sb-info/10",   sub: undefined, onClick: () => navigate("/admin/users") },
+    { icon: UserCheck, label: "Pending",      value: stats?.pendingApprovals,   color: stats?.pendingApprovals > 0 ? "text-sb-gold-2" : "text-sb-emerald-ink", bg: stats?.pendingApprovals > 0 ? "bg-sb-gold-soft" : "bg-sb-emerald-soft", sub: stats?.pendingApprovals > 0 ? "⚠ Needs action" : "✓ All handled", onClick: () => navigate("/admin/users/pending") },
+    { icon: Trophy,    label: "Ongoing Tournaments", value: stats?.ongoingTournaments, color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  sub: undefined, onClick: () => navigate("/admin/tournaments"), accent: true },
   ];
 
   const DETAIL_STATS = [
-    { icon: Clock,        label: "Đua sắp tới",    value: stats?.upcomingRaces,    color: "text-purple-400",  bg: "bg-purple-500/10" },
-    { icon: CheckCircle2, label: "Đua đã kết thúc", value: stats?.finishedRaces,   color: "text-sb-emerald-ink",   bg: "bg-sb-emerald-soft" },
-    { icon: HardHat,      label: "Tổng ngựa",       value: stats?.totalHorses,     color: "text-orange-400",  bg: "bg-orange-500/10" },
-    { icon: Calendar,     label: "Tổng jockey",     value: stats?.totalJockeys,    color: "text-pink-400",    bg: "bg-pink-500/10" },
+    { icon: Clock,        label: "Upcoming Races",    value: stats?.upcomingRaces,    color: "text-purple-400",  bg: "bg-purple-500/10" },
+    { icon: CheckCircle2, label: "Finished Races", value: stats?.finishedRaces,   color: "text-sb-emerald-ink",   bg: "bg-sb-emerald-soft" },
+    { icon: HardHat,      label: "Total Horses",       value: stats?.totalHorses,     color: "text-orange-400",  bg: "bg-orange-500/10" },
+    { icon: Calendar,     label: "Total Jockeys",     value: stats?.totalJockeys,    color: "text-pink-400",    bg: "bg-pink-500/10" },
   ];
 
   return (
@@ -196,7 +196,7 @@ export default function DashboardPage() {
             <AlertCircle size={15} className="shrink-0 text-sb-lose" />
             {error}
             <button onClick={fetchStats} className="ml-auto flex items-center gap-1.5 text-xs text-red-400 hover:text-sb-lose transition-colors">
-              <RefreshCw size={12} /> Thử lại
+              <RefreshCw size={12} /> Try Again
             </button>
           </div>
         )}
@@ -228,25 +228,25 @@ export default function DashboardPage() {
                 <div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/30 mb-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-dot" />
-                    <span className="text-amber-300 text-[10px] font-bold uppercase tracking-widest font-data">Hệ thống đang hoạt động</span>
+                    <span className="text-amber-300 text-[10px] font-bold uppercase tracking-widest font-data">System Online</span>
                   </div>
                   <h2 className="font-display text-2xl font-black text-white leading-tight mb-1">
-                    Xin chào, <span className="text-gold-gradient">{user?.fullName || user?.username}</span>
+                    Hello, <span className="text-gold-gradient">{user?.fullName || user?.username}</span>
                   </h2>
-                  <p className="text-sb-tx-3 text-sm">Tổng quan hệ thống quản lý giải đua ngựa.</p>
+                  <p className="text-sb-tx-3 text-sm">Overview of the horse racing management system.</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => navigate("/")}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sb-s1/10 hover:bg-sb-s1/20 border border-white/20 text-white/80 hover:text-sb-tx text-sm font-medium transition-all"
                   >
-                    <Home size={14} /> Trang chủ
+                    <Home size={14} /> Home
                   </button>
                   <button
                     onClick={() => navigate("/admin/tournaments")}
                     className="btn-gold flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold"
                   >
-                    Quản lý giải đấu <ChevronRight size={15} />
+                    Tournament Management <ChevronRight size={15} />
                   </button>
                 </div>
               </div>
@@ -254,7 +254,7 @@ export default function DashboardPage() {
 
             {/* Detail stats grid */}
             <div>
-              <p className="text-[10px] font-semibold text-sb-tx-3 uppercase tracking-widest mb-3 font-data">Thống kê chi tiết</p>
+              <p className="text-[10px] font-semibold text-sb-tx-3 uppercase tracking-widest mb-3 font-data">Detailed Statistics</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {DETAIL_STATS.map((card, i) => (
                   <div key={i} style={{ animationDelay: `${i * 40}ms` }} className="animate-fade-in-up">
@@ -275,7 +275,7 @@ export default function DashboardPage() {
                 <div className="w-6 h-6 rounded-lg bg-sb-info/10 border border-sb-info/30 flex items-center justify-center">
                   <Zap size={12} className="text-sb-info" />
                 </div>
-                <h3 className="font-display font-bold text-sm text-sb-tx">Truy cập nhanh</h3>
+                <h3 className="font-display font-bold text-sm text-sb-tx">Quick Access</h3>
               </div>
               <div className="space-y-2">
                 {QUICK_ACTIONS.map((item) => (
@@ -297,12 +297,12 @@ export default function DashboardPage() {
             {/* System status card */}
             <div className="bg-sb-s1 rounded-2xl p-5 border border-sb-border shadow-sm">
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-sb-border">
-                <h3 className="font-display font-bold text-sm text-sb-tx">Trạng thái hệ thống</h3>
+                <h3 className="font-display font-bold text-sm text-sb-tx">System Status</h3>
                 <button
                   onClick={fetchStats}
                   disabled={loading}
                   className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-info hover:bg-sb-info/10 transition-all"
-                  title="Làm mới"
+                  title="Refresh"
                 >
                   <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
                 </button>

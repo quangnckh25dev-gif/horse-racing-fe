@@ -5,8 +5,8 @@ import { SbAlert, SbSpinner, SbEmpty } from "../../components/sb/Feedback";
 import { SbTabs, SbTable, SbTr, SbPageHeader } from "../../components/sb/Data";
 
 const TABS = [
-  { id: "jockey", label: "Nài ngựa", emoji: "🏇" },
-  { id: "horse",  label: "Ngựa đua", emoji: "🐴" },
+  { id: "jockey", label: "Jockey", emoji: "🏇" },
+  { id: "horse",  label: "Racehorse", emoji: "🐴" },
 ];
 
 const PODIUM = [
@@ -37,7 +37,7 @@ export default function LeaderboardPage() {
       setJockeys(jRes.data || []);
       setHorses(hRes.data || []);
     } catch (e) {
-      setError(e.message || "Không thể tải bảng xếp hạng");
+      setError(e.message || "Unable to load leaderboard");
     } finally {
       setLoading(false);
     }
@@ -50,14 +50,14 @@ export default function LeaderboardPage() {
   return (
     <>
       <SbPageHeader
-        eyebrow="Toàn hệ thống"
-        title="Bảng xếp hạng"
+        eyebrow="System-wide"
+        title="Leaderboard"
         icon={Trophy}
-        stats={[`${data.length} ${activeTab === "jockey" ? "nài ngựa" : "ngựa đua"}`]}
+        stats={[`${data.length} ${activeTab === "jockey" ? "jockeys" : "racehorses"}`]}
         actions={
           <button onClick={load} disabled={loading}
             className="flex items-center gap-2 px-3 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm transition-colors">
-            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Làm mới
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
         }
       />
@@ -70,8 +70,8 @@ export default function LeaderboardPage() {
         {loading ? (
           <SbSpinner />
         ) : data.length === 0 ? (
-          <SbEmpty icon="🏆" title="Chưa có dữ liệu xếp hạng"
-            hint="Dữ liệu sẽ xuất hiện sau khi có kết quả đua được công bố" />
+          <SbEmpty icon="🏆" title="No leaderboard data yet"
+            hint="Data will appear after race results are published" />
         ) : (
           <>
             {/* Top 3 */}
@@ -85,10 +85,10 @@ export default function LeaderboardPage() {
                     <p className={`text-base font-black ${text}`}>{nameOf(item)}</p>
                     <div className="flex items-center justify-center gap-3 mt-2 flex-wrap">
                       <span className="text-xs text-sb-tx-3">
-                        <span className="font-bold text-sb-tx tabular-nums">{item.totalWins ?? 0}</span> thắng
+                        <span className="font-bold text-sb-tx tabular-nums">{item.totalWins ?? 0}</span> wins
                       </span>
                       <span className="text-xs text-sb-tx-3">
-                        <span className="font-bold text-sb-gold-2 tabular-nums">{pointsOf(item) ?? 0}</span> điểm
+                        <span className="font-bold text-sb-gold-2 tabular-nums">{pointsOf(item) ?? 0}</span> points
                       </span>
                     </div>
                   </div>
@@ -100,11 +100,11 @@ export default function LeaderboardPage() {
             <SbTable
               head={[
                 { label: "#" },
-                { label: activeTab === "jockey" ? "Nài ngựa" : "Ngựa đua" },
-                { label: "Thắng", align: "center" },
+                { label: activeTab === "jockey" ? "Jockey" : "Racehorse" },
+                { label: "Wins", align: "center" },
                 { label: "Top 3", align: "center" },
-                { label: "Điểm", align: "center" },
-                { label: "Số cuộc", align: "center" },
+                { label: "Points", align: "center" },
+                { label: "Races", align: "center" },
               ]}
             >
               {data.map((item, idx) => (

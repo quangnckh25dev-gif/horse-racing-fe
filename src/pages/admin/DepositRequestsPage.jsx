@@ -9,9 +9,9 @@ import { adminService } from "../../services/admin";
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 
 const STATUS = {
-  Pending: { label: "Cho duyet", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd", icon: Clock3 },
-  Approved: { label: "Da duyet", cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", icon: CheckCircle2 },
-  Rejected: { label: "Reject", cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30", icon: XCircle },
+  Pending: { label: "Pending", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd", icon: Clock3 },
+  Approved: { label: "Approved", cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", icon: CheckCircle2 },
+  Rejected: { label: "Rejected", cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30", icon: XCircle },
 };
 
 function StatusBadge({ status }) {

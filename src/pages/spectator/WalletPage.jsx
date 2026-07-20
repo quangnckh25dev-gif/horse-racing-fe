@@ -12,10 +12,10 @@ import { walletService } from "../../services/wallet";
 
 const TX_TYPE = {
   Deposit: { label: "Deposit", cls: "text-sb-win", sign: "+", icon: ArrowDownLeft },
-  BetPlaced: { label: "Dat cuoc", cls: "text-sb-lose", sign: "-", icon: ArrowUpRight },
-  BetWon: { label: "Thang cuoc", cls: "text-sb-win", sign: "+", icon: TrendingUp },
-  BetRefund: { label: "Hoan tien", cls: "text-sb-info", sign: "+", icon: RotateCcw },
-  PrizeAwarded: { label: "Tien thuong", cls: "text-sb-gold-2", sign: "+", icon: Trophy },
+  BetPlaced: { label: "Bet Placed", cls: "text-sb-lose", sign: "-", icon: ArrowUpRight },
+  BetWon: { label: "Bet Won", cls: "text-sb-win", sign: "+", icon: TrendingUp },
+  BetRefund: { label: "Refunded", cls: "text-sb-info", sign: "+", icon: RotateCcw },
+  PrizeAwarded: { label: "Prize Awarded", cls: "text-sb-gold-2", sign: "+", icon: Trophy },
 };
 
 const QUICK_AMOUNTS = [100_000, 200_000, 500_000, 1_000_000, 2_000_000, 5_000_000];
@@ -38,9 +38,9 @@ const PAYMENT_RECEIVER = {
 };
 
 const STATUS = {
-  Pending: { label: "Cho duyet", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd", icon: Clock3 },
-  Approved: { label: "Da duyet", cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", icon: CheckCircle2 },
-  Rejected: { label: "Reject", cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30", icon: XCircle },
+  Pending: { label: "Pending", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd", icon: Clock3 },
+  Approved: { label: "Approved", cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", icon: CheckCircle2 },
+  Rejected: { label: "Rejected", cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30", icon: XCircle },
 };
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
@@ -322,7 +322,7 @@ export default function WalletPage() {
                   <div className="divide-y divide-sb-border">
                     {transactions.map((tx, i) => {
                       const key = tx.type || tx.transactionType;
-                      const type = TX_TYPE[key] || { label: key || "Giao dich", cls: "text-sb-tx-2", sign: "", icon: History };
+                      const type = TX_TYPE[key] || { label: key || "Transaction", cls: "text-sb-tx-2", sign: "", icon: History };
                       const TxIcon = type.icon;
                       return (
                         <div key={tx.transactionId || i} className="flex items-center gap-4 px-5 py-4 hover:bg-sb-s2 transition-colors">

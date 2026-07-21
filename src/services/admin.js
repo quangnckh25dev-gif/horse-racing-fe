@@ -1,14 +1,14 @@
 import { api } from "./api";
 
 export const adminService = {
-  // User approval — adminId là userId của admin đang đăng nhập
+  // User approval. adminId is the current admin user's id.
   getPendingUsers: () => api.get("/admin/users/pending"),
   approveUser: (userId, adminId) =>
     api.put(`/admin/users/${userId}/approve?adminId=${adminId}`),
   rejectUser: (userId, adminId) =>
     api.put(`/admin/users/${userId}/reject?adminId=${adminId}`),
 
-  // Dashboard stats (từ vw_SystemDashboard)
+  // Dashboard stats from the system dashboard view.
   getDashboardStats: () => api.get("/admin/dashboard"),
 
   // User management

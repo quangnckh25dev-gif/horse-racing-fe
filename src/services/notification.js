@@ -1,12 +1,12 @@
 import { api } from "./api";
 
-// BE lấy user từ JWT → không truyền userId trên URL nữa (/notifications/me)
+// Backend reads the user from JWT, so /notifications/me does not need a userId.
 export const notificationService = {
   getMyNotifications: () => api.get("/notifications/me"),
   getUnreadCount: () => api.get("/notifications/me/unread-count"),
   markAsRead: (notificationId) => api.put(`/notifications/${notificationId}/read`),
   markAllAsRead: () => api.put("/notifications/me/read-all"),
 
-  // POST /api/notifications — tạo thông báo hệ thống (Admin)
+  // POST /api/notifications creates a system notification for admins.
   createNotification: (data) => api.post("/notifications", data),
 };

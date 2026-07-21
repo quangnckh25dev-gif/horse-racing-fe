@@ -30,14 +30,14 @@ function formatRelativeTime(dateStr) {
   if (mins < 60) return `${mins} minutes ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours} hours ago`;
-  return d.toLocaleDateString("vi-VN");
+  return d.toLocaleDateString("en-US");
 }
 
 function normalizeNotif(n) {
   const cfg = NOTIF_TYPE_CONFIG[n.notifType] || NOTIF_TYPE_CONFIG.default;
   const isRaceDoc = n.relatedEntity === "Race" ||
     /Minutes|Result|Published/i.test(n.notifType || "") ||
-    /biên bản|kết quả/i.test(n.title || "");
+    /minutes|result/i.test(n.title || "");
   return {
     id: n.notificationId,
     text: n.title || n.body || "New notification",
@@ -47,7 +47,6 @@ function normalizeNotif(n) {
     unread: !n.isRead,
     icon: cfg.icon,
     iconCls: cfg.cls,
-    // raceId để mở biên bản/kết quả khi bấm vào
     raceId: isRaceDoc ? (n.relatedEntityId ?? n.relatedEntityID ?? null) : null,
   };
 }
@@ -62,7 +61,7 @@ export default function Topbar({ title }) {
   const [notifications, setNotifications] = useState([]);
   const [notifLoaded, setNotifLoaded] = useState(false);
   const [readIds, setReadIds] = useState(new Set());
-  const [viewMinutes, setViewMinutes] = useState(null); // { raceId } khi bấm thông báo biên bản
+  const [viewMinutes, setViewMinutes] = useState(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -82,19 +81,18 @@ export default function Topbar({ title }) {
   const unreadCount = notifications.filter((n) => n.unread && !readIds.has(n.id)).length;
 
   const markAllRead = async () => {
-    try { await notificationService.markAllAsRead(); } catch { /* vẫn đánh dấu ở FE */ }
+    try { await notificationService.markAllAsRead(); } catch { /* keep the local read state */ }
     setReadIds(new Set(notifications.map((n) => n.id)));
   };
 
   const markOneRead = async (n) => {
-    try { await notificationService.markAsRead(n.id); } catch { /* vẫn đánh dấu ở FE */ }
+    try { await notificationService.markAsRead(n.id); } catch { /* keep the local read state */ }
     setReadIds((prev) => new Set([...prev, n.id]));
     if (role === "Referee" && n.type === "RefereeAssigned" && n.raceId) {
       setBellOpen(false);
       navigate(`/referee/races/${n.raceId}`);
       return;
     }
-    // Notifications về biên bản/kết quả → mở luôn để xem
     if (n.raceId) { setViewMinutes({ raceId: n.raceId, raceName: n.text }); setBellOpen(false); }
   };
 
@@ -106,7 +104,7 @@ export default function Topbar({ title }) {
 
       <div className="flex items-center gap-3">
 
-        {/* ── Chuông thông báo ── */}
+        {/* Notifications */}
         <div className="relative">
           <button
             onClick={() => { setBellOpen((p) => !p); setDropdownOpen(false); }}
@@ -130,7 +128,7 @@ export default function Topbar({ title }) {
                     <span className="text-sb-tx text-sm font-bold">Notifications</span>
                     {unreadCount > 0 && (
                       <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-sb-emerald-soft text-sb-emerald-ink border border-sb-emerald-bd">
-                        {unreadCount} mới
+                        {unreadCount} new
                       </span>
                     )}
                   </div>
@@ -141,7 +139,7 @@ export default function Topbar({ title }) {
                       </button>
                     )}
                     <button onClick={() => { setNotifLoaded(false); fetchNotifications(); }}
-                      className="text-[10px] text-sb-tx-3 hover:text-sb-tx transition-colors">↻</button>
+                      className="text-[10px] text-sb-tx-3 hover:text-sb-tx transition-colors">Refresh</button>
                   </div>
                 </div>
 
@@ -182,7 +180,7 @@ export default function Topbar({ title }) {
           )}
         </div>
 
-        {/* ── Menu người dùng ── */}
+        {/* User menu */}
         <div className="relative">
           <button
             onClick={() => { setDropdownOpen((p) => !p); setBellOpen(false); }}

@@ -128,7 +128,7 @@ export default function UserManagementPage() {
                       <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Status</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Current Role</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Change Role</th>
-                      <th className="text-center px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Lưu</th>
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-sb-tx-3 uppercase tracking-widest">Save</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -189,7 +189,7 @@ export default function UserManagementPage() {
                             >
                               {actionLoading === user.userId ? (
                                 <Loader2 size={13} className="animate-spin" />
-                              ) : "Lưu"}
+                              ) : "Save"}
                             </Button>
                           )}
                         </td>

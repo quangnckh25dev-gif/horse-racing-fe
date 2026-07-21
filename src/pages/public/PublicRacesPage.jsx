@@ -236,7 +236,7 @@ export default function PublicRacesPage() {
               <Link to="/dashboard"><SbButton variant="bet">Go to Dashboard</SbButton></Link>
             ) : (
               <>
-                <Link to="/register"><SbButton variant="bet">Tham gia ngay <ChevronRight size={15} /></SbButton></Link>
+                <Link to="/register"><SbButton variant="bet">Join now <ChevronRight size={15} /></SbButton></Link>
                 <Link to="/login"><SbButton variant="ghost">Login</SbButton></Link>
               </>
             )}

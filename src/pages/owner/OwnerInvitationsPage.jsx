@@ -38,7 +38,7 @@ const STATUS_CONFIG = {
     border: "border-sb-lose/30",
   },
   Cancelled: {
-    label: "Đã thu hồi",
+    label: "Withdrawn",
     color: "bg-sb-s2 text-sb-tx-3 border-sb-border",
     borderCls: "border-l-4 border-l-gray-500",
     icon: XCircle,
@@ -140,7 +140,7 @@ export default function OwnerInvitationsPage() {
     Cancelled: invitations.filter((i) => i.status === "Cancelled").length,
   };
 
-  // Withdraw lời mời đang pending responses
+  // Withdraw invitation đang pending responses
   const [cancelBusy, setCancelBusy] = useState(null);
   const handleCancel = async (inv) => {
     if (!(await confirmBox(`Withdraw invitation sent to ${inv.jockeyName || "this jockey"}?`, { okText: "Withdraw", danger: true }))) return;
@@ -302,7 +302,7 @@ export default function OwnerInvitationsPage() {
                       <button onClick={() => handleCancel(inv)} disabled={cancelBusy === inv.invitationId}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20 text-xs font-bold disabled:opacity-50 transition-colors shrink-0">
                         {cancelBusy === inv.invitationId ? <Loader2 size={12} className="animate-spin" /> : <XCircle size={12} />}
-                        Withdraw lời mời
+                        Withdraw invitation
                       </button>
                     ) : (
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${cfg.bg} ${cfg.border}`}>
@@ -344,7 +344,7 @@ export default function OwnerInvitationsPage() {
                 </label>
                 <div className="relative">
                   <select value={selectedEntry} onChange={(e) => setSelectedEntry(e.target.value)} className={selectCls}>
-                    <option value="">-- Chọn entry --</option>
+                    <option value="">-- Select entry --</option>
                     {entries.map((en) => (
                       <option key={en.entryId} value={en.entryId}>
                         {en.horseName || `Horse #${en.horseId}`} — {en.raceName || `Race #${en.raceId}`}
@@ -382,13 +382,13 @@ export default function OwnerInvitationsPage() {
               {/* Message */}
               <div>
                 <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-2">
-                  Tin nhắn (optional)
+                  Message (optional)
                 </label>
                 <textarea
                   rows={3}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Nhập lời nhắn cho Jockey..."
+                  placeholder="Enter a message for the jockey..."
                   className="w-full rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-sb-emerald placeholder:text-sb-tx-3 resize-none"
                 />
               </div>

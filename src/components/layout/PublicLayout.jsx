@@ -37,7 +37,7 @@ export default function PublicLayout({ children }) {
                 Login
               </Link>
               <Link to="/register" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-extrabold bg-sb-emerald text-[#04241B] shadow-[0_6px_20px_rgba(16,185,129,.35)] hover:brightness-110 transition">
-                <LogIn size={13} /> Tham gia
+                <LogIn size={13} /> Join
               </Link>
             </>
           )}

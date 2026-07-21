@@ -205,7 +205,7 @@ function DepositModal({ onClose, onDone }) {
           <div className="flex gap-3">
             <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm">Cancel</button>
             <button onClick={submit} disabled={!amt} className="flex-1 py-2.5 rounded-xl bg-sb-gold text-[#0B0F14] font-bold text-sm disabled:opacity-50">
-              Tao yeu cau
+              Create request
             </button>
           </div>
         </div>
@@ -288,7 +288,7 @@ export default function WalletPage() {
               <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
                 <div className="flex items-center gap-2 p-5 border-b border-sb-border">
                   <QrCode size={14} className="text-sb-gold-2" />
-                  <h3 className="font-bold text-sm text-sb-tx">requests nap tien</h3>
+                  <h3 className="font-bold text-sm text-sb-tx">Deposit requests</h3>
                 </div>
                 {depositRequests.length === 0 ? <SbEmpty icon="QR" title="No deposit requests yet" hint="Create a request and transfer using the generated code" /> : (
                   <div className="divide-y divide-sb-border">

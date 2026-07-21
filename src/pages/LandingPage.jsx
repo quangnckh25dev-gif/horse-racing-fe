@@ -149,7 +149,7 @@ export default function LandingPage() {
             Pick your horse and enter the race.
           </p>
           <div className="lp-cta">
-            <button className="lp-btn lp-btn-bet" onClick={() => openAuth("register")}>Tham gia ngay →</button>
+            <button className="lp-btn lp-btn-bet" onClick={() => openAuth("register")}>Join now →</button>
             <button className="lp-btn lp-btn-ghost" onClick={() => scrollTo("lp-races")}>View Race Schedule</button>
           </div>
         </section>

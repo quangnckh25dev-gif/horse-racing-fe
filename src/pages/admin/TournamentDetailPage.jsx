@@ -449,7 +449,7 @@ export default function TournamentDetailPage() {
         )}
 
         {/* ══════════════════════════════════════════════════════════
-            TAB: VÒNG ĐẤU
+            TAB: ROUNDS
         ══════════════════════════════════════════════════════════ */}
         {activeTab === "rounds" && (
           <div>
@@ -528,7 +528,7 @@ export default function TournamentDetailPage() {
         )}
 
         {/* ══════════════════════════════════════════════════════════
-            TAB: LỊCH THI ĐẤU
+            TAB: RACE SCHEDULE
         ══════════════════════════════════════════════════════════ */}
         {activeTab === "races" && (
           <div>
@@ -706,7 +706,7 @@ export default function TournamentDetailPage() {
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setRoundModal(null)} className="flex-1 h-9 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Cancel</button>
                 <Button type="submit" disabled={isSavingRound} className="flex-1 h-9 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm">
-                  {isSavingRound ? <Loader2 size={14} className="animate-spin" /> : "Lưu"}
+                  {isSavingRound ? <Loader2 size={14} className="animate-spin" /> : "Save"}
                 </Button>
               </div>
             </form>
@@ -752,7 +752,7 @@ export default function TournamentDetailPage() {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Race Date đấu *</Label>
+                  <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Race Date *</Label>
                   <Input
                     type="datetime-local"
                     value={raceModal.data.raceDate}
@@ -824,7 +824,7 @@ export default function TournamentDetailPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Close cổng lúc</Label>
+                    <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Registration closes at</Label>
                     <Input
                       type="datetime-local"
                       value={raceModal.data.registrationClose}
@@ -839,7 +839,7 @@ export default function TournamentDetailPage() {
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setRaceModal(null)} className="flex-1 h-9 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Cancel</button>
                 <Button type="submit" disabled={isSavingRace} className="flex-1 h-9 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm">
-                  {isSavingRace ? <Loader2 size={14} className="animate-spin" /> : "Lưu"}
+                  {isSavingRace ? <Loader2 size={14} className="animate-spin" /> : "Save"}
                 </Button>
               </div>
             </form>

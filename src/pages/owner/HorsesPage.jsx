@@ -15,8 +15,8 @@ const STATUS_CONFIG = {
 
 const HORSE_COLORS = [
   "Brown", "Black", "White", "Gray", "Bay", "Palomino",
-  "Pinto", "Brown nhạt (Chestnut)", "Gray đốm (Dapple Grey)",
-  "Black tuyền", "Brown vàng (Buckskin)", "Cremello",
+  "Pinto", "Light Brown (Chestnut)", "Dapple Gray",
+  "Solid Black", "Golden Brown (Buckskin)", "Cremello",
 ];
 
 const HORSE_BREEDS = [
@@ -189,7 +189,7 @@ function HealthModal({ horseId, horseName, onClose }) {
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-xl border border-sb-border text-sb-tx-3 text-sm">Cancel</button>
               <button type="submit" disabled={addLoading} className="flex-1 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
-                {addLoading && <Loader2 size={12} className="animate-spin" />} Thêm
+                {addLoading && <Loader2 size={12} className="animate-spin" />} Add
               </button>
             </div>
           </form>
@@ -374,7 +374,7 @@ export default function HorsesPage() {
             <p className="text-sb-tx-3 text-sm mb-4">Add your first horse to your stable</p>
             <button onClick={() => { setFormData(EMPTY_FORM); setFormError(""); setShowCreate(true); }}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm btn-gold-glow">
-              <Plus size={15} /> Add Horse đầu tiên
+              <Plus size={15} /> Add First Horse
             </button>
           </div>
         ) : (
@@ -475,7 +475,7 @@ export default function HorsesPage() {
 
       {/* ── Modals ── */}
       {showCreate && (
-        <Modal title="Add Horse mới" onClose={() => setShowCreate(false)}>
+        <Modal title="Add New Horse" onClose={() => setShowCreate(false)}>
           {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-sb-lose/10 border border-sb-lose/30 rounded-xl text-sb-lose text-sm"><AlertCircle size={13} />{formError}</div>}
           <HorseForm form={formData} onChange={handleFormChange} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} loading={formLoading} submitLabel="Add Horse" />
         </Modal>

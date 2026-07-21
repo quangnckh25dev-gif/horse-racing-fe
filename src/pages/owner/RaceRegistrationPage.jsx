@@ -362,7 +362,7 @@ export default function RaceRegistrationPage() {
           )}
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
-              <label className={labelCls}>Choose Horse tham gia *</label>
+              <label className={labelCls}>Choose Horse *</label>
               <select value={registerForm.horseId} onChange={(e) => setRegisterForm((p) => ({ ...p, horseId: e.target.value }))} required className={selectCls}>
                 <option value="">-- Choose Horse --</option>
                 {horses.map((h) => <option key={h.horseId} value={h.horseId}>{h.horseName}</option>)}

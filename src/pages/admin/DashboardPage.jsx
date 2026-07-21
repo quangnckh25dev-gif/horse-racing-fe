@@ -107,6 +107,15 @@ const ACTION_STYLE = [
   "text-pink-300 bg-pink-500/10 border-pink-500/30 hover:border-pink-400",
 ];
 
+const VIEW_ALL_PATH_BY_ROLE = {
+  Admin: "/admin/tournaments",
+  Organizer: "/organizer/races",
+  HorseOwner: "/owner/race-registration",
+  Jockey: "/jockey/invitations",
+  Referee: "/referee/races",
+  Spectator: "/spectator/schedule",
+};
+
 const getArray = (payload, keys) => {
   for (const key of keys) {
     const value = payload?.[key];
@@ -151,6 +160,16 @@ function raceAction(role, race) {
   if (role === "Referee") return { label: "Manage", path: raceId ? `/referee/races/${raceId}` : "/referee/races" };
   if (role === "Organizer") return { label: "Manage", path: raceId ? `/organizer/races/${raceId}` : "/organizer/races" };
   return { label: "View Races", path: role === "Admin" ? "/admin/tournaments" : "/spectator/schedule" };
+}
+
+function resolveActionPath(action, role, featuredRaces) {
+  if (role !== "Referee") return action.path;
+  if (action.path !== "/referee/races") return action.path;
+  if (action.label === "My Assigned Races") return action.path;
+
+  const firstAssignedRace = featuredRaces.find((race) => race?.raceId || race?.id);
+  const raceId = firstAssignedRace?.raceId || firstAssignedRace?.id;
+  return raceId ? `/referee/races/${raceId}` : action.path;
 }
 
 function SectionTitle({ icon: Icon, title, action, onAction }) {
@@ -213,6 +232,7 @@ export default function DashboardPage() {
   const { user, role } = useAuth();
   const navigate = useNavigate();
   const [races, setRaces] = useState([]);
+  const [summary, setSummary] = useState(null);
   const [jockeys, setJockeys] = useState([]);
   const [horses, setHorses] = useState([]);
   const [adminStats, setAdminStats] = useState(null);
@@ -225,15 +245,22 @@ export default function DashboardPage() {
     setError("");
     try {
       const shared = await dashboardService.getSharedDashboard().catch(() => null);
+      const sharedData = shared?.data || null;
+      const shouldUseAssignedRaces = role === "Referee";
       const [racesRes, jockeyRes, horseRes, adminRes, unreadRes] = await Promise.all([
-        shared?.data ? Promise.resolve({ data: shared.data.races }) : spectatorService.getRaces(),
-        shared?.data ? Promise.resolve({ data: shared.data.topJockeys }) : leaderboardService.getGlobalJockeyLeaderboard(),
-        shared?.data ? Promise.resolve({ data: shared.data.topHorses }) : leaderboardService.getGlobalHorseLeaderboard(),
+        shouldUseAssignedRaces
+          ? spectatorService.getAssignedRaces()
+          : sharedData
+            ? Promise.resolve({ data: sharedData.featuredRaces })
+            : spectatorService.getRaces(),
+        sharedData ? Promise.resolve({ data: sharedData.topJockeys }) : leaderboardService.getGlobalJockeyLeaderboard(),
+        sharedData ? Promise.resolve({ data: sharedData.topHorses }) : leaderboardService.getGlobalHorseLeaderboard(),
         role === "Admin" ? adminService.getDashboardStats().catch(() => null) : Promise.resolve(null),
         notificationService.getUnreadCount().catch(() => null),
       ]);
 
       setRaces(getArray(racesRes?.data, ["races", "items", "content", "data"]));
+      setSummary(sharedData);
       setJockeys(getArray(jockeyRes?.data, ["topJockeys", "jockeys", "items", "content", "data"]));
       setHorses(getArray(horseRes?.data, ["topHorses", "horses", "items", "content", "data"]));
       setAdminStats(adminRes?.data || null);
@@ -251,6 +278,15 @@ export default function DashboardPage() {
   }, [loadDashboard]);
 
   const overview = useMemo(() => {
+    if (summary && role !== "Referee") {
+      return {
+        upcoming: summary.upcomingRaces ?? 0,
+        registrationOpen: summary.registrationOpenRaces ?? 0,
+        ongoing: summary.ongoingRaces ?? 0,
+        finished: summary.finishedRaces ?? 0,
+      };
+    }
+
     const count = (statuses) => races.filter((race) => statuses.includes(race.status)).length;
     return {
       upcoming: count(["Scheduled"]),
@@ -258,7 +294,7 @@ export default function DashboardPage() {
       ongoing: count(["Ongoing"]),
       finished: count(["Finished"]),
     };
-  }, [races]);
+  }, [races, role, summary]);
 
   const featuredRaces = useMemo(() => {
     return [...races]
@@ -342,7 +378,12 @@ export default function DashboardPage() {
             </section>
 
             <section className="rounded-2xl border border-sb-border bg-sb-s1 p-5 space-y-4">
-              <SectionTitle icon={Flag} title="Featured Races" action="View all" onAction={() => navigate(role === "Admin" ? "/admin/tournaments" : "/spectator/schedule")} />
+              <SectionTitle
+                icon={Flag}
+                title={role === "Referee" ? "My Assigned Races" : "Featured Races"}
+                action="View all"
+                onAction={() => navigate(VIEW_ALL_PATH_BY_ROLE[role] || "/spectator/schedule")}
+              />
               {loading ? (
                 <div className="flex items-center justify-center py-10 text-sb-tx-3">
                   <Loader2 size={20} className="animate-spin mr-2" /> Loading races
@@ -399,7 +440,7 @@ export default function DashboardPage() {
                   return (
                     <button
                       key={`${item.label}-${item.path}`}
-                      onClick={() => navigate(item.path)}
+                      onClick={() => navigate(resolveActionPath(item, role, featuredRaces))}
                       className={`group flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${style}`}
                     >
                       <div className="w-8 h-8 rounded-lg bg-current/10 flex items-center justify-center shrink-0">

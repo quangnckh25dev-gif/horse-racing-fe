@@ -19,7 +19,6 @@ const MENU_BY_ROLE = {
     { label: "System Logs",    icon: FileText,      path: "/admin/audit-logs" },
     { label: "System Configurations",   icon: Settings,      path: "/admin/configs" },
   ],
-  // 1 role Organizer duy nhất (đã bỏ OrganizerHead/OrganizerMember)
   Organizer: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
     { label: "Race Management",    icon: Flag,          path: "/organizer/races" },
@@ -76,17 +75,17 @@ export default function Sidebar() {
         collapsed ? "w-[60px]" : "w-60"
       }`}
     >
-      {/* ── Logo ── */}
+      {/* Logo */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-sb-border shrink-0">
         {collapsed ? (
           <div className="mx-auto w-8 h-8 rounded-lg flex items-center justify-center bg-sb-emerald-soft border border-sb-emerald-bd text-base">
-            🏇
+            <Flag size={16} />
           </div>
         ) : (
           <>
             <div className="flex items-center gap-2.5 overflow-hidden">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-sb-emerald-soft border border-sb-emerald-bd text-base shrink-0">
-                🏇
+                <Flag size={16} />
               </div>
               <div className="overflow-hidden">
                 <p className="text-sb-tx font-bold text-xs tracking-widest uppercase leading-none">
@@ -112,7 +111,7 @@ export default function Sidebar() {
         </button>
       )}
 
-      {/* ── Menu ── */}
+      {/* Menu */}
       <nav className="flex-1 py-4 space-y-0.5 overflow-y-auto overflow-x-hidden px-2">
         {!collapsed && (
           <p className="px-2 mb-2 text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">
@@ -154,7 +153,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* ── Role + Logout ── */}
+      {/* Role and logout */}
       <div className="border-t border-sb-border p-3 space-y-2 shrink-0">
         {roleLabel && !collapsed && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-sb-s2 border border-sb-border text-xs font-semibold text-sb-tx-2">

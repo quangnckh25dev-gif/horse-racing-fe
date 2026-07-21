@@ -1,44 +1,37 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Users, UserCheck, Trophy, Calendar, CheckCircle2,
-  HardHat, Loader2, AlertCircle, RefreshCw, TrendingUp,
-  Clock, Target, Flag, Star, Mail, PawPrint, Award,
-  ChevronRight, Zap, BarChart2, Wallet, DollarSign, Home,
+  AlertCircle,
+  Award,
+  BarChart2,
+  Calendar,
+  CheckCircle2,
+  ChevronRight,
+  ClipboardList,
+  Clock,
+  DollarSign,
+  FileText,
+  Flag,
+  Home,
+  Loader2,
+  Mail,
+  PawPrint,
+  RefreshCw,
+  Settings,
+  Trophy,
+  User,
+  UserCheck,
+  Users,
+  Wallet,
+  Zap,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
-import { adminService } from "../../services/admin";
 import { useAuth } from "../../context/AuthContext";
-
-const ROLE_LINKS = {
-  Organizer: [
-    { label: "Race Management",    icon: Flag,   path: "/organizer/races",    color: "text-sb-info",    bg: "bg-sb-info/10",    border: "border-sb-info/30 hover:border-blue-400" },
-    { label: "Assign Referees", icon: Users,  path: "/organizer/referees", color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30 hover:border-purple-400" },
-    { label: "Approve Results",       icon: Award,  path: "/organizer/results",  color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "Change Password",        icon: Target, path: "/change-password",    color: "text-sb-tx-3",    bg: "bg-sb-s2",         border: "border-sb-border hover:border-sb-border-2" },
-  ],
-  HorseOwner: [
-    { label: "My Horses",        icon: PawPrint, path: "/owner/horses",            color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/30 hover:border-orange-400" },
-    { label: "Race Registration",     icon: Trophy,   path: "/owner/race-registration", color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "Jockey Invitations",      icon: Mail,     path: "/owner/invitations",       color: "text-pink-400",   bg: "bg-pink-500/10",   border: "border-pink-500/30 hover:border-pink-400" },
-    { label: "Change Password",        icon: Target,   path: "/change-password",         color: "text-sb-tx-3",   bg: "bg-sb-s2",   border: "border-sb-border hover:border-sb-border-2" },
-  ],
-  Jockey: [
-    { label: "Race Invitations",     icon: Mail,   path: "/jockey/invitations", color: "text-sb-gold-2", bg: "bg-sb-gold-soft", border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "Change Password",        icon: Target, path: "/change-password",    color: "text-sb-tx-3",  bg: "bg-sb-s2",  border: "border-sb-border hover:border-sb-border-2" },
-  ],
-  Referee: [
-    { label: "My Races",    icon: Flag,   path: "/referee/races",   color: "text-sb-info",  bg: "bg-sb-info/10", border: "border-sb-info/30 hover:border-blue-400" },
-    { label: "Change Password",        icon: Target, path: "/change-password", color: "text-sb-tx-3",  bg: "bg-sb-s2", border: "border-sb-border hover:border-sb-border-2" },
-  ],
-  Spectator: [
-    { label: "Race Schedule",        icon: Calendar,  path: "/spectator/schedule",    color: "text-sb-info",   bg: "bg-sb-info/10",   border: "border-sb-info/30 hover:border-blue-400" },
-    { label: "Betting",            icon: DollarSign, path: "/spectator/betting",    color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "Leaderboard",       icon: BarChart2, path: "/leaderboard",           color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30 hover:border-purple-400" },
-    { label: "My Wallet",          icon: Wallet,    path: "/spectator/wallet",      color: "text-sb-emerald-ink",  bg: "bg-sb-emerald-soft",  border: "border-sb-emerald-bd hover:border-green-400" },
-    { label: "Change Password",        icon: Target,    path: "/change-password",       color: "text-sb-tx-3",   bg: "bg-sb-s2",   border: "border-sb-border hover:border-sb-border-2" },
-  ],
-};
+import { adminService } from "../../services/admin";
+import { dashboardService } from "../../services/dashboard";
+import { leaderboardService } from "../../services/leaderboard";
+import { notificationService } from "../../services/notification";
+import { spectatorService } from "../../services/spectator";
 
 const ROLE_LABELS = {
   Admin: "Administrator",
@@ -49,284 +42,398 @@ const ROLE_LABELS = {
   Spectator: "Spectator",
 };
 
-const ROLE_TAGLINE = {
-  Organizer: "Create tournaments, approve registrations, assign referees, and publish results.",
-  HorseOwner: "Manage horses, register for races, and view jockey invitations.",
-  Jockey: "View and respond to race invitations from horse owners.",
-  Referee: "View referee schedules and manage race results.",
-  Spectator: "Follow race schedules, place bets, and view the leaderboard.",
+const ROLE_ACTIONS = {
+  Admin: [
+    { label: "Approve Accounts", icon: UserCheck, path: "/admin/users/pending" },
+    { label: "User Management", icon: Users, path: "/admin/users" },
+    { label: "Approve Tournaments", icon: Trophy, path: "/admin/tournaments" },
+    { label: "Approve Deposits", icon: Wallet, path: "/admin/deposit-requests" },
+    { label: "System Logs", icon: FileText, path: "/admin/audit-logs" },
+    { label: "System Configurations", icon: Settings, path: "/admin/configs" },
+  ],
+  Organizer: [
+    { label: "Race Management", icon: Flag, path: "/organizer/races" },
+    { label: "Assign Referees", icon: ClipboardList, path: "/organizer/referees" },
+    { label: "Approve Results", icon: Award, path: "/organizer/results" },
+    { label: "Profile", icon: User, path: "/profile" },
+  ],
+  HorseOwner: [
+    { label: "My Horses", icon: PawPrint, path: "/owner/horses" },
+    { label: "Race Registration", icon: Trophy, path: "/owner/race-registration" },
+    { label: "Jockey Invitations", icon: Mail, path: "/owner/invitations" },
+    { label: "Profile", icon: User, path: "/profile" },
+  ],
+  Jockey: [
+    { label: "Race Invitations", icon: Mail, path: "/jockey/invitations" },
+    { label: "Profile", icon: User, path: "/profile" },
+  ],
+  Referee: [
+    { label: "My Assigned Races", icon: Flag, path: "/referee/races" },
+    { label: "Race Result Entry", icon: CheckCircle2, path: "/referee/races" },
+    { label: "Violations", icon: AlertCircle, path: "/referee/races" },
+    { label: "Race Minutes", icon: FileText, path: "/referee/races" },
+    { label: "Profile", icon: User, path: "/profile" },
+  ],
+  Spectator: [
+    { label: "Race Schedule", icon: Calendar, path: "/spectator/schedule" },
+    { label: "Betting", icon: DollarSign, path: "/spectator/betting" },
+    { label: "Wallet", icon: Wallet, path: "/spectator/wallet" },
+    { label: "Leaderboard", icon: BarChart2, path: "/leaderboard" },
+  ],
 };
 
-function RoleDashboard({ user, role, navigate }) {
-  const links = ROLE_LINKS[role] || [];
+const STATUS_LABELS = {
+  Scheduled: "Upcoming",
+  RegistrationOpen: "Registration Open",
+  Ongoing: "Ongoing",
+  Finished: "Finished",
+  Cancelled: "Cancelled",
+};
 
-  return (
-    <AdminLayout title="Dashboard">
-      <div className="p-6 max-w-5xl mx-auto">
+const STATUS_CLASSES = {
+  Scheduled: "bg-blue-500/10 text-blue-300 border-blue-500/30",
+  RegistrationOpen: "bg-amber-500/10 text-amber-300 border-amber-500/30",
+  Ongoing: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
+  Finished: "bg-sb-s2 text-sb-tx-2 border-sb-border",
+  Cancelled: "bg-red-500/10 text-red-300 border-red-500/30",
+};
 
-        {/* ── Hero card (dark overlay on horse image — intentional) ── */}
-        <div className="relative mb-6 rounded-2xl overflow-hidden min-h-[180px] flex flex-col justify-end"
-          style={{ backgroundImage: "linear-gradient(to bottom, rgba(10,14,26,0.25), rgba(10,14,26,0.92)), url('/bg-horse.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none" />
-          <div className="relative p-6">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400 live-dot" />
-              <span className="text-[10px] font-bold text-amber-300 uppercase tracking-widest font-data">
-                {ROLE_LABELS[role] || role}
-              </span>
-            </div>
-            <h2 className="font-display text-2xl font-black text-white leading-tight">
-              Hello, <span className="text-gold-gradient">{user?.fullName || user?.username}</span>
-            </h2>
-            <p className="text-sb-tx-3 text-sm mt-1">{ROLE_TAGLINE[role] || "Welcome back to the system."}</p>
-            <button
-              onClick={() => navigate("/")}
-              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sb-s1/10 hover:bg-sb-s1/20 border border-white/20 text-white/80 hover:text-sb-tx text-xs font-medium transition-all"
-            >
-              <Home size={12} /> Back to Home
-            </button>
-          </div>
-        </div>
+const ACTION_STYLE = [
+  "text-sb-info bg-sb-info/10 border-sb-info/30 hover:border-blue-400",
+  "text-sb-gold-2 bg-sb-gold-soft border-sb-gold-bd hover:border-amber-400",
+  "text-sb-emerald-ink bg-sb-emerald-soft border-sb-emerald-bd hover:border-green-400",
+  "text-purple-300 bg-purple-500/10 border-purple-500/30 hover:border-purple-400",
+  "text-orange-300 bg-orange-500/10 border-orange-500/30 hover:border-orange-400",
+  "text-pink-300 bg-pink-500/10 border-pink-500/30 hover:border-pink-400",
+];
 
-        {/* ── Quick links grid ── */}
-        <div className="mb-2">
-          <p className="text-[10px] font-semibold text-sb-tx-3 uppercase tracking-widest mb-4 font-data">Quick Access</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {links.map((item) => (
-            <button
-              key={item.path + item.label}
-              onClick={() => navigate(item.path)}
-              className={`group flex items-center gap-4 p-5 rounded-2xl border bg-sb-s1 hover:shadow-md ${item.border} text-left transition-all duration-200`}
-            >
-              <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center shrink-0 ${item.color}`}>
-                <item.icon size={18} />
-              </div>
-              <span className="font-medium text-sb-tx text-sm flex-1">{item.label}</span>
-              <ChevronRight size={14} className="text-sb-tx-3 group-hover:text-blue-500 transition-colors" />
-            </button>
-          ))}
-        </div>
+const getArray = (payload, keys) => {
+  for (const key of keys) {
+    const value = payload?.[key];
+    if (Array.isArray(value)) return value;
+  }
+  if (Array.isArray(payload)) return payload;
+  return [];
+};
 
-      </div>
-    </AdminLayout>
-  );
+const raceTime = (race) => race?.raceDate || race?.startTime || race?.scheduledAt || race?.dateTime;
+const racePrize = (race) => race?.prizePool ?? race?.prizeFund ?? race?.prizeFirst;
+const nameOf = (item, fallback) => item?.name || item?.jockeyName || item?.horseName || fallback;
+const pointsOf = (item) => item?.points ?? item?.totalPoints ?? 0;
+
+function formatDate(value) {
+  if (!value) return "Date pending";
+  return new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
-// ── Stat card ──────────────────────────────────────────────────────────────────
+function formatMoney(value) {
+  if (!value) return "";
+  return `${Number(value).toLocaleString("en-US")} VND`;
+}
 
-function StatCard({ icon: Icon, label, value, sub, color, bg, onClick, loading, accent }) {
+function primaryCta(role) {
+  return (ROLE_ACTIONS[role] || ROLE_ACTIONS.Spectator)[0] || { label: "View Races", path: "/spectator/schedule" };
+}
+
+function raceAction(role, race) {
+  const raceId = race?.raceId || race?.id;
+  if (role === "HorseOwner" && race?.status === "RegistrationOpen") {
+    return { label: "Register", path: "/owner/race-registration" };
+  }
+  if (role === "Spectator" && ["Scheduled", "RegistrationOpen", "Ongoing"].includes(race?.status)) {
+    return { label: "Betting", path: "/spectator/betting" };
+  }
+  if (role === "Referee") return { label: "Manage", path: raceId ? `/referee/races/${raceId}` : "/referee/races" };
+  if (role === "Organizer") return { label: "Manage", path: raceId ? `/organizer/races/${raceId}` : "/organizer/races" };
+  return { label: "View Races", path: role === "Admin" ? "/admin/tournaments" : "/spectator/schedule" };
+}
+
+function SectionTitle({ icon: Icon, title, action, onAction }) {
   return (
-    <div
-      onClick={onClick}
-      className={`group relative bg-sb-s1 rounded-2xl p-5 flex items-center gap-4 overflow-hidden border shadow-sm hover:shadow-md transition-all duration-200 h-full min-h-[112px] ${onClick ? "cursor-pointer" : ""} ${accent ? "border-l-4 border-l-amber-400" : "border-sb-border"}`}
-    >
-      {accent && <div className="absolute inset-0 bg-sb-gold-soft/30 pointer-events-none" />}
-      <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
-        <Icon size={20} className={color} />
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-sb-s2 border border-sb-border flex items-center justify-center text-sb-emerald-ink">
+          <Icon size={15} />
+        </div>
+        <h2 className="font-display text-base font-bold text-sb-tx">{title}</h2>
       </div>
-      <div className="flex-1 min-w-0 relative">
-        <p className="text-sb-tx-3 text-[10px] font-semibold uppercase tracking-widest truncate font-data">{label}</p>
-        {loading ? (
-          <div className="h-8 w-16 shimmer rounded-lg mt-1.5" />
-        ) : (
-          <p className={`text-3xl font-black mt-0.5 tabular-nums font-display ${accent ? "text-sb-gold-2" : "text-sb-tx"}`}>{value ?? "—"}</p>
-        )}
-        {sub && !loading && <p className="text-sb-tx-3 text-xs mt-0.5 truncate">{sub}</p>}
-      </div>
-      {onClick && !loading && (
-        <TrendingUp size={14} className="text-sb-tx-3 group-hover:text-blue-500 transition-colors shrink-0" />
+      {action && (
+        <button onClick={onAction} className="text-xs text-sb-tx-3 hover:text-sb-tx transition-colors">
+          {action}
+        </button>
       )}
     </div>
   );
 }
 
-// ── Main Admin Dashboard ───────────────────────────────────────────────────────
+function OverviewCard({ icon: Icon, label, value, hint, tone }) {
+  return (
+    <div className="rounded-xl border border-sb-border bg-sb-s1 p-4 min-h-[112px]">
+      <div className="flex items-center justify-between">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tone}`}>
+          <Icon size={18} />
+        </div>
+        <span className="font-display text-3xl font-black text-sb-tx tabular-nums">{value}</span>
+      </div>
+      <p className="mt-3 text-xs font-bold uppercase tracking-widest text-sb-tx-3">{label}</p>
+      <p className="mt-1 text-xs text-sb-tx-3">{hint}</p>
+    </div>
+  );
+}
+
+function LeaderList({ title, items, fallback }) {
+  return (
+    <div className="rounded-xl border border-sb-border bg-sb-s1 p-4">
+      <h3 className="text-sm font-bold text-sb-tx mb-3">{title}</h3>
+      {items.length === 0 ? (
+        <p className="text-xs text-sb-tx-3 leading-relaxed">{fallback}</p>
+      ) : (
+        <div className="space-y-2">
+          {items.slice(0, 3).map((item, index) => (
+            <div key={item.entityId || item.id || `${title}-${index}`} className="flex items-center gap-3 rounded-lg bg-sb-s2/70 border border-sb-border px-3 py-2">
+              <span className="w-6 h-6 rounded-lg bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2 text-xs font-black flex items-center justify-center">
+                {item.rank || index + 1}
+              </span>
+              <span className="flex-1 min-w-0 text-sm font-medium text-sb-tx truncate">{nameOf(item, "Pending name")}</span>
+              <span className="text-xs font-bold text-sb-emerald-ink tabular-nums">{pointsOf(item)} pts</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const { user, role } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats]     = useState(null);
+  const [races, setRaces] = useState([]);
+  const [jockeys, setJockeys] = useState([]);
+  const [horses, setHorses] = useState([]);
+  const [adminStats, setAdminStats] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState("");
+  const [error, setError] = useState("");
 
-  if (role && role !== "Admin") {
-    return <RoleDashboard user={user} role={role} navigate={navigate} />;
-  }
-
-  const fetchStats = async () => {
-    setLoading(true); setError("");
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
-      const res = await adminService.getDashboardStats();
-      setStats(res.data);
+      const shared = await dashboardService.getSharedDashboard().catch(() => null);
+      const [racesRes, jockeyRes, horseRes, adminRes, unreadRes] = await Promise.all([
+        shared?.data ? Promise.resolve({ data: shared.data.races }) : spectatorService.getRaces(),
+        shared?.data ? Promise.resolve({ data: shared.data.topJockeys }) : leaderboardService.getGlobalJockeyLeaderboard(),
+        shared?.data ? Promise.resolve({ data: shared.data.topHorses }) : leaderboardService.getGlobalHorseLeaderboard(),
+        role === "Admin" ? adminService.getDashboardStats().catch(() => null) : Promise.resolve(null),
+        notificationService.getUnreadCount().catch(() => null),
+      ]);
+
+      setRaces(getArray(racesRes?.data, ["races", "items", "content", "data"]));
+      setJockeys(getArray(jockeyRes?.data, ["topJockeys", "jockeys", "items", "content", "data"]));
+      setHorses(getArray(horseRes?.data, ["topHorses", "horses", "items", "content", "data"]));
+      setAdminStats(adminRes?.data || null);
+      const unreadValue = unreadRes?.data?.count ?? unreadRes?.data?.unreadCount ?? unreadRes?.data;
+      setUnreadCount(typeof unreadValue === "number" ? unreadValue : 0);
     } catch (err) {
-      setError(err.message || "Unable to load statistics.");
+      setError(err.message || "Unable to load dashboard data.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [role]);
 
-  useEffect(() => { fetchStats(); }, []); // eslint-disable-line
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
 
-  const QUICK_ACTIONS = [
-    { label: "Approve Accounts",    icon: UserCheck,   path: "/admin/users/pending", color: "text-sb-gold-2", bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
-    { label: "User Management", icon: Users,       path: "/admin/users",          color: "text-sb-info",  bg: "bg-sb-info/10",   border: "border-sb-info/30 hover:border-blue-400" },
-    { label: "Tournament Management",   icon: Trophy,      path: "/admin/tournaments",    color: "text-sb-gold-2", bg: "bg-sb-gold-soft",  border: "border-sb-gold-bd hover:border-amber-400" },
-  ];
+  const overview = useMemo(() => {
+    const count = (statuses) => races.filter((race) => statuses.includes(race.status)).length;
+    return {
+      upcoming: count(["Scheduled"]),
+      registrationOpen: count(["RegistrationOpen"]),
+      ongoing: count(["Ongoing"]),
+      finished: count(["Finished"]),
+    };
+  }, [races]);
 
-  const STAT_CARDS = [
-    { icon: Users,     label: "Users",     value: stats?.totalActiveUsers,   color: "text-sb-info",   bg: "bg-sb-info/10",   sub: undefined, onClick: () => navigate("/admin/users") },
-    { icon: UserCheck, label: "Pending",      value: stats?.pendingApprovals,   color: stats?.pendingApprovals > 0 ? "text-sb-gold-2" : "text-sb-emerald-ink", bg: stats?.pendingApprovals > 0 ? "bg-sb-gold-soft" : "bg-sb-emerald-soft", sub: stats?.pendingApprovals > 0 ? "⚠ Needs action" : "✓ All handled", onClick: () => navigate("/admin/users/pending") },
-    { icon: Trophy,    label: "Ongoing Tournaments", value: stats?.ongoingTournaments, color: "text-sb-gold-2",  bg: "bg-sb-gold-soft",  sub: undefined, onClick: () => navigate("/admin/tournaments"), accent: true },
-  ];
+  const featuredRaces = useMemo(() => {
+    return [...races]
+      .sort((a, b) => new Date(raceTime(a) || 0) - new Date(raceTime(b) || 0))
+      .slice(0, 5);
+  }, [races]);
 
-  const DETAIL_STATS = [
-    { icon: Clock,        label: "Upcoming Races",    value: stats?.upcomingRaces,    color: "text-purple-400",  bg: "bg-purple-500/10" },
-    { icon: CheckCircle2, label: "Finished Races", value: stats?.finishedRaces,   color: "text-sb-emerald-ink",   bg: "bg-sb-emerald-soft" },
-    { icon: HardHat,      label: "Total Horses",       value: stats?.totalHorses,     color: "text-orange-400",  bg: "bg-orange-500/10" },
-    { icon: Calendar,     label: "Total Jockeys",     value: stats?.totalJockeys,    color: "text-pink-400",    bg: "bg-pink-500/10" },
-  ];
+  const cta = primaryCta(role);
+  const actions = ROLE_ACTIONS[role] || [];
+  const roleLabel = ROLE_LABELS[role] || role || "Member";
+  const leaderboardEmpty = "Leaderboard data will appear after results are published.";
 
   return (
     <AdminLayout title="Dashboard">
-      <div className="p-6 max-w-6xl mx-auto space-y-5">
-
+      <div className="p-6 max-w-7xl mx-auto space-y-5">
         {error && (
-          <div className="flex items-center gap-2 p-3.5 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
-            <AlertCircle size={15} className="shrink-0 text-sb-lose" />
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
+            <AlertCircle size={15} />
             {error}
-            <button onClick={fetchStats} className="ml-auto flex items-center gap-1.5 text-xs text-red-400 hover:text-sb-lose transition-colors">
+            <button onClick={loadDashboard} className="ml-auto flex items-center gap-1.5 text-xs hover:text-red-300">
               <RefreshCw size={12} /> Try Again
             </button>
           </div>
         )}
 
-        {/* ── Top stats row ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
-          {STAT_CARDS.map((card, i) => (
-            <div key={i} style={{ animationDelay: `${i * 60}ms` }} className="animate-fade-in-up h-full">
-              <StatCard {...card} loading={loading} />
+        <section
+          className="relative overflow-hidden rounded-2xl border border-sb-border bg-sb-s1 min-h-[260px] flex items-end"
+          style={{
+            backgroundImage: "linear-gradient(90deg, rgba(10,14,26,0.95), rgba(10,14,26,0.72), rgba(10,14,26,0.42)), url('/bg-horse.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="relative z-10 p-6 md:p-8 w-full">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <span className="px-3 py-1 rounded-full bg-sb-emerald-soft border border-sb-emerald-bd text-sb-emerald-ink text-[10px] font-black uppercase tracking-widest">
+                {roleLabel}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-sb-s1/40 border border-white/15 text-white/75 text-[10px] font-bold uppercase tracking-widest">
+                Horse Racing Season 2026
+              </span>
             </div>
-          ))}
-        </div>
-
-        {/* ── Main 2/3 + 1/3 grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-          {/* Left 2/3 */}
-          <div className="lg:col-span-2 flex flex-col gap-5">
-
-            {/* Featured hero card (dark overlay on horse image — intentional) */}
-            <div className="relative rounded-2xl overflow-hidden min-h-[220px] flex flex-col justify-end group border border-sb-border shadow-sm">
-              <div className="absolute inset-0">
-                <div className="absolute inset-0 w-full h-full bg-cover bg-center opacity-35 mix-blend-luminosity group-hover:opacity-50 transition-opacity duration-500"
-                  style={{ backgroundImage: "url('/bg-horse.png')" }} />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-[#0A0E1A]/75 to-transparent" />
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+              <div>
+                <h1 className="font-display text-3xl md:text-4xl font-black text-white leading-tight">
+                  Welcome, {user?.fullName || user?.username || "Racing Member"}
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm md:text-base text-sb-tx-3">
+                  A shared racing command center for schedules, race status, leaders, notifications, and role work.
+                </p>
               </div>
-
-              <div className="relative z-10 p-6 flex flex-col md:flex-row items-end justify-between gap-4">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/30 mb-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-dot" />
-                    <span className="text-amber-300 text-[10px] font-bold uppercase tracking-widest font-data">System Online</span>
-                  </div>
-                  <h2 className="font-display text-2xl font-black text-white leading-tight mb-1">
-                    Hello, <span className="text-gold-gradient">{user?.fullName || user?.username}</span>
-                  </h2>
-                  <p className="text-sb-tx-3 text-sm">Overview of the horse racing management system.</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => navigate("/")}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sb-s1/10 hover:bg-sb-s1/20 border border-white/20 text-white/80 hover:text-sb-tx text-sm font-medium transition-all"
-                  >
-                    <Home size={14} /> Home
-                  </button>
-                  <button
-                    onClick={() => navigate("/admin/tournaments")}
-                    className="btn-gold flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold"
-                  >
-                    Tournament Management <ChevronRight size={15} />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Detail stats grid */}
-            <div>
-              <p className="text-[10px] font-semibold text-sb-tx-3 uppercase tracking-widest mb-3 font-data">Detailed Statistics</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                {DETAIL_STATS.map((card, i) => (
-                  <div key={i} style={{ animationDelay: `${i * 40}ms` }} className="animate-fade-in-up">
-                    <StatCard {...card} loading={loading} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-
-          {/* Right 1/3 */}
-          <div className="flex flex-col gap-5">
-
-            {/* Quick Actions */}
-            <div className="bg-sb-s1 rounded-2xl p-5 border border-sb-border shadow-sm">
-              <div className="flex items-center gap-2 pb-3 mb-3 border-b border-sb-border">
-                <div className="w-6 h-6 rounded-lg bg-sb-info/10 border border-sb-info/30 flex items-center justify-center">
-                  <Zap size={12} className="text-sb-info" />
-                </div>
-                <h3 className="font-display font-bold text-sm text-sb-tx">Quick Access</h3>
-              </div>
-              <div className="space-y-2">
-                {QUICK_ACTIONS.map((item) => (
-                  <button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    className={`group w-full flex items-center gap-3 p-3.5 rounded-xl bg-sb-s2/60 border ${item.border} transition-all duration-200 text-left hover:bg-sb-s1`}
-                  >
-                    <div className={`w-8 h-8 rounded-lg ${item.bg} flex items-center justify-center shrink-0 ${item.color}`}>
-                      <item.icon size={15} />
-                    </div>
-                    <span className="text-sb-tx-2 text-sm font-medium flex-1">{item.label}</span>
-                    <ChevronRight size={13} className="text-sb-tx-3 group-hover:text-blue-500 transition-colors" />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* System status card */}
-            <div className="bg-sb-s1 rounded-2xl p-5 border border-sb-border shadow-sm">
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-sb-border">
-                <h3 className="font-display font-bold text-sm text-sb-tx">System Status</h3>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={fetchStats}
-                  disabled={loading}
-                  className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-info hover:bg-sb-info/10 transition-all"
-                  title="Refresh"
+                  onClick={() => navigate(cta.path)}
+                  className="btn-gold inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold"
                 >
-                  <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+                  {cta.label} <ChevronRight size={15} />
+                </button>
+                <button
+                  onClick={loadDashboard}
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-sb-s1/20 hover:bg-sb-s1/30 border border-white/20 text-white/85 text-sm font-semibold transition-all"
+                >
+                  <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
                 </button>
               </div>
-              <div className="space-y-3">
-                {[
-                  { label: "API Backend",    status: "online", dot: "bg-green-500" },
-                  { label: "Database",       status: "online", dot: "bg-green-500" },
-                  { label: "Auth Service",   status: "online", dot: "bg-green-500" },
-                ].map((s) => (
-                  <div key={s.label} className="flex items-center justify-between">
-                    <span className="text-sb-tx-3 text-xs">{s.label}</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${s.dot} shadow-[0_0_6px_rgba(34,197,94,0.5)]`} />
-                      <span className="text-sb-emerald-ink text-[10px] font-semibold font-data uppercase">{s.status}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
+          </div>
+        </section>
 
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          <div className="xl:col-span-2 space-y-5">
+            <section className="space-y-3">
+              <SectionTitle icon={BarChart2} title="Race Overview" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <OverviewCard icon={Clock} label="Upcoming races" value={overview.upcoming} hint="Scheduled to run" tone="text-blue-300 bg-blue-500/10" />
+                <OverviewCard icon={UserCheck} label="Registration open" value={overview.registrationOpen} hint="Accepting entries" tone="text-amber-300 bg-amber-500/10" />
+                <OverviewCard icon={Zap} label="Ongoing races" value={overview.ongoing} hint="Live right now" tone="text-emerald-300 bg-emerald-500/10" />
+                <OverviewCard icon={CheckCircle2} label="Finished races" value={overview.finished} hint="Results published" tone="text-sb-tx-2 bg-sb-s2" />
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-sb-border bg-sb-s1 p-5 space-y-4">
+              <SectionTitle icon={Flag} title="Featured Races" action="View all" onAction={() => navigate(role === "Admin" ? "/admin/tournaments" : "/spectator/schedule")} />
+              {loading ? (
+                <div className="flex items-center justify-center py-10 text-sb-tx-3">
+                  <Loader2 size={20} className="animate-spin mr-2" /> Loading races
+                </div>
+              ) : featuredRaces.length === 0 ? (
+                <div className="py-10 text-center text-sb-tx-3 text-sm">No races available.</div>
+              ) : (
+                <div className="divide-y divide-sb-border">
+                  {featuredRaces.map((race) => {
+                    const action = raceAction(role, race);
+                    const statusCls = STATUS_CLASSES[race.status] || STATUS_CLASSES.Scheduled;
+                    return (
+                      <div key={race.raceId || race.id || race.raceName} className="py-4 flex flex-col md:flex-row md:items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-sm font-bold text-sb-tx truncate">{race.raceName || race.name || "Race"}</h3>
+                            <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${statusCls}`}>
+                              {STATUS_LABELS[race.status] || race.status || "Scheduled"}
+                            </span>
+                          </div>
+                          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-sb-tx-3">
+                            <span className="inline-flex items-center gap-1"><Calendar size={11} /> {formatDate(raceTime(race))}</span>
+                            {(race.trackLength || race.distance) && <span>{race.trackLength || race.distance}m track</span>}
+                            {racePrize(race) && <span className="text-sb-gold-2 font-semibold">{formatMoney(racePrize(race))}</span>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => navigate(action.path)}
+                          className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx hover:border-sb-border-2 text-xs font-semibold transition-colors"
+                        >
+                          {action.label} <ChevronRight size={12} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </div>
+
+          <div className="space-y-5">
+            <section className="rounded-2xl border border-sb-border bg-sb-s1 p-5 space-y-4">
+              <SectionTitle icon={Trophy} title="Leaderboard Preview" action="Open leaderboard" onAction={() => navigate("/leaderboard")} />
+              <LeaderList title="Top Jockeys" items={jockeys} fallback={leaderboardEmpty} />
+              <LeaderList title="Top Horses" items={horses} fallback={leaderboardEmpty} />
+            </section>
+
+            <section className="rounded-2xl border border-sb-border bg-sb-s1 p-5 space-y-4">
+              <SectionTitle icon={Home} title="Role Quick Actions" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-2">
+                {actions.map((item, index) => {
+                  const Icon = item.icon;
+                  const style = ACTION_STYLE[index % ACTION_STYLE.length];
+                  return (
+                    <button
+                      key={`${item.label}-${item.path}`}
+                      onClick={() => navigate(item.path)}
+                      className={`group flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${style}`}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-current/10 flex items-center justify-center shrink-0">
+                        <Icon size={15} />
+                      </div>
+                      <span className="flex-1 text-sm font-semibold text-sb-tx">{item.label}</span>
+                      <ChevronRight size={13} className="text-sb-tx-3 group-hover:text-sb-tx" />
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-sb-border bg-sb-s1 p-5">
+              <SectionTitle icon={Mail} title="Notifications" />
+              <div className="mt-4 flex items-center justify-between rounded-xl bg-sb-s2 border border-sb-border p-4">
+                <span className="text-sm text-sb-tx-2">Unread notifications</span>
+                <span className="font-display text-2xl font-black text-sb-emerald-ink tabular-nums">{unreadCount}</span>
+              </div>
+              {role === "Admin" && adminStats && (
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-xl bg-sb-s2 border border-sb-border p-3">
+                    <p className="text-sb-tx-3">Pending approvals</p>
+                    <p className="text-lg font-black text-sb-gold-2">{adminStats.pendingApprovals ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl bg-sb-s2 border border-sb-border p-3">
+                    <p className="text-sb-tx-3">Active users</p>
+                    <p className="text-lg font-black text-sb-tx">{adminStats.totalActiveUsers ?? 0}</p>
+                  </div>
+                </div>
+              )}
+            </section>
           </div>
         </div>
-
       </div>
     </AdminLayout>
   );

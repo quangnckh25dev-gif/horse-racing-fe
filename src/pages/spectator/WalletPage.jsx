@@ -12,10 +12,22 @@ import { walletService } from "../../services/wallet";
 
 const TX_TYPE = {
   Deposit: { label: "Deposit", cls: "text-sb-win", sign: "+", icon: ArrowDownLeft },
+  Withdraw: { label: "Withdraw", cls: "text-sb-lose", sign: "-", icon: ArrowUpRight },
   BetPlaced: { label: "Bet Placed", cls: "text-sb-lose", sign: "-", icon: ArrowUpRight },
   BetWon: { label: "Bet Won", cls: "text-sb-win", sign: "+", icon: TrendingUp },
   BetRefund: { label: "Refunded", cls: "text-sb-info", sign: "+", icon: RotateCcw },
   PrizeAwarded: { label: "Prize Awarded", cls: "text-sb-gold-2", sign: "+", icon: Trophy },
+};
+
+const TX_FILTERS = [
+  { key: "", label: "All" },
+  { key: "Deposit", label: "Deposit" },
+  { key: "Withdraw", label: "Withdraw" },
+];
+
+const isWalletCashTransaction = (tx) => {
+  const type = tx.type || tx.transactionType;
+  return type === "Deposit" || type === "Withdraw";
 };
 
 const QUICK_AMOUNTS = [100_000, 200_000, 500_000, 1_000_000, 2_000_000, 5_000_000];
@@ -205,7 +217,7 @@ function DepositModal({ onClose, onDone }) {
           <div className="flex gap-3">
             <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm">Cancel</button>
             <button onClick={submit} disabled={!amt} className="flex-1 py-2.5 rounded-xl bg-sb-gold text-[#0B0F14] font-bold text-sm disabled:opacity-50">
-              Tao yeu cau
+              Create Request
             </button>
           </div>
         </div>
@@ -216,23 +228,57 @@ function DepositModal({ onClose, onDone }) {
 
 export default function WalletPage() {
   const [wallet, setWallet] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [cashSummary, setCashSummary] = useState({ totalDeposit: 0, totalWithdraw: 0 });
   const [transactions, setTransactions] = useState([]);
   const [depositRequests, setDepositRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [txLoading, setTxLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [depositOpen, setDepositOpen] = useState(false);
+  const [txFilter, setTxFilter] = useState("");
+
+  const loadTransactions = useCallback(async (filter = "") => {
+    setTxLoading(true);
+    try {
+      const res = await walletService.getTransactions(filter === "Deposit" ? "Deposit" : "");
+      const data = res.data || [];
+      const walletOnly = data.filter(isWalletCashTransaction);
+      setTransactions(filter === "Withdraw"
+        ? walletOnly.filter((tx) => (tx.type || tx.transactionType) === "Withdraw")
+        : walletOnly);
+    } catch (e) {
+      setError(e.message || "Unable to load wallet transactions");
+    } finally {
+      setTxLoading(false);
+    }
+  }, []);
+
+  const loadCashSummary = useCallback(async () => {
+    const res = await walletService.getTransactions();
+    const walletOnly = (res.data || []).filter(isWalletCashTransaction);
+    const totalDeposit = walletOnly
+      .filter((tx) => (tx.type || tx.transactionType) === "Deposit")
+      .reduce((sum, tx) => sum + Math.abs(Number(tx.amount || 0)), 0);
+    const totalWithdraw = walletOnly
+      .filter((tx) => (tx.type || tx.transactionType) === "Withdraw")
+      .reduce((sum, tx) => sum + Math.abs(Number(tx.amount || 0)), 0);
+    setCashSummary({ totalDeposit, totalWithdraw });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [wRes, tRes] = await Promise.all([
+      const [wRes, sRes] = await Promise.all([
         walletService.getMyWallet(),
-        walletService.getTransactions(),
+        walletService.getTransactionSummary(),
       ]);
       setWallet(wRes.data);
-      setTransactions(tRes.data || []);
+      setSummary(sRes.data);
+      await loadCashSummary();
+      await loadTransactions("");
     } catch (e) {
       setError(e.message || "Unable to load wallet data");
     }
@@ -246,9 +292,14 @@ export default function WalletPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadCashSummary, loadTransactions]);
 
   useEffect(() => { load(); }, [load]);
+
+  const selectTransactionFilter = async (filter) => {
+    setTxFilter(filter);
+    await loadTransactions(filter);
+  };
 
   const onCreated = () => {
     setSuccess("Deposit request created. Balance will update after Admin approval.");
@@ -280,15 +331,25 @@ export default function WalletPage() {
                 <Wallet size={24} className="text-sb-gold-2" />
               </div>
               <p className="text-sb-tx-3 text-[10px] uppercase tracking-widest font-bold mb-2">Current Balance</p>
-              <p className="text-4xl font-black text-sb-gold-2 tabular-nums">{wallet?.balance != null ? fmt(wallet.balance) : "-"}</p>
+              <p className="text-4xl font-black text-sb-gold-2 tabular-nums">{summary?.currentBalance != null ? fmt(summary.currentBalance) : wallet?.balance != null ? fmt(wallet.balance) : "-"}</p>
               <p className="text-sb-tx-3 text-xs mt-1">VND</p>
+              <div className="grid grid-cols-2 gap-3 mt-6 pt-5 border-t border-sb-border">
+                <div className="rounded-xl bg-sb-emerald-soft border border-sb-emerald-bd p-3">
+                  <p className="text-sb-tx-3 text-[10px] uppercase font-bold mb-1">Total Deposit</p>
+                  <p className="text-sb-win font-black text-sm tabular-nums">+{fmt(cashSummary.totalDeposit)} VND</p>
+                </div>
+                <div className="rounded-xl bg-sb-lose/10 border border-sb-lose/30 p-3">
+                  <p className="text-sb-tx-3 text-[10px] uppercase font-bold mb-1">Total Withdraw</p>
+                  <p className="text-sb-lose font-black text-sm tabular-nums">-{fmt(cashSummary.totalWithdraw)} VND</p>
+                </div>
+              </div>
             </div>
 
             <div className="lg:col-span-2 space-y-5">
               <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
                 <div className="flex items-center gap-2 p-5 border-b border-sb-border">
                   <QrCode size={14} className="text-sb-gold-2" />
-                  <h3 className="font-bold text-sm text-sb-tx">requests nap tien</h3>
+                  <h3 className="font-bold text-sm text-sb-tx">Deposit Requests</h3>
                 </div>
                 {depositRequests.length === 0 ? <SbEmpty icon="QR" title="No deposit requests yet" hint="Create a request and transfer using the generated code" /> : (
                   <div className="divide-y divide-sb-border">
@@ -314,27 +375,84 @@ export default function WalletPage() {
               </div>
 
               <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
-                <div className="flex items-center gap-2 p-5 border-b border-sb-border">
-                  <History size={14} className="text-sb-emerald-ink" />
-                  <h3 className="font-bold text-sm text-sb-tx">Transaction History</h3>
+                <div className="p-5 border-b border-sb-border space-y-4 bg-sb-s2/30">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <History size={14} className="text-sb-emerald-ink" />
+                      <h3 className="font-bold text-sm text-sb-tx">Transaction History</h3>
+                    </div>
+                    <span className="text-xs text-sb-tx-3">{transactions.length} shown</span>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {TX_FILTERS.map((filter) => {
+                      const active = txFilter === filter.key;
+                      return (
+                        <button
+                          key={filter.label}
+                          onClick={() => selectTransactionFilter(filter.key)}
+                          disabled={txLoading}
+                          className={`px-3 h-8 rounded-full border text-xs font-bold transition-all disabled:opacity-60 whitespace-nowrap ${
+                            active
+                              ? "bg-sb-gold text-[#0B0F14] border-sb-gold shadow-[0_0_18px_rgba(212,175,55,.22)]"
+                              : "bg-[#101722] border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-sb-border-2"
+                          }`}
+                        >
+                          {filter.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                {transactions.length === 0 ? <SbEmpty icon="TX" title="No transactions yet" hint="Deposit transactions appear only after Admin approval" /> : (
-                  <div className="divide-y divide-sb-border">
+                {txLoading ? <SbSpinner /> : transactions.length === 0 ? <SbEmpty icon="TX" title={txFilter ? "No matching transactions" : "No transactions yet"} hint={txFilter ? "Choose another filter to view more wallet activity" : "Deposit transactions appear only after Admin approval"} /> : (
+                  <div className="space-y-3 p-4">
                     {transactions.map((tx, i) => {
                       const key = tx.type || tx.transactionType;
                       const type = TX_TYPE[key] || { label: key || "Transaction", cls: "text-sb-tx-2", sign: "", icon: History };
                       const TxIcon = type.icon;
+                      const sign = tx.direction === "OUT" ? "-" : type.sign;
+                      const isOut = tx.direction === "OUT";
                       return (
-                        <div key={tx.transactionId || i} className="flex items-center gap-4 px-5 py-4 hover:bg-sb-s2 transition-colors">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-sb-s2 border border-sb-border ${type.cls}`}>
-                            <TxIcon size={14} />
+                        <div
+                          key={tx.transactionId || i}
+                          className={`rounded-2xl border bg-[#101722] px-4 py-3 transition-all hover:border-sb-border-2 ${
+                            isOut ? "border-sb-lose/25" : "border-sb-emerald-bd/60"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+                                isOut
+                                  ? "bg-sb-lose/10 border-sb-lose/25 text-sb-lose"
+                                  : "bg-sb-emerald-soft border-sb-emerald-bd text-sb-win"
+                              }`}>
+                                <TxIcon size={16} />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="text-sb-tx text-sm font-black">{tx.transactionTypeLabel || type.label}</p>
+                                  <span className={`px-2 py-0.5 rounded-full border text-[10px] font-black ${
+                                    isOut
+                                      ? "bg-sb-lose/10 text-sb-lose border-sb-lose/25"
+                                      : "bg-sb-emerald-soft text-sb-win border-sb-emerald-bd"
+                                  }`}>
+                                    {isOut ? "OUT" : "IN"}
+                                  </span>
+                                </div>
+                                {tx.description && <p className="text-sb-tx-3 text-xs mt-1 truncate">{tx.description}</p>}
+                                <div className="flex items-center gap-2 mt-2 text-[11px] text-sb-tx-3">
+                                  <span>#{tx.transactionId}</span>
+                                  {tx.relatedEntity && <span>{tx.relatedEntity} {tx.relatedEntityId ? `#${tx.relatedEntityId}` : ""}</span>}
+                                  {tx.createdAt && <span>{new Date(tx.createdAt).toLocaleString("vi-VN")}</span>}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className={`text-base font-black tabular-nums ${type.cls}`}>
+                                {sign}{fmt(Math.abs(Number(tx.amount || 0)))} VND
+                              </p>
+                              <p className="text-[10px] text-sb-tx-3 uppercase tracking-widest mt-1">{tx.currency || "VND"}</p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sb-tx text-sm font-semibold">{type.label}</p>
-                            {tx.description && <p className="text-sb-tx-3 text-xs mt-0.5 truncate">{tx.description}</p>}
-                            {tx.createdAt && <p className="text-sb-tx-3 text-xs mt-0.5">{new Date(tx.createdAt).toLocaleString("vi-VN")}</p>}
-                          </div>
-                          <span className={`font-bold text-sm shrink-0 tabular-nums ${type.cls}`}>{type.sign}{fmt(tx.amount)} VND</span>
                         </div>
                       );
                     })}

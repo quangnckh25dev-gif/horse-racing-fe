@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { Bell, User, ChevronDown, LogOut, KeyRound, Info, CheckCircle2, Trophy, Mail } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Bell, User, ChevronDown, LogOut, KeyRound, Info, CheckCircle2, Trophy, Mail, Wallet, Plus } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { notificationService } from "../../services/notification";
+import { walletService } from "../../services/wallet";
 import MinutesViewer from "../sb/MinutesViewer";
 
 const ROLE_LABEL = {
@@ -53,16 +54,19 @@ function normalizeNotif(n) {
 }
 
 const HAS_PROFILE = ["HorseOwner", "Jockey", "Referee", "Organizer"];
+const fmtMoney = (value) => Number(value || 0).toLocaleString("vi-VN");
 
 export default function Topbar({ title }) {
   const { user, role, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notifLoaded, setNotifLoaded] = useState(false);
   const [readIds, setReadIds] = useState(new Set());
   const [viewMinutes, setViewMinutes] = useState(null); // { raceId } khi bấm thông báo biên bản
+  const [walletBalance, setWalletBalance] = useState(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -78,6 +82,41 @@ export default function Topbar({ title }) {
   useEffect(() => {
     if (bellOpen && !notifLoaded) fetchNotifications();
   }, [bellOpen, notifLoaded, fetchNotifications]);
+
+  const fetchWalletBalance = useCallback(async () => {
+    if (role !== "Spectator") {
+      setWalletBalance(null);
+      return;
+    }
+
+    try {
+      const res = await walletService.getMyWallet();
+      setWalletBalance(res.data?.balance ?? res.data?.Balance ?? 0);
+    } catch {
+      setWalletBalance(null);
+    }
+  }, [role]);
+
+  useEffect(() => {
+    fetchWalletBalance();
+  }, [fetchWalletBalance, location.pathname]);
+
+  useEffect(() => {
+    if (role !== "Spectator") return undefined;
+
+    const refreshOnVisible = () => {
+      if (!document.hidden) fetchWalletBalance();
+    };
+    const refreshFromPage = () => fetchWalletBalance();
+
+    document.addEventListener("visibilitychange", refreshOnVisible);
+    window.addEventListener("wallet:refresh", refreshFromPage);
+
+    return () => {
+      document.removeEventListener("visibilitychange", refreshOnVisible);
+      window.removeEventListener("wallet:refresh", refreshFromPage);
+    };
+  }, [role, fetchWalletBalance]);
 
   const unreadCount = notifications.filter((n) => n.unread && !readIds.has(n.id)).length;
 
@@ -105,6 +144,23 @@ export default function Topbar({ title }) {
       <h1 className="text-base font-bold text-sb-tx truncate">{title}</h1>
 
       <div className="flex items-center gap-3">
+        {role === "Spectator" && (
+          <button
+            onClick={() => navigate("/spectator/wallet")}
+            className="hidden sm:flex items-center gap-2 h-10 px-3 rounded-full bg-sb-s2 border border-sb-border hover:border-sb-gold-bd hover:bg-sb-s3 transition-colors"
+            title="My Wallet"
+          >
+            <span className="w-7 h-7 rounded-full bg-sb-gold-soft border border-sb-gold-bd flex items-center justify-center text-sb-gold-2">
+              <Wallet size={14} />
+            </span>
+            <span className="text-sm font-black text-sb-tx">
+              {walletBalance === null ? "VND --" : `VND ${fmtMoney(walletBalance)}`}
+            </span>
+            <span className="w-5 h-5 rounded-full bg-sb-gold-2 text-sb-bg flex items-center justify-center">
+              <Plus size={12} strokeWidth={3} />
+            </span>
+          </button>
+        )}
 
         {/* ── Chuông thông báo ── */}
         <div className="relative">

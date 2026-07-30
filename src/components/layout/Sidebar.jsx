@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight,
   Flag, ClipboardList, Mail, Calendar,
   Award, PawPrint, User, BarChart2, Wallet, DollarSign,
-  FileText, Settings,
+  FileText, Settings, History,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -48,6 +48,7 @@ const MENU_BY_ROLE = {
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
     { label: "Race Schedule",        icon: Calendar,      path: "/spectator/schedule" },
     { label: "Betting",            icon: DollarSign,    path: "/spectator/betting" },
+    { label: "Bet History",        icon: History,       path: "/spectator/betting/history" },
     { label: "My Wallet",          icon: Wallet,        path: "/spectator/wallet" },
     { label: "Leaderboard",       icon: BarChart2,     path: "/leaderboard" },
   ],

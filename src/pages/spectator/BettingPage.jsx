@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Trophy, Clock, Zap, CheckCircle2, XCircle,
   Loader2, AlertCircle, ChevronDown, ChevronUp,
-  DollarSign, History, Flag, X, Calendar,
+  DollarSign, Flag, X, Calendar, PlayCircle,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import RaceReplay from "../../components/sb/RaceReplay";
@@ -89,6 +89,7 @@ function RaceBetPanel({ race, onBetPlaced }) {
       setSelected(null); setAmount("");
       const betRes = await betService.getMyBetByRace(race.raceId);
       setMyBets(betRes.data || []);
+      window.dispatchEvent(new Event("wallet:refresh"));
       onBetPlaced?.();
     } catch (e) {
       setError(e.message || "Bet failed. Please check your wallet balance.");
@@ -305,7 +306,7 @@ export default function BettingPage() {
       const res = await betService.getBetHistory();
       setHistory(res.data || []);
     } catch (e) {
-      setError(e.message || "Unable to load bet history");
+      setError(e.message || "Unable to load race replays");
     } finally {
       setHistLoading(false);
     }
@@ -348,7 +349,7 @@ export default function BettingPage() {
         <div className="flex gap-2">
           {[
             { key: "races",   label: "Races", icon: Flag },
-            { key: "history", label: "Bet History", icon: History },
+            { key: "history", label: "Replay Race", icon: PlayCircle },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -452,7 +453,7 @@ export default function BettingPage() {
           </>
         )}
 
-        {/* History tab */}
+        {/* Replay Race tab */}
         {tab === "history" && (
           <>
             {histLoading ? (
@@ -462,19 +463,19 @@ export default function BettingPage() {
             ) : history.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/5 border border-[#D4AF37]/10 flex items-center justify-center mb-4 animate-float">
-                  <History size={24} className="text-[#D4AF37]/30" />
+                  <PlayCircle size={24} className="text-[#D4AF37]/30" />
                 </div>
-                <p className="text-white font-semibold mb-1">No bet history yet</p>
-                <p className="text-gray-500 text-sm">Place a bet on a race to get started</p>
+                <p className="text-white font-semibold mb-1">No race replays yet</p>
+                <p className="text-gray-500 text-sm">Race replays will appear after you place bets and results are available</p>
               </div>
             ) : (
               <div className="glass-card rounded-2xl overflow-hidden">
                 <div className="flex items-center gap-2 p-5 border-b border-white/[0.06]">
                   <div className="w-6 h-6 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                    <History size={12} className="text-blue-400" />
+                    <PlayCircle size={12} className="text-blue-400" />
                   </div>
-                  <h3 className="font-bold text-sm text-white">Bet History</h3>
-                  <span className="ml-auto text-xs text-gray-500">{history.length} items</span>
+                  <h3 className="font-bold text-sm text-white">Replay Race</h3>
+                  <span className="ml-auto text-xs text-gray-500">{history.length} races</span>
                 </div>
                 <div className="divide-y divide-white/[0.04]">
                   {history.map((bet, i) => {

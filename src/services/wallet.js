@@ -6,5 +6,6 @@ export const walletService = {
     api.post("/wallets/deposit-requests", { amount, paymentMethod }),
   deposit: (amount) => api.post("/wallets/deposit-requests", { amount, paymentMethod: "BANK" }),
   getMyDepositRequests: () => api.get("/wallets/deposit-requests/mine"),
-  getTransactions: () => api.get("/wallets/transactions"),
+  getTransactions: (filter) => api.get(`/wallets/transactions${filter ? `?filter=${encodeURIComponent(filter)}` : ""}`),
+  getTransactionSummary: () => api.get("/wallets/transactions/summary"),
 };

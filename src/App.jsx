@@ -42,6 +42,7 @@ import RefereeRaceDetailPage from "./pages/referee/RefereeRaceDetailPage";
 import RaceSchedulePage from "./pages/spectator/RaceSchedulePage";
 import WalletPage from "./pages/spectator/WalletPage";
 import BettingPage from "./pages/spectator/BettingPage";
+import BetHistoryPage from "./pages/spectator/BetHistoryPage";
 import LeaderboardPage from "./pages/spectator/LeaderboardPage";
 
 // Shared pages
@@ -133,6 +134,8 @@ export default function App() {
             element={guard(["Spectator"], <WalletPage />)} />
           <Route path="/spectator/betting"
             element={guard(["Spectator"], <BettingPage />)} />
+          <Route path="/spectator/betting/history"
+            element={guard(["Spectator"], <BetHistoryPage />)} />
 
           {/* ── Leaderboard (public — no login required) ──── */}
           <Route path="/leaderboard" element={<LeaderboardRoute />} />

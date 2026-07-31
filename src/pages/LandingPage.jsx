@@ -136,7 +136,7 @@ export default function LandingPage() {
             {user ? (
               <button className="lp-nav-cta" onClick={() => navigate("/dashboard")}>Go to Dashboard</button>
             ) : (
-              <button className="lp-nav-cta" onClick={() => openAuth("login")}>Login</button>
+              <button className="lp-nav-cta" onClick={() => navigate("/login")}>Login</button>
             )}
           </nav>
         </header>
@@ -149,7 +149,7 @@ export default function LandingPage() {
             Pick your horse and enter the race.
           </p>
           <div className="lp-cta">
-            <button className="lp-btn lp-btn-bet" onClick={() => openAuth("register")}>Join now →</button>
+            <button className="lp-btn lp-btn-bet" onClick={() => navigate("/register")}>Join now →</button>
             <button className="lp-btn lp-btn-ghost" onClick={() => scrollTo("lp-races")}>View Race Schedule</button>
           </div>
         </section>
@@ -203,7 +203,7 @@ export default function LandingPage() {
           })}
         </div>
         <div className="lp-inline-cta">
-          <button className="lp-btn lp-btn-bet" onClick={() => openAuth("login")}>Login to Bet &gt;</button>
+          <button className="lp-btn lp-btn-bet" onClick={() => navigate("/login")}>Login to Bet &gt;</button>
         </div>
       </section>
 
@@ -255,7 +255,7 @@ export default function LandingPage() {
             <p>Create a Spectator account and start betting today with a demo wallet.</p>
           </div>
           <div className="lp-ctaband-btns">
-            <button className="lp-btn lp-btn-bet" onClick={() => openAuth("register")}>Register Now</button>
+            <button className="lp-btn lp-btn-bet" onClick={() => navigate("/register")}>Register Now</button>
             <button className="lp-btn lp-btn-ghost" onClick={() => scrollTo("lp-lb")}>View Rankings</button>
           </div>
         </div>
@@ -270,7 +270,7 @@ export default function LandingPage() {
         <div className="lp-footer-links">
           <button onClick={() => scrollTo("lp-races")}>Races</button>
           <button onClick={() => scrollTo("lp-lb")}>Rankings</button>
-          <button onClick={() => openAuth("login")}>Login</button>
+          <button onClick={() => navigate("/login")}>Login</button>
         </div>
       </footer>
 

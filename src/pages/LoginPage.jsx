@@ -14,48 +14,48 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [infoMsg, setInfoMsg] = useState("");
-  const [, setFailedCount] = useState(0);
+  const [notRegistered, setNotRegistered] = useState(false);
   const [maintenanceUntil, setMaintenanceUntil] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
     if (errorMsg) setErrorMsg("");
-    if (e.target.id === "username") setFailedCount(0);
+    if (notRegistered) setNotRegistered(false);
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true); setErrorMsg(""); setInfoMsg("");
+    setIsLoading(true); setErrorMsg(""); setInfoMsg(""); setNotRegistered(false);
     try {
       const result = await authService.login(formData);
       const { accessToken, user } = result.data;
-      setFailedCount(0); setMaintenanceUntil(null);
+      setMaintenanceUntil(null);
       login(user, accessToken, rememberMe);
       navigate("/dashboard");
     } catch (err) {
       const msg = err.message || "";
       const m = msg.toLowerCase();
-      const isMaintenance = err.status === 503 || m.includes("maintenance");
-      const isPending = err.status === 403 ||
-        m.includes("pending") || m.includes("not active") || m.includes("not approved");
-      const isLocked = m.includes("too many") || m.includes("lock");
-      const isBadCred = m.includes("bad credentials") ||
-        m.includes("incorrect") || m.includes("invalid") || m.includes("not found");
+      // Khớp đúng từng message BE trả (BE đã tách: not registered / wrong password / ...)
+      const isMaintenance   = err.status === 503 || m.includes("maintenance");
+      const isNotRegistered = m.includes("not registered");
+      const isWrongPassword = m.includes("wrong password") || m.includes("incorrect") || m.includes("bad credentials");
+      const isLocked        = m.includes("locked") || m.includes("too many");
+      const isPending       = err.status === 403 || m.includes("waiting for admin") || m.includes("approval") || m.includes("pending");
+      const isInactive      = m.includes("inactive");
 
       if (isMaintenance) {
-        let until = err.data?.maintenanceUntil || null;
-        setMaintenanceUntil(until || "");
+        setMaintenanceUntil(err.data?.maintenanceUntil || "");
+      } else if (isNotRegistered) {
+        // Tài khoản chưa đăng ký → báo rõ, KHÔNG gộp thành "sai mật khẩu/tài khoản"
+        setNotRegistered(true);
+      } else if (isWrongPassword) {
+        setErrorMsg(msg); // BE đã kèm số lần còn lại: "Wrong password. X attempts remaining."
       } else if (isLocked) {
-        setFailedCount(5);
-        setErrorMsg("Username has been locked after too many failed login attempts.");
-      } else if (isBadCred) {
-        setFailedCount((prev) => {
-          const next = Math.min(prev + 1, 5);
-          setErrorMsg(`Incorrect username or password. (Attempt ${next}/5)`);
-          return next;
-        });
+        setErrorMsg("Account locked due to too many failed login attempts.");
       } else if (isPending) {
         setInfoMsg("Your account is waiting for Administrator approval. Please wait.");
+      } else if (isInactive) {
+        setErrorMsg("Your account is inactive. Please contact the administrator.");
       } else {
         setErrorMsg(msg || "Login failed. Please try again.");
       }
@@ -91,6 +91,15 @@ export default function LoginPage() {
       {errorMsg && (
         <div className="mb-5 flex items-center gap-2.5 p-3.5 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
           <AlertCircle size={16} className="shrink-0" /> <span>{errorMsg}</span>
+        </div>
+      )}
+      {notRegistered && (
+        <div className="mb-5 flex items-start gap-2.5 p-3.5 rounded-xl bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2 text-sm">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>
+            This account is not registered yet.{" "}
+            <Link to="/register" className="font-bold underline hover:opacity-80">Register now</Link>
+          </span>
         </div>
       )}
 

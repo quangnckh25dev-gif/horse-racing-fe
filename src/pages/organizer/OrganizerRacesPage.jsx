@@ -2,11 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, Edit2, Trash2, Eye, AlertCircle, Loader2,
-  RefreshCw, Flag, X, Check,
+  RefreshCw, Flag, X,
   Clock, Zap, Trophy, Users, Calendar,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
-import { confirmBox } from "../../lib/toast";
 import { organizerService } from "../../services/organizer";
 import { tournamentService } from "../../services/tournament";
 import { useAuth } from "../../context/AuthContext";
@@ -27,8 +26,27 @@ const EMPTY_FORM = {
 
 const EMPTY_TOURNAMENT = {
   tournamentName: "", location: "", startDate: "", endDate: "",
-  budgetTotal: "50000000", maxHorses: "20", maxParticipants: "20",
+  budgetTotal: "300000000", maxHorses: "8", maxParticipants: "20",
 };
+
+// Dia diem to chuc co san (FE-09: location la dropdown thay vi text)
+const LOCATIONS = [
+  "Phu Tho Racecourse (HCMC)",
+  "Dai Nam Racetrack (Binh Duong)",
+  "Thien Ma - Madagui (Lam Dong)",
+  "Soc Son Racetrack (Ha Noi)",
+  "Bac Ha Racetrack (Lao Cai)",
+];
+// BE chi chap nhan 8, 12 hoac 16
+const MAX_HORSES_OPTIONS = [8, 12, 16];
+
+// Format so tien co dau cham: 300000000 -> "300.000.000"
+const formatMoney = (v) => {
+  const digits = String(v ?? "").replace(/\D/g, "");
+  return digits ? Number(digits).toLocaleString("vi-VN") : "";
+};
+// Bo dau cham de lay so thuan: "300.000.000" -> "300000000"
+const parseMoney = (v) => String(v ?? "").replace(/\D/g, "");
 
 const inputCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.08)] transition-all";
 
@@ -63,7 +81,7 @@ function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
 const lbl = "block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5";
 
 function RaceForm({ form, onChange, onSubmit, onCancel, loading, submitLabel,
-  tournaments, rounds, onAddRound, roundBusy }) {
+  tournaments, rounds }) {
   const editing = submitLabel !== "Create Race";
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -78,16 +96,10 @@ function RaceForm({ form, onChange, onSubmit, onCancel, loading, submitLabel,
           </div>
           <div>
             <label className={lbl}>Round *</label>
-            <div className="flex gap-2">
-              <select name="roundId" value={form.roundId} onChange={onChange} required disabled={!form.tournamentId} className={inputCls + " disabled:opacity-40"}>
-                <option value="">{form.tournamentId ? "-- Select Round --" : "Select a tournament first"}</option>
-                {rounds.map((r) => <option key={r.roundId} value={r.roundId}>{r.roundName}</option>)}
-              </select>
-              <button type="button" onClick={onAddRound} disabled={!form.tournamentId || roundBusy} title="Add New Round"
-                className="px-3 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx disabled:opacity-40 shrink-0">
-                {roundBusy ? <Loader2 size={13} className="animate-spin" /> : <Plus size={14} />}
-              </button>
-            </div>
+            <select name="roundId" value={form.roundId} onChange={onChange} required disabled={!form.tournamentId} className={inputCls + " disabled:opacity-40 cursor-pointer"}>
+              <option value="">{form.tournamentId ? "Select a round" : "Select a tournament first"}</option>
+              {rounds.map((r) => <option key={r.roundId} value={r.roundId}>{r.roundName}</option>)}
+            </select>
           </div>
         </div>
       )}
@@ -164,11 +176,12 @@ export default function OrganizerRacesPage() {
   // Giải đấu + vòng của Organizer (race cần tournamentId + roundId)
   const [tournaments, setTournaments] = useState([]);
   const [rounds, setRounds] = useState([]);
-  const [roundBusy, setRoundBusy] = useState(false);
   const [showCreateTournament, setShowCreateTournament] = useState(false);
   const [tournamentForm, setTournamentForm] = useState(EMPTY_TOURNAMENT);
   const [tBusy, setTBusy] = useState(false);
   const [tError, setTError] = useState("");
+  // FE-11: 3 vong (Qualify/Semi/Final) cua tung giai -> { [tournamentId]: [rounds] }
+  const [roundsByT, setRoundsByT] = useState({});
 
   const fetchRaces = useCallback(async () => {
     setLoading(true); setError("");
@@ -190,6 +203,20 @@ export default function OrganizerRacesPage() {
   }, []);
 
   useEffect(() => { fetchRaces(); fetchTournaments(); }, [fetchRaces, fetchTournaments]);
+
+  // FE-11: khi co danh sach giai -> nap 3 vong co dinh cua tung giai
+  useEffect(() => {
+    if (tournaments.length === 0) { setRoundsByT({}); return; }
+    let alive = true;
+    Promise.all(
+      tournaments.map((t) =>
+        tournamentService.getPublicRounds(t.tournamentId)
+          .then((r) => [t.tournamentId, r.data || []])
+          .catch(() => [t.tournamentId, []])
+      )
+    ).then((pairs) => { if (alive) setRoundsByT(Object.fromEntries(pairs)); });
+    return () => { alive = false; };
+  }, [tournaments]);
 
   // Khi chọn tournaments → tải danh sách vòng
   useEffect(() => {
@@ -234,52 +261,36 @@ export default function OrganizerRacesPage() {
     finally { setFormLoading(false); }
   };
 
-  // Tạo nhanh 1 vòng cho giải đang chọn
-  const handleAddRound = async () => {
-    if (!formData.tournamentId) return;
-    setRoundBusy(true);
-    try {
-      const order = rounds.length + 1;
-      const today = new Date().toISOString().slice(0, 10);
-      await tournamentService.createRound(formData.tournamentId, {
-        roundName: `Round ${order}`, roundOrder: order, startDate: today, endDate: today,
-      });
-      const r = await tournamentService.getPublicRounds(formData.tournamentId);
-      setRounds(r.data || []);
-    } catch (err) { setFormError(err.message || "Failed to create round"); }
-    finally { setRoundBusy(false); }
-  };
-
   const handleCreateTournament = async (e) => {
-    e.preventDefault(); setTBusy(true); setTError("");
+    e.preventDefault();
+    if (!tournamentForm.location) { setTError("Please select a location."); return; }
+    setTBusy(true); setTError("");
     try {
       const res = await tournamentService.create({
         tournamentName: tournamentForm.tournamentName,
         location: tournamentForm.location,
         startDate: tournamentForm.startDate,
         endDate: tournamentForm.endDate,
-        budgetTotal: Number(tournamentForm.budgetTotal) || 0,
-        maxHorses: Number(tournamentForm.maxHorses) || 20,
+        budgetTotal: Number(parseMoney(tournamentForm.budgetTotal)) || 0,
+        maxHorses: Number(tournamentForm.maxHorses),   // 8 | 12 | 16
         maxParticipants: Number(tournamentForm.maxParticipants) || 20,
       });
       const newId = res.data?.tournamentId;
 
-      // Tự tạo "Round 1" luôn — để form tạo races có vòng chọn ngay, khỏi kẹt dropdown rỗng
+      // BE tu tao san 3 vong Qualify/Semi Final/Final -> lay vong dau (Qualify) de tao race
       let firstRoundId = "";
       if (newId) {
         try {
-          const r = await tournamentService.createRound(newId, {
-            roundName: "Round 1", roundOrder: 1,
-            startDate: tournamentForm.startDate, endDate: tournamentForm.endDate,
-          });
-          firstRoundId = r.data?.roundId ? String(r.data.roundId) : "";
-        } catch { /* tạo vòng lỗi thì user vẫn tự thêm bằng nút + */ }
+          const r = await tournamentService.getPublicRounds(newId);
+          const rs = r.data || [];
+          firstRoundId = rs.length ? String(rs[0].roundId) : "";
+        } catch { /* khong lay duoc thi user tu chon vong trong form race */ }
       }
 
       await fetchTournaments();
       setShowCreateTournament(false);
       setTournamentForm(EMPTY_TOURNAMENT);
-      // Mở form tạo races với giải + vòng đã chọn sẵn
+      // Mở form tạo races với giải + vòng Qualify đã chọn sẵn
       if (newId) {
         setFormData({ ...EMPTY_FORM, tournamentId: String(newId), roundId: firstRoundId });
         setFormError("");
@@ -311,22 +322,9 @@ export default function OrganizerRacesPage() {
     finally { setFormLoading(false); }
   };
 
-  // Gửi tournaments lên Admin duyệt (Draft → PendingApproval)
-  const [submitBusy, setSubmitBusy] = useState(null);
-  const handleSubmitTournament = async (t) => {
-    if (!(await confirmBox(`Submit tournament "${t.tournamentName}" for Administrator approval?
-After submission, it cannot be edited until an Administrator reviews it.`, { okText: "Submit for Approval" }))) return;
-    setSubmitBusy(t.tournamentId);
-    try {
-      await tournamentService.submitForApproval(t.tournamentId);
-      await fetchTournaments();
-    } catch (err) { alert(err.message || "Submission failed"); }
-    finally { setSubmitBusy(null); }
-  };
-
+  // FE-10: BE da bo duyet tournament cua Admin -> Organizer quan ly truc tiep, khong con submit
   const TOURNAMENT_STATUS = {
     Draft:           { label: "Draft",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
-    PendingApproval: { label: "Pending Approval", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd" },
     Open:            { label: "Open",      cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd" },
     Ongoing:         { label: "Ongoing", cls: "bg-sb-info/10 text-sb-info border-sb-info/30" },
     Finished:        { label: "Finished", cls: "bg-sb-s2 text-sb-tx-3 border-sb-border" },
@@ -401,30 +399,60 @@ After submission, it cannot be edited until an Administrator reviews it.`, { okT
       </div>
 
       <div className="p-6 space-y-5">
-        {/* ── My Tournaments (tạo → gửi Admin duyệt) ── */}
+        {/* ── My Tournaments: moi giai co 3 vong co dinh Qualify / Semi Final / Final ── */}
         {tournaments.length > 0 && (
           <div className="rounded-2xl border border-sb-border bg-sb-s1 p-4">
             <div className="flex items-center gap-2 mb-3">
               <Trophy size={15} className="text-[#D4AF37]" />
               <h3 className="text-white font-bold text-sm">My Tournaments</h3>
-              <span className="text-sb-tx-3 text-xs ml-auto">{"Create tournament -> create races -> submit for Admin approval"}</span>
+              <span className="text-sb-tx-3 text-xs ml-auto">Each tournament has 3 fixed rounds: Qualify → Semi Final → Final</span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {tournaments.map((t) => {
                 const st = TOURNAMENT_STATUS[t.status] || { label: t.status, cls: "bg-sb-s2 text-sb-tx-3 border-sb-border" };
+                const tRounds = roundsByT[t.tournamentId] || [];
                 return (
-                  <div key={t.tournamentId} className="flex items-center gap-3 bg-sb-s2 border border-sb-border rounded-xl px-4 py-3 flex-wrap">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-white font-semibold text-sm truncate">{t.tournamentName}</p>
-                      <p className="text-sb-tx-3 text-xs">{t.startDate ? `${String(t.startDate).slice(0,10)} → ${String(t.endDate).slice(0,10)}` : ""}</p>
+                  <div key={t.tournamentId} className="bg-sb-s2 border border-sb-border rounded-xl p-4">
+                    <div className="flex items-center gap-3 flex-wrap mb-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-white font-semibold text-sm truncate">{t.tournamentName}</p>
+                        <p className="text-sb-tx-3 text-xs">
+                          {t.location ? `${t.location} · ` : ""}
+                          {t.startDate ? `${String(t.startDate).slice(0,10)} → ${String(t.endDate).slice(0,10)}` : ""}
+                        </p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${st.cls}`}>{st.label}</span>
                     </div>
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${st.cls}`}>{st.label}</span>
-                    {t.status === "Draft" && (
-                      <button onClick={() => handleSubmitTournament(t)} disabled={submitBusy === t.tournamentId}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] text-xs font-bold disabled:opacity-50 transition-colors">
-                        {submitBusy === t.tournamentId ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Submit for Admin Approval
-                      </button>
-                    )}
+
+                    {/* 3 vong co dinh */}
+                    <div className="grid sm:grid-cols-3 gap-2">
+                      {tRounds.length === 0 ? (
+                        <p className="text-sb-tx-3 text-xs col-span-3">Loading rounds…</p>
+                      ) : tRounds.map((rd) => {
+                        const roundRaces = races.filter((r) => String(r.roundId) === String(rd.roundId));
+                        return (
+                          <div key={rd.roundId} className="rounded-lg border border-sb-border bg-[#0d1117] p-3">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <span className="w-5 h-5 rounded-md bg-[#D4AF37]/15 text-[#D4AF37] text-[10px] font-black flex items-center justify-center">{rd.roundOrder}</span>
+                              <span className="text-white text-xs font-bold">{rd.roundName}</span>
+                            </div>
+                            {roundRaces.length === 0 ? (
+                              <p className="text-sb-tx-3 text-[11px] italic">No race yet</p>
+                            ) : (
+                              <div className="space-y-1.5">
+                                {roundRaces.map((r) => (
+                                  <button key={r.raceId} onClick={() => navigate(`/organizer/races/${r.raceId}`)}
+                                    className="w-full text-left flex items-center justify-between gap-2 rounded-md bg-sb-s2 border border-sb-border px-2 py-1.5 hover:border-[#D4AF37]/40 transition-colors">
+                                    <span className="text-sb-tx-2 text-[11px] truncate">{r.raceName}</span>
+                                    <StatusBadge status={r.status} />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
@@ -556,7 +584,7 @@ After submission, it cannot be edited until an Administrator reviews it.`, { okT
         <Modal title="Create New Race" onClose={() => setShowCreate(false)}>
           {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-red-950/40 border border-red-900/50 rounded-xl text-red-300 text-sm"><AlertCircle size={13} /> {formError}</div>}
           <RaceForm form={formData} onChange={handleFormChange} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} loading={formLoading} submitLabel="Create Race"
-            tournaments={tournaments} rounds={rounds} onAddRound={handleAddRound} roundBusy={roundBusy} />
+            tournaments={tournaments} rounds={rounds} />
         </Modal>
       )}
 
@@ -569,8 +597,11 @@ After submission, it cannot be edited until an Administrator reviews it.`, { okT
               <input value={tournamentForm.tournamentName} onChange={(e) => setTournamentForm((p) => ({ ...p, tournamentName: e.target.value }))} required className={inputCls} placeholder="e.g. Autumn Racing Tournament 2026" />
             </div>
             <div>
-              <label className={lbl}>Location</label>
-              <input value={tournamentForm.location} onChange={(e) => setTournamentForm((p) => ({ ...p, location: e.target.value }))} className={inputCls} placeholder="Ho Chi Minh City" />
+              <label className={lbl}>Location *</label>
+              <select value={tournamentForm.location} onChange={(e) => setTournamentForm((p) => ({ ...p, location: e.target.value }))} required className={inputCls + " cursor-pointer"}>
+                <option value="">Select a location</option>
+                {LOCATIONS.map((loc) => <option key={loc} value={loc}>{loc}</option>)}
+              </select>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -583,14 +614,21 @@ After submission, it cannot be edited until an Administrator reviews it.`, { okT
               </div>
               <div>
                 <label className={lbl}>Budget (VND)</label>
-                <input type="number" value={tournamentForm.budgetTotal} onChange={(e) => setTournamentForm((p) => ({ ...p, budgetTotal: e.target.value }))} className={inputCls} />
+                <input
+                  type="text" inputMode="numeric"
+                  value={formatMoney(tournamentForm.budgetTotal)}
+                  onChange={(e) => setTournamentForm((p) => ({ ...p, budgetTotal: parseMoney(e.target.value) }))}
+                  className={inputCls} placeholder="300.000.000"
+                />
               </div>
               <div>
                 <label className={lbl}>Max Horses</label>
-                <input type="number" value={tournamentForm.maxHorses} onChange={(e) => setTournamentForm((p) => ({ ...p, maxHorses: e.target.value }))} className={inputCls} />
+                <select value={tournamentForm.maxHorses} onChange={(e) => setTournamentForm((p) => ({ ...p, maxHorses: e.target.value }))} className={inputCls + " cursor-pointer"}>
+                  {MAX_HORSES_OPTIONS.map((n) => <option key={n} value={n}>{n} horses</option>)}
+                </select>
               </div>
             </div>
-            <p className="text-sb-tx-3 text-[11px]">Tournament is created as Draft. After creating races, submit it for Admin approval to open registration.</p>
+            <p className="text-sb-tx-3 text-[11px]">Tournament is created as <strong className="text-sb-tx-2">Draft</strong> with 3 fixed rounds (Qualify, Semi Final, Final). You manage it directly — no Admin approval needed.</p>
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setShowCreateTournament(false)} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Cancel</button>
               <button type="submit" disabled={tBusy}

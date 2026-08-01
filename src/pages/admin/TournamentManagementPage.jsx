@@ -19,12 +19,10 @@ const STATUS_CONFIG = {
   Cancelled: { label: "Cancelled",       cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30",              strip: "from-red-400/20 to-red-400/5",      dot: "bg-red-500" },
 };
 
+// FE-10: Admin khong con duyet tournament (BE da bo). Khong co action cho Draft/PendingApproval.
 const STATUS_TRANSITIONS = {
   Draft:    [],
-  PendingApproval: [
-    { to: "Open", label: "Approve Registration Opening", cls: "bg-sb-info/10 border-sb-info/30 text-sb-info hover:bg-sb-info/20" },
-    { to: "Draft", label: "Rejected", cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" },
-  ],
+  PendingApproval: [],
   Open:     [{ to: "Ongoing",   label: "Start",       cls: "bg-sb-gold-soft border-sb-gold-bd text-sb-gold-2 hover:bg-sb-gold-soft" },
              { to: "Cancelled", label: "Cancel Tournament",      cls: "bg-sb-lose/10 border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20" }],
   Ongoing:  [{ to: "Finished",  label: "Finish Tournament", cls: "bg-sb-emerald-soft border-sb-emerald-bd text-sb-emerald-ink hover:bg-sb-emerald-soft" },

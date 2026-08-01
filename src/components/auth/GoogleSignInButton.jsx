@@ -49,6 +49,7 @@ export default function GoogleSignInButton({ onError, rememberMe = false }) {
           size="large"
           width="320"
           text="signin_with"
+          locale="en"
         />
       </div>
     </GoogleOAuthProvider>

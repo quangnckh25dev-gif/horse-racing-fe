@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Clock3, Loader2, RefreshCw, Wallet, XCircle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Clock3, Loader2, RefreshCw, Wallet, XCircle, Search, Zap } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import SbModal from "../../components/sb/Modal";
 import { SbAlert, SbEmpty, SbSpinner } from "../../components/sb/Feedback";
@@ -7,6 +7,12 @@ import { SbPageHeader } from "../../components/sb/Data";
 import { adminService } from "../../services/admin";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
+
+const STATUS_FILTERS = ["All", "Pending", "Approved", "Rejected"];
+const METHOD_FILTERS = ["All", "BANK", "MOMO"];
+// Deposit bi he thong tu dong tu choi (het 30s khong duyet) -> adminNote chua "auto"
+const isAutoRejected = (req) =>
+  req.status === "Rejected" && (req.adminNote || "").toLowerCase().includes("auto");
 
 const STATUS = {
   Pending: { label: "Pending", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd", icon: Clock3 },
@@ -62,6 +68,12 @@ export default function DepositRequestsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Filters (client-side)
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [methodFilter, setMethodFilter] = useState("All");
+  const [dateFilter, setDateFilter] = useState(""); // yyyy-mm-dd
+  const [keyword, setKeyword] = useState("");
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -111,6 +123,21 @@ export default function DepositRequestsPage() {
 
   const pendingCount = items.filter((x) => x.status === "Pending").length;
 
+  // Ap dung filter + search o client (BE chua ho tro param)
+  const filtered = useMemo(() => {
+    const kw = keyword.trim().toLowerCase();
+    return items.filter((req) => {
+      if (statusFilter !== "All" && req.status !== statusFilter) return false;
+      if (methodFilter !== "All" && (req.paymentMethod || "").toUpperCase() !== methodFilter) return false;
+      if (dateFilter && (!req.createdAt || !String(req.createdAt).startsWith(dateFilter))) return false;
+      if (kw) {
+        const hay = `${req.depositRequestId} ${req.userId} ${req.transferCode || ""}`.toLowerCase();
+        if (!hay.includes(kw)) return false;
+      }
+      return true;
+    });
+  }, [items, statusFilter, methodFilter, dateFilter, keyword]);
+
   return (
     <AdminLayout title="Approve Deposits">
       <SbPageHeader
@@ -128,8 +155,64 @@ export default function DepositRequestsPage() {
       <div className="p-6 space-y-5">
         {error && <SbAlert tone="error">{error}</SbAlert>}
         {success && <SbAlert tone="success">{success}</SbAlert>}
+
+        {/* Filter + search bar */}
+        {!loading && items.length > 0 && (
+          <div className="flex flex-col xl:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-sb-tx-3" />
+              <input
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Search by user ID, transfer code, request #..."
+                className="w-full h-10 pl-10 pr-4 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm placeholder:text-sb-tx-3 outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {STATUS_FILTERS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`px-3 h-10 rounded-xl text-xs font-semibold border transition-all ${
+                    statusFilter === s
+                      ? "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd"
+                      : "bg-sb-s1 text-sb-tx-3 border-sb-border hover:text-sb-tx hover:border-sb-tx-3"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <select
+              value={methodFilter}
+              onChange={(e) => setMethodFilter(e.target.value)}
+              className="h-10 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-info focus:ring-1 focus:ring-sb-info/40 transition-colors cursor-pointer"
+            >
+              {METHOD_FILTERS.map((m) => (
+                <option key={m} value={m}>{m === "All" ? "All methods" : m}</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="h-10 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-info focus:ring-1 focus:ring-sb-info/40 transition-colors cursor-pointer"
+            />
+            {(statusFilter !== "All" || methodFilter !== "All" || dateFilter || keyword) && (
+              <button
+                onClick={() => { setStatusFilter("All"); setMethodFilter("All"); setDateFilter(""); setKeyword(""); }}
+                className="px-3 h-10 rounded-xl text-xs font-semibold border border-sb-border bg-sb-s1 text-sb-tx-3 hover:text-sb-tx transition-all"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        )}
+
         {loading ? <SbSpinner /> : items.length === 0 ? (
           <SbEmpty icon="VND" title="No deposit requests yet" hint="New user requests will appear here" />
+        ) : filtered.length === 0 ? (
+          <SbEmpty icon="🔍" title="No matching requests" hint="Try changing the filters or search" />
         ) : (
           <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
             <div className="overflow-x-auto">
@@ -145,9 +228,10 @@ export default function DepositRequestsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-sb-border">
-                  {items.map((req) => {
+                  {filtered.map((req) => {
                     const busy = busyId === req.depositRequestId;
                     const isPending = req.status === "Pending";
+                    const autoRej = isAutoRejected(req);
                     return (
                       <tr key={req.depositRequestId} className="hover:bg-sb-s2/60">
                         <td className="px-5 py-4">
@@ -165,7 +249,12 @@ export default function DepositRequestsPage() {
                         <td className="px-5 py-4 text-right text-sb-gold-2 font-black tabular-nums">{fmt(req.amount)} VND</td>
                         <td className="px-5 py-4">
                           <StatusBadge status={req.status} />
-                          {req.adminNote && <p className="text-sb-lose text-xs mt-1 max-w-[220px] truncate">{req.adminNote}</p>}
+                          {autoRej && (
+                            <span className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold bg-sb-lose/10 text-sb-lose border-sb-lose/30">
+                              <Zap size={10} /> Auto-rejected (30s)
+                            </span>
+                          )}
+                          {req.adminNote && <p className="text-sb-tx-3 text-xs mt-1 max-w-[220px] truncate">{req.adminNote}</p>}
                         </td>
                         <td className="px-5 py-4">
                           <div className="flex justify-end gap-2">

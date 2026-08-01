@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  Users, RefreshCw, Loader2, AlertCircle, CheckCircle2, Shield,
+  Users, RefreshCw, Loader2, AlertCircle, CheckCircle2, Shield, Search,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { adminService } from "../../services/admin";
@@ -9,6 +9,8 @@ import AdminLayout from "../../components/layout/AdminLayout";
 
 // 1 role Organizer duy nhất (đã bỏ OrganizerHead/OrganizerMember)
 const ROLES = ["Organizer", "HorseOwner", "Jockey", "Referee", "Spectator"];
+const ROLE_FILTERS = ["All", ...ROLES];
+const STATUS_FILTERS = ["All", "Active", "Inactive"]; // BE chi nhan Active/Inactive
 
 const ROLE_STYLE = {
   Admin:      "bg-sb-lose/10 text-sb-lose border-sb-lose/30",
@@ -28,20 +30,29 @@ export default function UserManagementPage() {
   const [actionLoading, setActionLoading] = useState(null);
   const [successId, setSuccessId] = useState(null);
 
-  const fetchUsers = async () => {
+  const [roleFilter, setRoleFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [keyword, setKeyword] = useState("");
+
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     setErrorMsg("");
     try {
-      const result = await adminService.getAllUsers();
-      setUsers(result.data || []);
+      const result = await adminService.getAllUsers(roleFilter, statusFilter, keyword.trim());
+      // An Admin khoi danh sach quan ly thuong (phong khi BE tra ve)
+      setUsers((result.data || []).filter((u) => u.roleName !== "Admin"));
     } catch (err) {
       setErrorMsg(err.message || "Unable to load users.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [roleFilter, statusFilter, keyword]);
 
-  useEffect(() => { fetchUsers(); }, []);
+  // filter doi -> goi lai; keyword debounce 400ms
+  useEffect(() => {
+    const t = setTimeout(fetchUsers, 400);
+    return () => clearTimeout(t);
+  }, [fetchUsers]);
 
   const handleRoleChange = (userId, newRole) => {
     setPendingRole((prev) => ({ ...prev, [userId]: newRole }));
@@ -96,6 +107,43 @@ export default function UserManagementPage() {
             </button>
           </div>
 
+          {/* Filter + search bar */}
+          <div className="flex flex-col lg:flex-row gap-3 mb-6">
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-sb-tx-3" />
+              <input
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Search by name, username, email, phone..."
+                className="w-full h-10 pl-10 pr-4 rounded-lg bg-sb-s1 border border-sb-border text-sb-tx text-sm placeholder:text-sb-tx-3 outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all"
+              />
+            </div>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="h-10 rounded-lg bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-info focus:ring-1 focus:ring-sb-info/40 transition-colors cursor-pointer"
+            >
+              {ROLE_FILTERS.map((r) => (
+                <option key={r} value={r}>{r === "All" ? "All roles" : r}</option>
+              ))}
+            </select>
+            <div className="flex gap-1.5">
+              {STATUS_FILTERS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`px-3 h-10 rounded-lg text-xs font-semibold border transition-all ${
+                    statusFilter === s
+                      ? "bg-sb-info/10 text-sb-info border-sb-info/30"
+                      : "bg-sb-s1 text-sb-tx-3 border-sb-border hover:text-sb-tx hover:border-sb-tx-3"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {errorMsg && (
             <div className="mb-6 flex items-center gap-3 p-3 rounded-lg bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
               <AlertCircle size={18} className="text-sb-lose shrink-0" />
@@ -110,7 +158,9 @@ export default function UserManagementPage() {
           ) : users.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-sb-tx-3">
               <Users size={48} className="mb-4" />
-              <p className="text-lg font-medium">No users yet</p>
+              <p className="text-lg font-medium">
+                {keyword || roleFilter !== "All" || statusFilter !== "All" ? "No matching users" : "No users yet"}
+              </p>
             </div>
           ) : (
             <>

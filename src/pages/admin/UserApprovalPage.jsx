@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { CheckCircle2, XCircle, Loader2, AlertCircle, RefreshCw, Users } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { CheckCircle2, XCircle, Loader2, AlertCircle, RefreshCw, Users, Search } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { adminService } from "../../services/admin";
 import { useAuth } from "../../context/AuthContext";
@@ -12,6 +12,9 @@ const ROLE_BADGE = {
   Organizer:  "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd",
 };
 
+// Spectator auto-approved -> khong bao gio nam trong danh sach cho duyet
+const ROLE_FILTERS = ["All", "HorseOwner", "Jockey", "Referee", "Organizer"];
+
 export default function UserApprovalPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
@@ -19,20 +22,31 @@ export default function UserApprovalPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [actionLoading, setActionLoading] = useState(null);
 
-  const fetchPendingUsers = async () => {
+  const [roleFilter, setRoleFilter] = useState("All");
+  const [keyword, setKeyword] = useState("");
+
+  // Reject modal
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const fetchPendingUsers = useCallback(async () => {
     setIsLoading(true);
     setErrorMsg("");
     try {
-      const result = await adminService.getPendingUsers();
+      const result = await adminService.getPendingUsers(roleFilter, keyword.trim());
       setUsers(result.data || []);
     } catch (err) {
       setErrorMsg(err.message || "Unable to load users.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [roleFilter, keyword]);
 
-  useEffect(() => { fetchPendingUsers(); }, []);
+  // Filter role doi -> goi lai ngay; keyword thi debounce 400ms
+  useEffect(() => {
+    const t = setTimeout(fetchPendingUsers, 400);
+    return () => clearTimeout(t);
+  }, [fetchPendingUsers]);
 
   const handleApprove = async (userId) => {
     setActionLoading(userId + "_approve");
@@ -46,11 +60,15 @@ export default function UserApprovalPage() {
     }
   };
 
-  const handleReject = async (userId) => {
+  const confirmReject = async () => {
+    if (!rejectTarget) return;
+    const userId = rejectTarget.userId;
     setActionLoading(userId + "_reject");
     try {
-      await adminService.rejectUser(userId, currentUser.userId);
+      await adminService.rejectUser(userId, currentUser.userId, rejectReason.trim());
       setUsers((prev) => prev.filter((u) => u.userId !== userId));
+      setRejectTarget(null);
+      setRejectReason("");
     } catch (err) {
       setErrorMsg(err.message || "Failed to reject account.");
     } finally {
@@ -63,7 +81,7 @@ export default function UserApprovalPage() {
       <div className="p-6 max-w-4xl mx-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-sb-gold-soft border border-sb-gold-bd flex items-center justify-center">
               <Users size={20} className="text-sb-gold-2" />
@@ -88,6 +106,34 @@ export default function UserApprovalPage() {
           </button>
         </div>
 
+        {/* Filter + search bar */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-sb-tx-3" />
+            <input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Search by name, username, email..."
+              className="w-full h-10 pl-10 pr-4 rounded-lg bg-sb-s1 border border-sb-border text-sb-tx text-sm placeholder:text-sb-tx-3 outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {ROLE_FILTERS.map((r) => (
+              <button
+                key={r}
+                onClick={() => setRoleFilter(r)}
+                className={`px-3 h-10 rounded-lg text-xs font-semibold border transition-all ${
+                  roleFilter === r
+                    ? "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd"
+                    : "bg-sb-s1 text-sb-tx-3 border-sb-border hover:text-sb-tx hover:border-sb-tx-3"
+                }`}
+              >
+                {r === "HorseOwner" ? "Owner" : r}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {errorMsg && (
           <div className="mb-5 flex items-center gap-3 p-4 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
             <AlertCircle size={15} className="text-sb-lose shrink-0" /> {errorMsg}
@@ -105,15 +151,18 @@ export default function UserApprovalPage() {
             <div className="w-20 h-20 rounded-2xl bg-sb-emerald-soft border border-sb-emerald-bd flex items-center justify-center mb-4">
               <CheckCircle2 size={32} className="text-green-500" />
             </div>
-            <p className="text-sb-tx font-semibold mb-1">No accounts pending approval</p>
-            <p className="text-sb-tx-3 text-sm">All accounts have been handled</p>
+            <p className="text-sb-tx font-semibold mb-1">
+              {keyword || roleFilter !== "All" ? "No matching accounts" : "No accounts pending approval"}
+            </p>
+            <p className="text-sb-tx-3 text-sm">
+              {keyword || roleFilter !== "All" ? "Try changing the filter or search" : "All accounts have been handled"}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
             {users.map((user, idx) => {
               const initials = (user.fullName || user.username || "?")[0].toUpperCase();
               const approveLoading = actionLoading === user.userId + "_approve";
-              const rejectLoading  = actionLoading === user.userId + "_reject";
               const busy = actionLoading !== null;
 
               return (
@@ -161,11 +210,11 @@ export default function UserApprovalPage() {
                       <Button
                         size="sm"
                         disabled={busy}
-                        onClick={() => handleReject(user.userId)}
+                        onClick={() => { setRejectTarget(user); setRejectReason(""); }}
                         className="flex items-center gap-1.5 h-9 px-4 bg-sb-lose/10 hover:bg-sb-lose/20 text-sb-lose border border-sb-lose/30 hover:border-red-300 rounded-xl text-xs font-medium transition-all"
                       >
-                        {rejectLoading ? <Loader2 size={13} className="animate-spin" /> : <XCircle size={13} />}
-                        Rejected
+                        <XCircle size={13} />
+                        Reject
                       </Button>
                     </div>
                   </div>
@@ -175,6 +224,51 @@ export default function UserApprovalPage() {
           </div>
         )}
       </div>
+
+      {/* Reject reason modal */}
+      {rejectTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setRejectTarget(null)}>
+          <div className="w-full max-w-md bg-sb-s1 border border-sb-border rounded-2xl shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="w-9 h-9 rounded-lg bg-sb-lose/10 border border-sb-lose/30 flex items-center justify-center">
+                <XCircle size={18} className="text-sb-lose" />
+              </div>
+              <h3 className="text-lg font-bold text-sb-tx">Reject account</h3>
+            </div>
+            <p className="text-sm text-sb-tx-3 mb-4">
+              Reject <span className="font-semibold text-sb-tx">{rejectTarget.fullName || rejectTarget.username}</span>?
+              You can add a reason (optional).
+            </p>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows={3}
+              placeholder="Reason for rejection (optional)..."
+              className="w-full rounded-lg bg-sb-s2 border border-sb-border text-sb-tx text-sm p-3 placeholder:text-sb-tx-3 outline-none focus:border-sb-lose focus:ring-1 focus:ring-sb-lose/40 transition-all resize-none"
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                size="sm"
+                onClick={() => setRejectTarget(null)}
+                className="h-9 px-4 bg-sb-s2 hover:bg-sb-s2 text-sb-tx-2 border border-sb-border rounded-xl text-xs font-semibold"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                disabled={actionLoading !== null}
+                onClick={confirmReject}
+                className="h-9 px-4 bg-sb-lose/10 hover:bg-sb-lose/20 text-sb-lose border border-sb-lose/30 rounded-xl text-xs font-bold flex items-center gap-1.5"
+              >
+                {actionLoading === rejectTarget.userId + "_reject"
+                  ? <Loader2 size={13} className="animate-spin" />
+                  : <XCircle size={13} />}
+                Confirm reject
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

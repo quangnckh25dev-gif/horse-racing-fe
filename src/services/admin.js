@@ -1,18 +1,30 @@
 import { api } from "./api";
 
+// Bo qua param rong -> chi gui filter co gia tri (tranh ?role=&keyword=)
+const qs = (params) => {
+  const s = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== "" && v !== "All")
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join("&");
+  return s ? `?${s}` : "";
+};
+
 export const adminService = {
-  // User approval. adminId is the current admin user's id.
-  getPendingUsers: () => api.get("/admin/users/pending"),
+  // User approval. BE ho tro filter role + search keyword phia server (FE-05).
+  getPendingUsers: (role, keyword) =>
+    api.get(`/admin/users/pending${qs({ role, keyword })}`),
   approveUser: (userId, adminId) =>
     api.put(`/admin/users/${userId}/approve?adminId=${adminId}`),
-  rejectUser: (userId, adminId) =>
-    api.put(`/admin/users/${userId}/reject?adminId=${adminId}`),
+  // reject kem ly do (BE: @RequestParam reason)
+  rejectUser: (userId, adminId, reason) =>
+    api.put(`/admin/users/${userId}/reject${qs({ adminId, reason })}`),
 
   // Dashboard stats from the system dashboard view.
   getDashboardStats: () => api.get("/admin/dashboard"),
 
-  // User management
-  getAllUsers: () => api.get("/admin/users"),
+  // User management. BE ho tro filter role + status + search keyword (FE-06).
+  getAllUsers: (role, status, keyword) =>
+    api.get(`/admin/users${qs({ role, status, keyword })}`),
   changeUserRole: (userId, roleName, adminId) =>
     api.put(`/admin/users/${userId}/role?adminId=${adminId}`, { roleName }),
 

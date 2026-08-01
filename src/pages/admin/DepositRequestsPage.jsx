@@ -71,7 +71,6 @@ export default function DepositRequestsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Filters (client-side)
   const [statusFilter, setStatusFilter] = useState("All");
   const [methodFilter, setMethodFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState(""); // yyyy-mm-dd
@@ -130,6 +129,7 @@ export default function DepositRequestsPage() {
   };
 
   const pendingCount = items.filter((x) => x.status === "Pending").length;
+  const hasActiveFilters = statusFilter !== "All" || methodFilter !== "All" || !!dateFilter || !!keyword.trim();
 
   return (
     <AdminLayout title="Approve Deposits">
@@ -149,60 +149,57 @@ export default function DepositRequestsPage() {
         {error && <SbAlert tone="error">{error}</SbAlert>}
         {success && <SbAlert tone="success">{success}</SbAlert>}
 
-        {/* Filter + search bar */}
-        {!loading && items.length > 0 && (
-          <div className="flex flex-col xl:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-sb-tx-3" />
-              <input
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search by spectator, email, phone, transfer code..."
-                className="w-full h-10 pl-10 pr-4 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm placeholder:text-sb-tx-3 outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all"
-              />
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {STATUS_FILTERS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
-                  className={`px-3 h-10 rounded-xl text-xs font-semibold border transition-all ${
-                    statusFilter === s
-                      ? "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd"
-                      : "bg-sb-s1 text-sb-tx-3 border-sb-border hover:text-sb-tx hover:border-sb-tx-3"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-            <select
-              value={methodFilter}
-              onChange={(e) => setMethodFilter(e.target.value)}
-              className="h-10 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-info focus:ring-1 focus:ring-sb-info/40 transition-colors cursor-pointer"
-            >
-              {METHOD_FILTERS.map((m) => (
-                <option key={m} value={m}>{m === "All" ? "All methods" : m}</option>
-              ))}
-            </select>
+        <div className="flex flex-col xl:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-sb-tx-3" />
             <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="h-10 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-info focus:ring-1 focus:ring-sb-info/40 transition-colors cursor-pointer"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Search by spectator, email, phone, transfer code..."
+              className="w-full h-10 pl-10 pr-4 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm placeholder:text-sb-tx-3 outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all"
             />
-            {(statusFilter !== "All" || methodFilter !== "All" || dateFilter || keyword) && (
-              <button
-                onClick={() => { setStatusFilter("All"); setMethodFilter("All"); setDateFilter(""); setKeyword(""); }}
-                className="px-3 h-10 rounded-xl text-xs font-semibold border border-sb-border bg-sb-s1 text-sb-tx-3 hover:text-sb-tx transition-all"
-              >
-                Clear
-              </button>
-            )}
           </div>
-        )}
+          <div className="flex flex-wrap gap-1.5">
+            {STATUS_FILTERS.map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-3 h-10 rounded-xl text-xs font-semibold border transition-all ${
+                  statusFilter === s
+                    ? "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd"
+                    : "bg-sb-s1 text-sb-tx-3 border-sb-border hover:text-sb-tx hover:border-sb-tx-3"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          <select
+            value={methodFilter}
+            onChange={(e) => setMethodFilter(e.target.value)}
+            className="h-10 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-info focus:ring-1 focus:ring-sb-info/40 transition-colors cursor-pointer"
+          >
+            {METHOD_FILTERS.map((m) => (
+              <option key={m} value={m}>{m === "All" ? "All methods" : m}</option>
+            ))}
+          </select>
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="h-10 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-info focus:ring-1 focus:ring-sb-info/40 transition-colors cursor-pointer"
+          />
+          {hasActiveFilters && (
+            <button
+              onClick={() => { setStatusFilter("All"); setMethodFilter("All"); setDateFilter(""); setKeyword(""); }}
+              className="px-3 h-10 rounded-xl text-xs font-semibold border border-sb-border bg-sb-s1 text-sb-tx-3 hover:text-sb-tx transition-all"
+            >
+              Clear
+            </button>
+          )}
+        </div>
 
-        {loading ? <SbSpinner /> : items.length === 0 ? (
+        {loading ? <SbSpinner /> : items.length === 0 && !hasActiveFilters ? (
           <SbEmpty icon="VND" title="No deposit requests yet" hint="New user requests will appear here" />
         ) : items.length === 0 ? (
           <SbEmpty icon="🔍" title="No matching requests" hint="Try changing the filters or search" />

@@ -35,7 +35,6 @@ function isValidRaceEntry(entry) {
   return ["approved", "ready"].includes(status) && (entry.jockeyId || entry.jockeyName);
 }
 
-// â”€â”€ Results Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +58,6 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
 
   useEffect(() => { load(); }, [load]);
 
-  // Chá»‰ ngá»±a CÃ“ jockey má»›i Ä‘á»§ Ä‘iá»u kiá»‡n Ä‘ua â†’ chá»‰ nháº­p káº¿t quáº£ cho cÃ¡c entry nÃ y
   const raceable = entries.filter(isValidRaceEntry);
 
   const initForm = () => {
@@ -74,10 +72,10 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
     const initialForm = raceable.map((e, i) => ({
       entryId: e.entryId,
       horseName: e.horseName || `Horse #${e.horseId}`,
-      jockeyName: e.jockeyName || "â€”",
+      jockeyName: e.jockeyName || "N/A",
       position: i + 1,
       mm: "",   // minutes
-      ss: "",   // seconds (cÃ³ thá»ƒ láº» .SSS)
+      ss: "",   // seconds, decimal values are allowed.
       dnf: false,
       note: "",
     }));
@@ -96,7 +94,6 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
       alert("Please confirm the pre-race horse information check.");
       return;
     }
-    // PhÃºt + GiÃ¢y â†’ tá»•ng sá»‘ seconds (BE nháº­n sá»‘ seconds thuáº§n)
     const toFinish = (row) => {
       if (row.dnf) return null;
       if (row.mm === "" && row.ss === "") return null;
@@ -105,8 +102,6 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
     };
     setFormLoading(true);
     try {
-      // Xá»­ lÃ½ Tá»ªNG ngá»±a: Ä‘Ã£ cÃ³ káº¿t quáº£ â†’ cáº­p nháº­t (PUT), chÆ°a cÃ³ â†’ táº¡o má»›i (POST).
-      // TrÃ¡nh lá»—i "Entry nay da co ket qua" khi nháº­p láº¡i / nháº­p bá»• sung.
       for (const row of form) {
         const existing = results.find((r) => r.entryId === row.entryId);
         if (existing?.resultId) {
@@ -161,9 +156,8 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
       ) : (
         <div className="space-y-3">
           <p className="text-sb-tx-3 text-xs">
-            Há»‡ thá»‘ng Ä‘Ã£ tÃ­nh: <b className="text-sb-tx-2">Official time = finish time + penalty</b>. Horse DQ/DNF xáº¿p cuá»‘i.
+            System calculation: <b className="text-sb-tx-2">Official time = finish time + penalty</b>. DQ/DNF horses are ranked last.
           </p>
-          {/* Báº£ng káº¿t quáº£ Ä‘Ã£ tÃ­nh â€” place Â· giá» vá» Ä‘Ã­ch Â· pháº¡t Â· giá» chÃ­nh thá»©c */}
           <div className="rounded-xl border border-sb-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] text-sm">
@@ -191,15 +185,15 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
                               r.pos === 2 ? "bg-gray-400/20 text-sb-tx-2" :
                               r.pos === 3 ? "bg-amber-700/20 text-amber-500" :
                               "bg-sb-s2 text-sb-tx-3"
-                            }`}>{dq ? "âœ•" : (r.pos ?? "â€”")}</span>
+                            }`}>{dq ? "Rejected" : (r.pos ?? "N/A")}</span>
                           </td>
                           <td className="px-4 py-3">
                             <p className="text-white font-medium">{r.horseName || `Horse #${r.horseId}`}</p>
-                            <p className="text-sb-tx-3 text-xs">ðŸ‡ {r.jockeyName || "â€”"}{dq && <span className="text-red-400 ml-1">Â· {r.dq ? "DQ" : "DNF"}</span>}</p>
+                            <p className="text-sb-tx-3 text-xs">Jockey {r.jockeyName || "N/A"}{dq && <span className="text-red-400 ml-1">- {r.dq ? "DQ" : "DNF"}</span>}</p>
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-sb-tx-2">{r.finishTime || "â€”"}</td>
+                          <td className="px-4 py-3 text-right font-mono text-sb-tx-2">{r.finishTime || "N/A"}</td>
                           <td className="px-4 py-3 text-right font-mono text-red-300">{r.penaltyTime && Number(String(r.penaltyTime).replace(/[^0-9.]/g,"")) > 0 ? `+${r.penaltyTime}` : "0"}</td>
-                          <td className="px-4 py-3 text-right font-mono font-bold text-sb-gold-2">{dq ? "DQ" : (r.finalTime || r.finishTime || "â€”")}</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-sb-gold-2">{dq ? "DQ" : (r.finalTime || r.finishTime || "N/A")}</td>
                         </tr>
                       );
                     })}
@@ -261,7 +255,6 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   );
 }
 
-// â”€â”€ Violations Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   const [violations, setViolations] = useState([]);
   const [violationOptions, setViolationOptions] = useState([]);
@@ -383,7 +376,6 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
       ) : (
         <div className="space-y-2">
           {violations.map((v) => {
-            // BE tráº£ vi pháº¡m khÃ´ng kÃ¨m tÃªn ngá»±a â†’ tra tá»« entries theo entryId
             const ent = entries.find((e) => e.entryId === v.entryId) || {};
             const horse = v.horseName || ent.horseName || (ent.horseId ? `Horse #${ent.horseId}` : "Horse -");
             return (
@@ -490,7 +482,6 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   );
 }
 
-// â”€â”€ Minutes Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function MinutesTab({ raceId, disabledReason }) {
   const [minutes, setMinutes] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -691,7 +682,6 @@ function MinutesTab({ raceId, disabledReason }) {
     </div>
   );
 }
-// â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function RefereeRaceDetailPage() {
   const { raceId } = useParams();
   const navigate = useNavigate();
@@ -704,8 +694,8 @@ export default function RefereeRaceDetailPage() {
   const [flash, setFlash] = useState("");
   const [preRaceChecked, setPreRaceChecked] = useState(false);
   const [preRaceChecks, setPreRaceChecks] = useState([]);
-  const [sent, setSent] = useState(false);          // sent biÃªn báº£n cho Owner
-  const [handedOff, setHandedOff] = useState(false); // Ä‘Ã£ bÃ n giao BTC
+  const [sent, setSent] = useState(false);          // Minutes sent to owners.
+  const [handedOff, setHandedOff] = useState(false); // Handoff completed.
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -721,7 +711,6 @@ export default function RefereeRaceDetailPage() {
       setEntries(entriesRes.data || []);
       setPreRaceChecks(checks);
       setPreRaceChecked(checks.length > 0 && checks.every((check) => ["checked", "rejected"].includes(String(check.status || "").toLowerCase())));
-      // Náº¿u biÃªn báº£n sent Owner tá»« trÆ°á»›c â†’ giá»¯ nÃºt khoÃ¡ ká»ƒ cáº£ khi reload
       if (minRes?.data?.sentToOwners) setSent(true);
     } catch (e) {
       setError(e.message || "Unable to load data");
@@ -733,12 +722,12 @@ export default function RefereeRaceDetailPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const doAction = async (key, fn, okMsg, onOk) => {
-    if (busy) return;              // cháº·n spam khi Ä‘ang xá»­ lÃ½
+    if (busy) return;              // Prevent duplicate actions while processing.
     setBusy(key); setError(""); setFlash("");
     try {
       await fn();
       setFlash(okMsg);
-      if (onOk) onOk();            // Ä‘Ã¡nh dáº¥u Ä‘Ã£ xong (khoÃ¡ nÃºt)
+      if (onOk) onOk();            // Mark the action complete and lock the button.
       await fetchData();
     } catch (e) {
       setError(e.message || "Action failed");
@@ -748,7 +737,6 @@ export default function RefereeRaceDetailPage() {
   };
 
   const status = race?.status;
-  // Chá»‰ tÃ­nh ngá»±a Ä‘á»§ Ä‘iá»u kiá»‡n Ä‘ua (Ä‘Ã£ cÃ³ jockey)
   const raceableCount = entries.filter(isValidRaceEntry).length;
   const canStart = status === "RegistrationOpen" && raceableCount >= 1 && preRaceChecked;
   const startBlockedNoHorse = status === "RegistrationOpen" && raceableCount < 1;
@@ -779,7 +767,6 @@ export default function RefereeRaceDetailPage() {
               </div>
             )}
 
-            {/* Race header + Ä‘iá»u khiá»ƒn tráº¡ng thÃ¡i */}
             <div className="bg-[#111827]/80 border border-sb-border rounded-2xl p-6">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
@@ -792,7 +779,6 @@ export default function RefereeRaceDetailPage() {
                   </div>
                 </div>
 
-                {/* Referee lÃ  NGÆ¯á»œI DUY NHáº¤T Ä‘á»•i tráº¡ng thÃ¡i Ä‘ua */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {canStart && (
                     <button onClick={() => doAction("start", () => raceResultService.changeRaceStatus(raceId, "Ongoing"), "Race started")}
@@ -889,4 +875,3 @@ export default function RefereeRaceDetailPage() {
     </AdminLayout>
   );
 }
-

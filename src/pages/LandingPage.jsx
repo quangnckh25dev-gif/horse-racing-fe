@@ -26,22 +26,22 @@ const RACE_STATUS = {
   Cancelled:        { label: "Cancelled",       cls: "lp-b-fin" },
 };
 
-const fmtVND = (n) => (n == null ? null : Number(n).toLocaleString("vi-VN") + " ₫");
+const fmtVND = (n) => (n == null ? null : Number(n).toLocaleString("en-US") + " VND");
 
 const HOW = [
-  { ic: "📝", t: "Create Account", d: "Select the Spectator role and create an account in one minute." },
-  { ic: "💰", t: "Top Up Demo Wallet",        d: "Demo wallet only. Add demo funds to get started; no real money is used." },
-  { ic: "🏇", t: "Bet and Watch Races", d: "Choose WIN/PLACE/SHOW/EXACT bets and replay the race after publication." },
+  { ic: "01", t: "Create Account", d: "Select the Spectator role and create an account in one minute." },
+  { ic: "02", t: "Top Up Demo Wallet", d: "Demo wallet only. Add demo funds to get started; no real money is used." },
+  { ic: "03", t: "Bet and Watch Races", d: "Choose WIN/PLACE/SHOW/EXACT bets and replay the race after publication." },
 ];
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const { login, user } = useAuth();
 
-  // ── modals ──
+
   const [authOpen, setAuthOpen] = useState(false);
 
-  // ── auth form ──
+
   const [tab, setTab] = useState("login");
   const [note, setNote] = useState("");
   const [okNote, setOkNote] = useState("");
@@ -50,7 +50,7 @@ export default function LandingPage() {
   const [loginForm, setLoginForm] = useState(EMPTY_LOGIN);
   const [regForm, setRegForm] = useState(EMPTY_REG);
 
-  // ── data for popups ──
+
   const [races, setRaces] = useState(null);
   const [lb, setLb] = useState(null);
   const [lbTab, setLbTab] = useState("jockey");
@@ -59,14 +59,14 @@ export default function LandingPage() {
   const switchTab = (t) => { setTab(t); clearNotes(); };
   const openAuth = (t) => { setTab(t || "login"); clearNotes(); setAuthOpen(true); };
 
-  // Close modal bằng Esc
+
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") setAuthOpen(false); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  // Race Calendar + BXH hiện thẳng trên trang chủ (đồng bộ với /races) → tải ngay khi vào
+
   useEffect(() => {
     let alive = true;
     spectatorService.getRaces()
@@ -100,7 +100,7 @@ export default function LandingPage() {
     e.preventDefault();
     setBusy(true); clearNotes();
     try {
-      // BE đọc roleName (không phải role) → tránh mặc định Spectator
+
       const { role, ...rest } = regForm;
       await authService.register({ ...rest, roleName: role });
       setRegForm(EMPTY_REG);
@@ -113,7 +113,7 @@ export default function LandingPage() {
   return (
     <div className="lp">
 
-      {/* ══ HERO ══ */}
+
       <div className="lp-hero-wrap">
         <div className="lp-bgfallback" />
         <video className="lp-bg" autoPlay muted loop playsInline poster="/bg-horse.png">
@@ -124,7 +124,7 @@ export default function LandingPage() {
 
         <header className="lp-topbar">
           <div className="lp-brand">
-            <div className="lp-logo">🏇</div>
+            <div className="lp-logo">HR</div>
             <div>
               <div className="lp-bt">HORSERACING VN</div>
               <div className="lp-bs">Season 2026</div>
@@ -149,19 +149,19 @@ export default function LandingPage() {
             Pick your horse and enter the race.
           </p>
           <div className="lp-cta">
-            <button className="lp-btn lp-btn-bet" onClick={() => navigate("/register")}>Join now →</button>
+            <button className="lp-btn lp-btn-bet" onClick={() => navigate("/register")}>Join now &gt;</button>
             <button className="lp-btn lp-btn-ghost" onClick={() => scrollTo("lp-races")}>View Race Schedule</button>
           </div>
         </section>
 
-        <div className="lp-scrolldown" onClick={() => window.scrollTo({ top: window.innerHeight - 4, behavior: "smooth" })}>↓</div>
+        <div className="lp-scrolldown" onClick={() => window.scrollTo({ top: window.innerHeight - 4, behavior: "smooth" })}>Down</div>
       </div>
 
-      {/* ══ STATS BAND ══ */}
+
       <section className="lp-band">
         <div className="lp-band-inner">
           {[
-            { n: "4", l: "Bet Types", s: "WIN · PLACE · SHOW · EXACT" },
+            { n: "4", l: "Bet Types", s: "WIN - PLACE - SHOW - EXACT" },
             { n: "35Tr", l: "Total Prize", s: "per race" },
             { n: "6", l: "Role", s: "in the racing system" },
             { n: "24/7", l: "Leaderboard", s: "real-time updates" },
@@ -175,7 +175,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ LỊCH THI ĐẤU (đồng bộ với /races) ══ */}
+
       <section id="lp-races" className="lp-sec">
         <div className="lp-sec-eyebrow">Race Schedule</div>
         <h2 className="lp-sec-h">Season Races</h2>
@@ -188,13 +188,13 @@ export default function LandingPage() {
             const st = RACE_STATUS[r.status] || RACE_STATUS.Scheduled;
             return (
               <div className="lp-race" key={r.raceId}>
-                <div className="lp-race-ic">🏁</div>
+                <div className="lp-race-ic">Race</div>
                 <div className="lp-race-main">
                   <div className="lp-race-name">{r.raceName}</div>
                   <div className="lp-race-meta">
                     {(r.raceDate || r.startTime) && <span>{new Date(r.raceDate || r.startTime).toLocaleString("vi-VN")}</span>}
-                    {r.trackLength && <span>· {r.trackLength}m</span>}
-                    {fmtVND(r.prizePool || r.prizeFirst) && <span className="lp-race-prize">· 🏆 {fmtVND(r.prizePool || r.prizeFirst)}</span>}
+                    {r.trackLength && <span>- {r.trackLength}m</span>}
+                    {fmtVND(r.prizePool || r.prizeFirst) && <span className="lp-race-prize">- Prize {fmtVND(r.prizePool || r.prizeFirst)}</span>}
                   </div>
                 </div>
                 <span className={`lp-badge ${st.cls}`}>{st.label}</span>
@@ -207,14 +207,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ BẢNG XẾP HẠNG ══ */}
+
       <section id="lp-lb" className="lp-sec lp-sec-alt">
         <div className="lp-sec-eyebrow">Leaderboard</div>
         <h2 className="lp-sec-h">Season Top Performers</h2>
         <div className="lp-inline-list">
           <div className="lp-mtabs lp-tabs-center">
-            <button data-on={lbTab === "jockey"} onClick={() => setLbTab("jockey")}>🏇 Jockey</button>
-            <button data-on={lbTab === "horse"} onClick={() => setLbTab("horse")}>🐴 Racehorse</button>
+            <button data-on={lbTab === "jockey"} onClick={() => setLbTab("jockey")}>Jockey</button>
+            <button data-on={lbTab === "horse"} onClick={() => setLbTab("horse")}>Racehorse</button>
           </div>
           {lb === null ? (
             <div className="lp-empty">Loading...</div>
@@ -222,16 +222,16 @@ export default function LandingPage() {
             <div className="lp-empty">No leaderboard data yet</div>
           ) : lb[lbTab].slice(0, 8).map((it, i) => (
             <div className="lp-lbrow" key={it.entityId ?? i}>
-              <span className="lp-lbrank">{i < 3 ? ["🥇","🥈","🥉"][i] : it.rank ?? i + 1}</span>
-              <span className="lp-lbname">{it.name ?? "—"}</span>
+              <span className="lp-lbrank">{i < 3 ? ["1", "2", "3"][i] : it.rank ?? i + 1}</span>
+              <span className="lp-lbname">{it.name ?? "N/A"}</span>
               <span className="lp-lbwin">{it.totalWins ?? 0} wins</span>
-              <span className="lp-lbpts">{it.points ?? 0}đ</span>
+              <span className="lp-lbpts">{it.points ?? 0} pts</span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ══ HOW IT WORKS ══ */}
+
       <section className="lp-sec">
         <div className="lp-sec-eyebrow">Start in 3 Steps</div>
         <h2 className="lp-sec-h">Join betting and follow races</h2>
@@ -247,7 +247,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ CTA BAND ══ */}
+
       <section className="lp-ctaband">
         <div className="lp-ctaband-inner">
           <div>
@@ -261,10 +261,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ FOOTER ══ */}
+
       <footer className="lp-footer">
         <div className="lp-brand">
-          <div className="lp-logo" style={{ width: 28, height: 28, fontSize: 15 }}>🏇</div>
+          <div className="lp-logo" style={{ width: 28, height: 28, fontSize: 15 }}>HR</div>
           <div><div className="lp-bt">HORSERACING VN</div><div className="lp-bs">Project demo - No real money</div></div>
         </div>
         <div className="lp-footer-links">
@@ -274,14 +274,14 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* ══════════ POPUP: AUTH ══════════ */}
+
       {authOpen && (
         <div className="lp-ov" onClick={(e) => e.target === e.currentTarget && setAuthOpen(false)}>
           <div className="lp-modal" role="dialog" aria-modal="true">
-            <button className="lp-x" onClick={() => setAuthOpen(false)} aria-label="Close">✕</button>
-            <div className="lp-mlogo">🏇</div>
+            <button className="lp-x" onClick={() => setAuthOpen(false)} aria-label="Close">X</button>
+            <div className="lp-mlogo">HR</div>
             <h3>{tab === "login" ? "Login" : "Create Account"}</h3>
-            <div className="lp-msub">HorseRacing VN · Season 2026</div>
+            <div className="lp-msub">HorseRacing VN - Season 2026</div>
 
             <div className="lp-mtabs">
               <button data-on={tab === "login"} onClick={() => switchTab("login")}>Login</button>
@@ -300,7 +300,7 @@ export default function LandingPage() {
                 </div>
                 <div className="lp-field">
                   <label>Password</label>
-                  <input type="password" placeholder="••••••" required autoComplete="current-password"
+                  <input type="password" placeholder="Password" required autoComplete="current-password"
                     value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} />
                 </div>
                 <div className="lp-mrow">
@@ -336,13 +336,13 @@ export default function LandingPage() {
                 </div>
                 <div className="lp-field">
                   <label>Password</label>
-                  <input type="password" placeholder="••••••" required autoComplete="new-password"
+                  <input type="password" placeholder="Password" required autoComplete="new-password"
                     value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} />
                 </div>
                 <div className="lp-field">
                   <label>Role</label>
                   <select required value={regForm.role} onChange={(e) => setRegForm({ ...regForm, role: e.target.value })}>
-                    <option value="" disabled>— Select Role —</option>
+                    <option value="" disabled>Select Role</option>
                     {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                   </select>
                 </div>

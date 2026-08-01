@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Award, AlertTriangle, FileText,
@@ -35,7 +35,7 @@ function isValidRaceEntry(entry) {
   return ["approved", "ready"].includes(status) && (entry.jockeyId || entry.jockeyName);
 }
 
-// ── Results Tab ───────────────────────────────────────────────────────────────
+// â”€â”€ Results Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +59,7 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
 
   useEffect(() => { load(); }, [load]);
 
-  // Chỉ ngựa CÓ jockey mới đủ điều kiện đua → chỉ nhập kết quả cho các entry này
+  // Chá»‰ ngá»±a CÃ“ jockey má»›i Ä‘á»§ Ä‘iá»u kiá»‡n Ä‘ua â†’ chá»‰ nháº­p káº¿t quáº£ cho cÃ¡c entry nÃ y
   const raceable = entries.filter(isValidRaceEntry);
 
   const initForm = () => {
@@ -74,10 +74,10 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
     const initialForm = raceable.map((e, i) => ({
       entryId: e.entryId,
       horseName: e.horseName || `Horse #${e.horseId}`,
-      jockeyName: e.jockeyName || "—",
+      jockeyName: e.jockeyName || "â€”",
       position: i + 1,
       mm: "",   // minutes
-      ss: "",   // seconds (có thể lẻ .SSS)
+      ss: "",   // seconds (cÃ³ thá»ƒ láº» .SSS)
       dnf: false,
       note: "",
     }));
@@ -96,7 +96,7 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
       alert("Please confirm the pre-race horse information check.");
       return;
     }
-    // Phút + Giây → tổng số seconds (BE nhận số seconds thuần)
+    // PhÃºt + GiÃ¢y â†’ tá»•ng sá»‘ seconds (BE nháº­n sá»‘ seconds thuáº§n)
     const toFinish = (row) => {
       if (row.dnf) return null;
       if (row.mm === "" && row.ss === "") return null;
@@ -105,8 +105,8 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
     };
     setFormLoading(true);
     try {
-      // Xử lý TỪNG ngựa: đã có kết quả → cập nhật (PUT), chưa có → tạo mới (POST).
-      // Tránh lỗi "Entry nay da co ket qua" khi nhập lại / nhập bổ sung.
+      // Xá»­ lÃ½ Tá»ªNG ngá»±a: Ä‘Ã£ cÃ³ káº¿t quáº£ â†’ cáº­p nháº­t (PUT), chÆ°a cÃ³ â†’ táº¡o má»›i (POST).
+      // TrÃ¡nh lá»—i "Entry nay da co ket qua" khi nháº­p láº¡i / nháº­p bá»• sung.
       for (const row of form) {
         const existing = results.find((r) => r.entryId === row.entryId);
         if (existing?.resultId) {
@@ -161,9 +161,9 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
       ) : (
         <div className="space-y-3">
           <p className="text-sb-tx-3 text-xs">
-            Hệ thống đã tính: <b className="text-sb-tx-2">Official time = finish time + penalty</b>. Horse DQ/DNF xếp cuối.
+            Há»‡ thá»‘ng Ä‘Ã£ tÃ­nh: <b className="text-sb-tx-2">Official time = finish time + penalty</b>. Horse DQ/DNF xáº¿p cuá»‘i.
           </p>
-          {/* Bảng kết quả đã tính — place · giờ về đích · phạt · giờ chính thức */}
+          {/* Báº£ng káº¿t quáº£ Ä‘Ã£ tÃ­nh â€” place Â· giá» vá» Ä‘Ã­ch Â· pháº¡t Â· giá» chÃ­nh thá»©c */}
           <div className="rounded-xl border border-sb-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] text-sm">
@@ -191,15 +191,15 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
                               r.pos === 2 ? "bg-gray-400/20 text-sb-tx-2" :
                               r.pos === 3 ? "bg-amber-700/20 text-amber-500" :
                               "bg-sb-s2 text-sb-tx-3"
-                            }`}>{dq ? "✕" : (r.pos ?? "—")}</span>
+                            }`}>{dq ? "âœ•" : (r.pos ?? "â€”")}</span>
                           </td>
                           <td className="px-4 py-3">
                             <p className="text-white font-medium">{r.horseName || `Horse #${r.horseId}`}</p>
-                            <p className="text-sb-tx-3 text-xs">🏇 {r.jockeyName || "—"}{dq && <span className="text-red-400 ml-1">· {r.dq ? "DQ" : "DNF"}</span>}</p>
+                            <p className="text-sb-tx-3 text-xs">ðŸ‡ {r.jockeyName || "â€”"}{dq && <span className="text-red-400 ml-1">Â· {r.dq ? "DQ" : "DNF"}</span>}</p>
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-sb-tx-2">{r.finishTime || "—"}</td>
+                          <td className="px-4 py-3 text-right font-mono text-sb-tx-2">{r.finishTime || "â€”"}</td>
                           <td className="px-4 py-3 text-right font-mono text-red-300">{r.penaltyTime && Number(String(r.penaltyTime).replace(/[^0-9.]/g,"")) > 0 ? `+${r.penaltyTime}` : "0"}</td>
-                          <td className="px-4 py-3 text-right font-mono font-bold text-sb-gold-2">{dq ? "DQ" : (r.finalTime || r.finishTime || "—")}</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-sb-gold-2">{dq ? "DQ" : (r.finalTime || r.finishTime || "â€”")}</td>
                         </tr>
                       );
                     })}
@@ -261,7 +261,7 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   );
 }
 
-// ── Violations Tab ────────────────────────────────────────────────────────────
+// â”€â”€ Violations Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   const [violations, setViolations] = useState([]);
   const [violationOptions, setViolationOptions] = useState([]);
@@ -383,7 +383,7 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
       ) : (
         <div className="space-y-2">
           {violations.map((v) => {
-            // BE trả vi phạm không kèm tên ngựa → tra từ entries theo entryId
+            // BE tráº£ vi pháº¡m khÃ´ng kÃ¨m tÃªn ngá»±a â†’ tra tá»« entries theo entryId
             const ent = entries.find((e) => e.entryId === v.entryId) || {};
             const horse = v.horseName || ent.horseName || (ent.horseId ? `Horse #${ent.horseId}` : "Horse -");
             return (
@@ -490,15 +490,16 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   );
 }
 
-// ── Minutes Tab ───────────────────────────────────────────────────────────────
+// â”€â”€ Minutes Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function MinutesTab({ raceId, disabledReason }) {
   const [minutes, setMinutes] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ content: "", weatherCondition: "", trackCondition: "", notes: "", minutesFileUrl: "" });
+  const [form, setForm] = useState({ content: "", weatherCondition: "Clear", minutesFileUrl: "" });
   const [fileName, setFileName] = useState("");
   const [formLoading, setFormLoading] = useState(false);
+
+  const weatherOptions = ["Clear", "Cloudy", "Rainy", "Windy", "Foggy", "Wet Track"];
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -508,11 +509,10 @@ function MinutesTab({ raceId, disabledReason }) {
       if (res.data) {
         setForm({
           content: res.data.content || "",
-          weatherCondition: res.data.weatherCondition || "",
-          trackCondition: res.data.trackCondition || "",
-          notes: res.data.notes || "",
+          weatherCondition: res.data.weatherCondition || "Clear",
           minutesFileUrl: res.data.minutesFileUrl || "",
         });
+        setFileName("");
       }
     } catch {
       setMinutes(null);
@@ -523,17 +523,33 @@ function MinutesTab({ raceId, disabledReason }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const openEditor = () => {
+    if (disabledReason) {
+      alert(disabledReason);
+      return;
+    }
+    setEditing(true);
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (disabledReason) {
       alert(disabledReason);
       return;
     }
-    if (!form.minutesFileUrl) { alert("Please attach the signed minutes file (image/PDF)."); return; }
+    if (!form.content.trim()) { alert("Minutes content is required."); return; }
+    if (!form.weatherCondition) { alert("Weather condition is required."); return; }
+    if (!form.minutesFileUrl) { alert("Please attach the evidence file."); return; }
+
     setFormLoading(true);
     try {
-      if (minutes) await raceResultService.updateMinutes(raceId, form);
-      else await raceResultService.createMinutes(raceId, form);
+      const payload = {
+        content: form.content.trim(),
+        weatherCondition: form.weatherCondition,
+        minutesFileUrl: form.minutesFileUrl,
+      };
+      if (minutes) await raceResultService.updateMinutes(raceId, payload);
+      else await raceResultService.createMinutes(raceId, payload);
       setEditing(false);
       load();
     } catch (err) {
@@ -543,120 +559,139 @@ function MinutesTab({ raceId, disabledReason }) {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const demoFileUrl = `demo-uploads/${file.name}`;
+    setFileName(file.name);
+    setForm((prev) => ({ ...prev, minutesFileUrl: demoFileUrl }));
+
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          localStorage.setItem(`minutes-img-${raceId}`, reader.result);
+          localStorage.setItem(`minutes-file-${demoFileUrl}`, reader.result);
+        } catch {
+          // Ignore oversized local demo images.
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      try { localStorage.removeItem(`minutes-img-${raceId}`); } catch { /* ignore */ }
+    }
+  };
+
   if (loading) return <div className="flex justify-center py-8"><Loader2 className="animate-spin text-[#D4AF37]" /></div>;
 
-  if (!editing && !minutes) {
-    return (
-      <div className="text-center py-10 text-sb-tx-3">
-        <FileText size={32} className="mx-auto mb-2 opacity-30" />
-        <p className="text-sm mb-4">No race minutes yet</p>
-        {disabledReason && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm mb-4">
-            <AlertCircle size={14} /> {disabledReason}
-          </div>
-        )}
-        <button onClick={() => setEditing(true)} disabled={!!disabledReason} title={disabledReason || "Create race minutes"}
-          className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold rounded-lg text-sm transition-colors mx-auto">
-          <Plus size={14} /> Create Minutes
-        </button>
-      </div>
-    );
-  }
+  return (
+    <div className="space-y-4">
+      {disabledReason && (
+        <div className="flex items-center gap-2 rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-300">
+          <AlertCircle size={14} /> {disabledReason}
+        </div>
+      )}
 
-  if (!editing && minutes) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-end">
-          <button onClick={() => setEditing(true)} disabled={!!disabledReason} title={disabledReason || "Edit race minutes"}
-            className="flex items-center gap-2 px-4 py-2 bg-[#111827] border border-sb-border text-sb-tx-3 hover:text-sb-tx rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-            <Edit2 size={14} /> Edit Minutes
+      {!minutes ? (
+        <div className="py-10 text-center text-sb-tx-3">
+          <FileText size={32} className="mx-auto mb-2 opacity-30" />
+          <p className="mb-4 text-sm">No race minutes yet</p>
+          <button
+            onClick={openEditor}
+            disabled={!!disabledReason}
+            title={disabledReason || "Create race minutes"}
+            className="mx-auto flex items-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-[#0A0E1A] transition-colors hover:bg-[#b0902c] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus size={14} /> Create Minutes
           </button>
         </div>
-        <div className="space-y-3">
-          {[
-            ["Weather Conditions", minutes.weatherCondition],
-            ["Track Conditions", minutes.trackCondition],
-            ["Minutes Content", minutes.content],
-            ["Minutes File", minutes.minutesFileUrl],
-            ["Additional Notes", minutes.notes],
-          ].filter(([, v]) => v).map(([label, value]) => (
-            <div key={label} className="bg-[#0A0E1A]/60 rounded-xl p-4">
-              <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-1">{label}</p>
-              <p className="text-white text-sm whitespace-pre-wrap">{value}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+      ) : (
+        <>
+          <div className="flex justify-end">
+            <button
+              onClick={openEditor}
+              disabled={!!disabledReason}
+              title={disabledReason || "Edit race minutes"}
+              className="flex items-center gap-2 rounded-lg border border-sb-border bg-[#111827] px-4 py-2 text-sm text-sb-tx-3 transition-colors hover:text-sb-tx disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Edit2 size={14} /> Edit Minutes
+            </button>
+          </div>
+          <div className="space-y-3">
+            {[
+              ["Weather Condition", minutes.weatherCondition],
+              ["Minutes Content", minutes.content],
+              ["Evidence File", minutes.minutesFileUrl],
+            ].filter(([, value]) => value).map(([label, value]) => (
+              <div key={label} className="rounded-xl bg-[#0A0E1A]/60 p-4">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-sb-tx-3">{label}</p>
+                {label === "Evidence File" ? (
+                  <a href={value} target="_blank" rel="noreferrer" className="break-all text-sm text-[#D4AF37] hover:underline">
+                    {value}
+                  </a>
+                ) : (
+                  <p className="whitespace-pre-wrap text-sm text-white">{value}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
-  return (
-    <form onSubmit={handleSave} className="space-y-4">
-      {[
-        { label: "Weather Conditions", field: "weatherCondition", placeholder: "e.g. Sunny, light rain..." },
-        { label: "Track Conditions", field: "trackCondition", placeholder: "e.g. Dry, wet..." },
-      ].map(({ label, field, placeholder }) => (
-        <div key={field}>
-          <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">{label}</label>
-          <input value={form[field]} onChange={(e) => setForm((p) => ({ ...p, [field]: e.target.value }))} placeholder={placeholder}
-            className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]" />
-        </div>
-      ))}
-      <div>
-        <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Minutes Content *</label>
-        <textarea value={form.content} onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))} rows={6} required
-          placeholder="Describe race events, incidents, and referee decisions..."
-          className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37] resize-none" />
-      </div>
-      <div>
-        <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">
-          Signed Minutes File <span className="text-red-400">*</span>
-        </label>
-        <label className="flex items-center gap-3 bg-[#0A0E1A] border border-dashed border-sb-border-2 rounded-lg px-3 py-3 cursor-pointer hover:border-[#D4AF37] transition-colors">
-          <input type="file" accept="image/*,application/pdf" hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (!f) return;
-              const demoFileUrl = `demo-uploads/${f.name}`;
-              setFileName(f.name);
-              setForm((p) => ({ ...p, minutesFileUrl: demoFileUrl }));
-              // Ảnh: lưu data URL vào localStorage (theo raceId) để hiện ảnh thật khi xem biên bản (demo 1 máy)
-              if (f.type.startsWith("image/")) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                  try {
-                    localStorage.setItem(`minutes-img-${raceId}`, reader.result);
-                    localStorage.setItem(`minutes-file-${demoFileUrl}`, reader.result);
-                  } catch { /* image too large */ }
-                };
-                reader.readAsDataURL(f);
-              } else {
-                try { localStorage.removeItem(`minutes-img-${raceId}`); } catch { /* ignore */ }
-              }
-            }} />
-          <span className="text-lg">📎</span>
-          <span className="text-sm text-sb-tx-2">
-            {fileName || form.minutesFileUrl || "Click to attach signed minutes image/PDF..."}
-          </span>
-        </label>
-        <p className="text-sb-tx-3 text-[11px] mt-1">This is a demo environment - only the file name is saved as evidence; no real upload occurs.</p>
-      </div>
-      <div>
-        <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Additional Notes</label>
-        <textarea value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={2}
-          className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37] resize-none" />
-      </div>
-      <div className="flex gap-3">
-        <button type="button" onClick={() => setEditing(false)} className="flex-1 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm">Cancel</button>
-        <button type="submit" disabled={formLoading} className="flex-1 py-2 rounded-lg bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
-          {formLoading && <Loader2 size={14} className="animate-spin" />} <Save size={14} /> Save Minutes
-        </button>
-      </div>
-    </form>
+      {editing && (
+        <Modal title={minutes ? "Edit Race Minutes" : "Create Race Minutes"} onClose={() => setEditing(false)}>
+          <form onSubmit={handleSave} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-sb-tx-3">Weather Condition *</label>
+              <select
+                value={form.weatherCondition}
+                onChange={(e) => setForm((prev) => ({ ...prev, weatherCondition: e.target.value }))}
+                className="w-full rounded-lg border border-sb-border bg-[#0A0E1A] px-3 py-2 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+                required
+              >
+                {weatherOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-sb-tx-3">Minutes Content *</label>
+              <textarea
+                value={form.content}
+                onChange={(e) => setForm((prev) => ({ ...prev, content: e.target.value }))}
+                rows={6}
+                required
+                placeholder="Describe race events, incidents, and referee decisions..."
+                className="w-full resize-none rounded-lg border border-sb-border bg-[#0A0E1A] px-3 py-2 text-sm text-white focus:border-[#D4AF37] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-sb-tx-3">
+                Evidence File <span className="text-red-400">*</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-sb-border-2 bg-[#0A0E1A] px-3 py-3 transition-colors hover:border-[#D4AF37]">
+                <input type="file" accept="image/*,application/pdf" hidden onChange={handleFileChange} />
+                <span className="text-xs font-bold uppercase tracking-wider text-[#D4AF37]">File</span>
+                <span className="break-all text-sm text-sb-tx-2">
+                  {fileName || form.minutesFileUrl || "Click to attach evidence image/PDF..."}
+                </span>
+              </label>
+              <p className="mt-1 text-[11px] text-sb-tx-3">Demo upload saves the file name as the evidence URL.</p>
+            </div>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setEditing(false)} className="flex-1 rounded-lg border border-sb-border py-2 text-sm text-sb-tx-3 hover:text-sb-tx">
+                Cancel
+              </button>
+              <button type="submit" disabled={formLoading} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#D4AF37] py-2 text-sm font-bold text-[#0A0E1A] hover:bg-[#b0902c] disabled:opacity-60">
+                {formLoading && <Loader2 size={14} className="animate-spin" />}
+                <Save size={14} /> Save Minutes
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </div>
   );
 }
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function RefereeRaceDetailPage() {
   const { raceId } = useParams();
   const navigate = useNavigate();
@@ -669,8 +704,8 @@ export default function RefereeRaceDetailPage() {
   const [flash, setFlash] = useState("");
   const [preRaceChecked, setPreRaceChecked] = useState(false);
   const [preRaceChecks, setPreRaceChecks] = useState([]);
-  const [sent, setSent] = useState(false);          // sent biên bản cho Owner
-  const [handedOff, setHandedOff] = useState(false); // đã bàn giao BTC
+  const [sent, setSent] = useState(false);          // sent biÃªn báº£n cho Owner
+  const [handedOff, setHandedOff] = useState(false); // Ä‘Ã£ bÃ n giao BTC
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -686,7 +721,7 @@ export default function RefereeRaceDetailPage() {
       setEntries(entriesRes.data || []);
       setPreRaceChecks(checks);
       setPreRaceChecked(checks.length > 0 && checks.every((check) => ["checked", "rejected"].includes(String(check.status || "").toLowerCase())));
-      // Nếu biên bản sent Owner từ trước → giữ nút khoá kể cả khi reload
+      // Náº¿u biÃªn báº£n sent Owner tá»« trÆ°á»›c â†’ giá»¯ nÃºt khoÃ¡ ká»ƒ cáº£ khi reload
       if (minRes?.data?.sentToOwners) setSent(true);
     } catch (e) {
       setError(e.message || "Unable to load data");
@@ -698,12 +733,12 @@ export default function RefereeRaceDetailPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const doAction = async (key, fn, okMsg, onOk) => {
-    if (busy) return;              // chặn spam khi đang xử lý
+    if (busy) return;              // cháº·n spam khi Ä‘ang xá»­ lÃ½
     setBusy(key); setError(""); setFlash("");
     try {
       await fn();
       setFlash(okMsg);
-      if (onOk) onOk();            // đánh dấu đã xong (khoá nút)
+      if (onOk) onOk();            // Ä‘Ã¡nh dáº¥u Ä‘Ã£ xong (khoÃ¡ nÃºt)
       await fetchData();
     } catch (e) {
       setError(e.message || "Action failed");
@@ -713,7 +748,7 @@ export default function RefereeRaceDetailPage() {
   };
 
   const status = race?.status;
-  // Chỉ tính ngựa đủ điều kiện đua (đã có jockey)
+  // Chá»‰ tÃ­nh ngá»±a Ä‘á»§ Ä‘iá»u kiá»‡n Ä‘ua (Ä‘Ã£ cÃ³ jockey)
   const raceableCount = entries.filter(isValidRaceEntry).length;
   const canStart = status === "RegistrationOpen" && raceableCount >= 1 && preRaceChecked;
   const startBlockedNoHorse = status === "RegistrationOpen" && raceableCount < 1;
@@ -744,7 +779,7 @@ export default function RefereeRaceDetailPage() {
               </div>
             )}
 
-            {/* Race header + điều khiển trạng thái */}
+            {/* Race header + Ä‘iá»u khiá»ƒn tráº¡ng thÃ¡i */}
             <div className="bg-[#111827]/80 border border-sb-border rounded-2xl p-6">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
@@ -757,7 +792,7 @@ export default function RefereeRaceDetailPage() {
                   </div>
                 </div>
 
-                {/* Referee là NGƯỜI DUY NHẤT đổi trạng thái đua */}
+                {/* Referee lÃ  NGÆ¯á»œI DUY NHáº¤T Ä‘á»•i tráº¡ng thÃ¡i Ä‘ua */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {canStart && (
                     <button onClick={() => doAction("start", () => raceResultService.changeRaceStatus(raceId, "Ongoing"), "Race started")}
@@ -854,3 +889,4 @@ export default function RefereeRaceDetailPage() {
     </AdminLayout>
   );
 }
+

@@ -25,6 +25,7 @@ import DepositRequestsPage from "./pages/admin/DepositRequestsPage";
 import OrganizerRacesPage from "./pages/organizer/OrganizerRacesPage";
 import OrganizerRaceDetailPage from "./pages/organizer/OrganizerRaceDetailPage";
 import OrganizerResultsPage from "./pages/organizer/OrganizerResultsPage";
+import OrganizerResultDetailPage from "./pages/organizer/OrganizerResultDetailPage";
 
 // HorseOwner pages
 import HorsesPage from "./pages/owner/HorsesPage";
@@ -106,6 +107,8 @@ export default function App() {
             element={guard(["Organizer"], <OrganizerRaceDetailPage />)} />
           <Route path="/organizer/results"
             element={guard(["Organizer"], <OrganizerResultsPage />)} />
+          <Route path="/organizer/results/:raceId"
+            element={guard(["Organizer"], <OrganizerResultDetailPage />)} />
 
           {/* ── HorseOwner — F2 ─────────────────────────────── */}
           <Route path="/owner/horses"

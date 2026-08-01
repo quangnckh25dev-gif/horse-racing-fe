@@ -41,6 +41,7 @@ const MENU_BY_ROLE = {
   Referee: [
     { label: "Dashboard",           icon: LayoutDashboard,          path: "/dashboard" },
     { label: "My Races",    icon: ClipboardCheck,          path: "/referee/races" },
+    { label: "Race Complaints", icon: MessageSquareWarning, path: "/referee/race-complaints" },
     { label: "Profile",       icon: User,          path: "/profile" },
   ],
   Spectator: [

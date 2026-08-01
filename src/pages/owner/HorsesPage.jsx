@@ -167,9 +167,6 @@ function HorseForm({ form, onChange, onSubmit, onCancel, loading, submitLabel })
 function HealthModal({ horseId, horseName, onClose }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ checkDate: "", healthStatus: "Active", vetName: "", notes: "" });
-  const [addLoading, setAddLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -185,62 +182,12 @@ function HealthModal({ horseId, horseName, onClose }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleAdd = async (event) => {
-    event.preventDefault();
-    if (!addForm.checkDate) {
-      alert("Check date is required.");
-      return;
-    }
-    setAddLoading(true);
-    try {
-      await horseService.addHealthRecord(horseId, addForm);
-      setShowAdd(false);
-      setAddForm({ checkDate: "", healthStatus: "Active", vetName: "", notes: "" });
-      load();
-    } catch (err) {
-      alert(err.message || "Failed to add health record.");
-    } finally {
-      setAddLoading(false);
-    }
-  };
-
   return (
     <Modal title={`Health Records - ${horseName}`} accentColor="rgb(244,114,182)" onClose={onClose}>
       <div className="space-y-4">
-        <button type="button" onClick={() => setShowAdd((value) => !value)} className="flex items-center gap-2 px-3 py-2 bg-pink-500/10 border border-pink-500/30 text-pink-400 rounded-xl text-xs font-semibold hover:bg-pink-500/20 transition-colors">
-          <Plus size={13} /> Add Record
-        </button>
-
-        {showAdd && (
-          <form onSubmit={handleAdd} className="bg-sb-s2 rounded-xl border border-sb-border p-4 space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <FormField label="Check Date" required>
-                <input type="date" value={addForm.checkDate} onChange={(e) => setAddForm((p) => ({ ...p, checkDate: e.target.value }))} className={inputCls} required />
-              </FormField>
-              <FormField label="Health Status" required>
-                <select value={addForm.healthStatus} onChange={(e) => setAddForm((p) => ({ ...p, healthStatus: e.target.value }))} className={inputCls}>
-                  {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{status}</option>)}
-                </select>
-              </FormField>
-              <div className="sm:col-span-2">
-                <FormField label="Veterinarian">
-                  <input value={addForm.vetName} onChange={(e) => setAddForm((p) => ({ ...p, vetName: e.target.value }))} className={inputCls} placeholder="Dr. Smith" />
-                </FormField>
-              </div>
-              <div className="sm:col-span-2">
-                <FormField label="Notes">
-                  <textarea value={addForm.notes} onChange={(e) => setAddForm((p) => ({ ...p, notes: e.target.value }))} rows={2} className={`${inputCls} resize-none`} placeholder="Optional notes" />
-                </FormField>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-xl border border-sb-border text-sb-tx-3 text-sm">Cancel</button>
-              <button type="submit" disabled={addLoading} className="flex-1 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
-                {addLoading && <Loader2 size={12} className="animate-spin" />} Add
-              </button>
-            </div>
-          </form>
-        )}
+        <div className="rounded-xl border border-pink-500/20 bg-pink-500/10 p-3 text-xs text-pink-200">
+          Owners can update the horse status from the list. Detailed health records are managed by the Organizer.
+        </div>
 
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="animate-spin text-sb-info" size={24} /></div>

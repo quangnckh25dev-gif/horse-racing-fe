@@ -18,6 +18,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { confirmBox } from "../../lib/toast";
 import { organizerService } from "../../services/organizer";
 import { raceResultService } from "../../services/raceResult";
+import { uploadService } from "../../services/upload";
 
 const inputCls = "w-full rounded-xl border border-sb-border bg-[#070B14] px-3 py-2.5 text-sm text-white transition-all resize-none focus:border-[#D4AF37]/60 focus:outline-none focus:shadow-[0_0_0_3px_rgba(212,175,55,0.08)]";
 
@@ -55,7 +56,9 @@ function deriveResultStatus(results) {
 
 function formatTime(value) {
   if (value === null || value === undefined || value === "") return "-";
-  return `${Number(value).toFixed(2)}s`;
+  const asNumber = Number(value);
+  if (!Number.isNaN(asNumber)) return `${asNumber.toFixed(2)}s`;
+  return String(value);
 }
 
 function formatDate(value) {
@@ -76,6 +79,13 @@ function formatMoney(value) {
 function isRedFlagResult(result) {
   const status = String(result.status || result.resultStatus || result.registrationStatus || "").toLowerCase();
   return result.dq || result.dnf || status.includes("eliminated") || status.includes("pre") || status.includes("reject");
+}
+
+function resultDisplayStatus(result) {
+  if (result.dq) return "DQ";
+  if (result.dnf) return "DNF";
+  const status = result.status || result.resultStatus || result.registrationStatus || result.approvalStatus;
+  return status || "-";
 }
 
 export default function OrganizerResultDetailPage() {
@@ -252,7 +262,7 @@ export default function OrganizerResultDetailPage() {
                   <div className="space-y-2 text-sm">
                     <p className="text-white">{minutes.weatherCondition || "No weather condition"}</p>
                     {minutes.minutesFileUrl && (
-                      <a className="break-all text-[#D4AF37] hover:underline" href={minutes.minutesFileUrl} target="_blank" rel="noreferrer">
+                      <a className="break-all text-[#D4AF37] hover:underline" href={uploadService.normalizeUploadUrl(minutes.minutesFileUrl)} target="_blank" rel="noreferrer">
                         {minutes.minutesFileUrl}
                       </a>
                     )}
@@ -275,14 +285,16 @@ export default function OrganizerResultDetailPage() {
                 <div className="py-12 text-center text-sm text-sb-tx-3">No result entries have been submitted.</div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px] text-sm">
+                  <table className="w-full min-w-[860px] text-sm">
                     <thead className="bg-[#070B14] text-xs uppercase tracking-wider text-sb-tx-3">
                       <tr>
-                        <th className="px-5 py-3 text-left">Rank / Horse</th>
+                        <th className="px-5 py-3 text-left">Position</th>
+                        <th className="px-5 py-3 text-left">Horse</th>
                         <th className="px-5 py-3 text-left">Jockey</th>
                         <th className="px-5 py-3 text-right">Finish Time</th>
                         <th className="px-5 py-3 text-right">Penalty</th>
                         <th className="px-5 py-3 text-right">Final Time</th>
+                        <th className="px-5 py-3 text-right">Status</th>
                         <th className="px-5 py-3 text-right">Points</th>
                         <th className="px-5 py-3 text-right">Prize Won</th>
                       </tr>
@@ -293,20 +305,23 @@ export default function OrganizerResultDetailPage() {
                         return (
                           <tr key={result.resultId || result.entryId} className={`border-t border-sb-border ${redFlag ? "bg-red-950/20 text-red-300" : "text-sb-tx"}`}>
                             <td className="px-5 py-3">
-                              <div className="flex items-center gap-3">
-                                <span className={`flex h-8 w-8 items-center justify-center rounded-lg font-black ${redFlag ? "bg-red-500/15 text-red-300" : "bg-[#D4AF37]/15 text-[#D4AF37]"}`}>
-                                  {redFlag ? "!" : result.finishPosition || "-"}
-                                </span>
-                                <div>
-                                  <p className="font-bold">{result.horseName || `Horse #${result.horseId || result.entryId}`}</p>
-                                  {redFlag && <p className="text-xs text-red-300">DQ / DNF / Eliminated</p>}
-                                </div>
-                              </div>
+                              <span className={`flex h-8 w-8 items-center justify-center rounded-lg font-black ${redFlag ? "bg-red-500/15 text-red-300" : "bg-[#D4AF37]/15 text-[#D4AF37]"}`}>
+                                {redFlag ? "!" : result.finishPosition || "-"}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3">
+                              <p className="font-bold">{result.horseName || `Horse #${result.horseId || result.entryId}`}</p>
+                              {redFlag && <p className="text-xs text-red-300">{resultDisplayStatus(result)}</p>}
                             </td>
                             <td className="px-5 py-3">{result.jockeyName || "-"}</td>
                             <td className="px-5 py-3 text-right">{formatTime(result.finishTime)}</td>
                             <td className="px-5 py-3 text-right text-red-300">{formatTime(result.penaltyTime || 0)}</td>
                             <td className="px-5 py-3 text-right font-bold">{formatTime(result.finalTime)}</td>
+                            <td className="px-5 py-3 text-right">
+                              <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${redFlag ? "border-red-500/30 bg-red-500/15 text-red-300" : "border-sb-border bg-sb-s2 text-sb-tx-2"}`}>
+                                {resultDisplayStatus(result)}
+                              </span>
+                            </td>
                             <td className="px-5 py-3 text-right">{result.points ?? "-"}</td>
                             <td className="px-5 py-3 text-right font-bold text-sb-emerald-ink">
                               {Number(result.prizeWon || 0) > 0 ? formatMoney(result.prizeWon) : "-"}

@@ -40,6 +40,11 @@ function statusBadge(status) {
   return "bg-yellow-500/10 border-yellow-500/30 text-yellow-300";
 }
 
+function isReadyEntry(entry) {
+  const status = String(entry?.registrationStatus || "").toLowerCase();
+  return status === "ready" && Boolean(entry?.jockeyId || entry?.jockeyName) && entry?.jockeyConfirmed !== false;
+}
+
 export default function RefereePreRaceCheckPage() {
   const { raceId } = useParams();
   const navigate = useNavigate();
@@ -64,7 +69,7 @@ export default function RefereePreRaceCheckPage() {
       ]);
       const initRes = await raceResultService.initPreRaceChecks(raceId);
       setRace(raceRes.data);
-      setEntries(entryRes.data || []);
+      setEntries((entryRes.data || []).filter(isReadyEntry));
       setChecks(initRes.data || []);
     } catch (e) {
       setError(e.message || "Unable to load pre-race checks");
@@ -80,7 +85,7 @@ export default function RefereePreRaceCheckPage() {
       const checkEntryId = getId(check, ["entryId", "raceEntryId"]);
       const entry = entries.find((item) => String(item.entryId) === String(checkEntryId)) || {};
       return { ...entry, ...check, entryId: checkEntryId || entry.entryId };
-    });
+    }).filter((row) => row.entryId && (isReadyEntry(row) || normalizeStatus(row.status) === "rejected"));
   }, [checks, entries]);
 
   const processedCount = rows.filter((row) => ["checked", "rejected"].includes(normalizeStatus(row.status))).length;
@@ -97,7 +102,7 @@ export default function RefereePreRaceCheckPage() {
       const res = await raceResultService.getPreRaceChecks(raceId);
       setChecks(res.data || []);
       const entryRes = await spectatorService.getRaceEntries(raceId);
-      setEntries(entryRes.data || []);
+      setEntries((entryRes.data || []).filter(isReadyEntry));
     } catch (e) {
       setError(e.message || "Unable to update pre-race check");
     } finally {
@@ -169,8 +174,8 @@ export default function RefereePreRaceCheckPage() {
             {rows.length === 0 ? (
               <div className="text-center py-16 bg-[#111827]/70 border border-sb-border rounded-2xl">
                 <Stethoscope size={34} className="mx-auto mb-3 text-sb-tx-3 opacity-40" />
-                <p className="text-white font-semibold">No entries to check</p>
-                <p className="text-sb-tx-3 text-sm mt-1">Only approved or ready entries are listed here.</p>
+                <p className="text-white font-semibold">No ready entries with confirmed jockey.</p>
+                <p className="text-sb-tx-3 text-sm mt-1">Only Ready entries are listed for pre-race checks.</p>
               </div>
             ) : (
               <div className="space-y-3">

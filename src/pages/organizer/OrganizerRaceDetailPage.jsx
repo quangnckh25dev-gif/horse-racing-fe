@@ -427,7 +427,7 @@ function EntriesTab({ raceId }) {
                       st === "Rejected" ? "bg-red-500/15 text-red-300 border-red-500/30" :
                       "bg-gray-500/15 text-sb-tx-3 border-gray-500/30"
                     }`}>
-                      {isReady ? "Ready to Race" : isApproved ? "Approved Approved - waiting for jockey" : st === "Rejected" ? "Rejected Rejected" : st}
+                      {isReady ? "Ready to Race" : isApproved ? "Approved - waiting for jockey" : st === "Rejected" ? "Rejected" : st}
                     </span>
                   )}
                 </div>

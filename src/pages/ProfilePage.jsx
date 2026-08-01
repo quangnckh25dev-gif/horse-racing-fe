@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { User, Save, Loader2, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
 import AdminLayout from "../components/layout/AdminLayout";
 import { profileService } from "../services/profile";
+import { leaderboardService } from "../services/leaderboard";
 import { useAuth } from "../context/AuthContext";
 
 const ROLE_FIELDS = {
@@ -48,6 +49,23 @@ const ROLE_AVATAR_GRADIENT = {
   Spectator:  "from-gray-400 to-gray-500",
 };
 
+const numberOf = (value) => Number(value || 0);
+const jockeyStatsFrom = (profile, leaderboardItem) => {
+  const totalRaces = numberOf(profile.totalRaces ?? leaderboardItem?.totalRaces);
+  const wins = numberOf(profile.totalWins ?? leaderboardItem?.totalWins);
+  const podiums = numberOf(profile.totalPodiums ?? leaderboardItem?.totalPodiums);
+  const losses = numberOf(profile.totalLosses ?? Math.max(totalRaces - wins, 0));
+  const winRate = totalRaces > 0 ? Math.round((wins / totalRaces) * 100) : 0;
+  return {
+    totalRaces,
+    wins,
+    losses,
+    winRate,
+    podiums,
+    recentRaces: profile.recentRaces || leaderboardItem?.recentRaces || [],
+  };
+};
+
 export default function ProfilePage() {
   const { user, role } = useAuth();
   const [profile, setProfile] = useState({});
@@ -56,6 +74,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [jockeyStats, setJockeyStats] = useState(null);
 
   const fields = ROLE_FIELDS[role] || [];
   const hasProfile = fields.length > 0;
@@ -71,13 +90,26 @@ export default function ProfilePage() {
       if (res?.data && Object.keys(res.data).length > 0) {
         setProfile(res.data);
         setProfileExists(true);
+        if (role === "Jockey") {
+          const lbRes = await leaderboardService.getGlobalJockeyLeaderboard().catch(() => ({ data: [] }));
+          const leaderboardItem = (lbRes.data || []).find((item) =>
+            item.entityId === res.data.jockeyId ||
+            item.jockeyId === res.data.jockeyId ||
+            item.userId === user.userId ||
+            item.name === user.fullName ||
+            item.jockeyName === user.fullName
+          );
+          setJockeyStats(jockeyStatsFrom(res.data, leaderboardItem));
+        }
       } else {
         setProfile({});
         setProfileExists(false);
+        setJockeyStats(role === "Jockey" ? jockeyStatsFrom({}, null) : null);
       }
     } catch {
       setProfile({});
       setProfileExists(false);
+      setJockeyStats(role === "Jockey" ? jockeyStatsFrom({}, null) : null);
     } finally {
       setLoading(false);
     }
@@ -148,6 +180,50 @@ export default function ProfilePage() {
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-5">
+            {role === "Jockey" && (
+              <div className="bg-sb-s1 border border-sb-border rounded-2xl p-5 shadow-sm">
+                <h3 className="text-sb-tx font-bold text-sm mb-4 pb-3 border-b border-sb-border flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-sb-emerald" />
+                  Performance Stats
+                </h3>
+                {jockeyStats && jockeyStats.totalRaces > 0 ? (
+                  <>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                      {[
+                        ["Total Races", jockeyStats.totalRaces],
+                        ["Wins", jockeyStats.wins],
+                        ["Losses", jockeyStats.losses],
+                        ["Win Rate", `${jockeyStats.winRate}%`],
+                        ["Podiums", jockeyStats.podiums],
+                      ].map(([label, value]) => (
+                        <div key={label} className="rounded-xl bg-sb-s2 border border-sb-border p-3">
+                          <p className="text-sb-tx-3 text-[10px] uppercase font-bold">{label}</p>
+                          <p className="text-sb-tx text-lg font-black tabular-nums">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {jockeyStats.recentRaces.length > 0 ? (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-sb-tx-3 text-xs font-bold uppercase tracking-widest">Recent Races</p>
+                        {jockeyStats.recentRaces.slice(0, 5).map((race, index) => (
+                          <div key={race.raceId || index} className="flex items-center justify-between rounded-xl bg-sb-s2 border border-sb-border px-3 py-2">
+                            <span className="text-sb-tx text-sm">{race.raceName || race.name || `Race #${race.raceId || index + 1}`}</span>
+                            <span className="text-sb-tx-3 text-xs">{race.position || race.result || race.status || "Finished"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sb-tx-3 text-xs mt-3">Recent races will appear after race results are published.</p>
+                    )}
+                  </>
+                ) : (
+                  <div className="rounded-xl bg-sb-s2 border border-sb-border p-4 text-center">
+                    <p className="text-sb-tx-2 text-sm font-semibold">No performance stats yet</p>
+                    <p className="text-sb-tx-3 text-xs mt-1">Stats will appear after this jockey finishes races.</p>
+                  </div>
+                )}
+              </div>
+            )}
             {/* Fields card */}
             <div className="bg-sb-s1 border border-sb-border rounded-2xl p-5 shadow-sm">
               <h3 className="text-sb-tx font-bold text-sm mb-4 pb-3 border-b border-sb-border flex items-center gap-2">

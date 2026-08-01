@@ -1,5 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
-import { Bell, User, ChevronDown, LogOut, KeyRound, Info, CheckCircle2, Trophy, Mail } from "lucide-react";
+import {
+  Award,
+  Bell,
+  ChevronDown,
+  ClipboardCheck,
+  Flag,
+  Info,
+  KeyRound,
+  LogOut,
+  Mail,
+  PawPrint,
+  ShieldCheck,
+  Trophy,
+  User,
+  CheckCircle2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { notificationService } from "../../services/notification";
@@ -13,6 +28,24 @@ const ROLE_LABEL = {
   Jockey:     "Jockey",
   Referee:    "Referee",
   Spectator:  "Spectator",
+};
+
+const ROLE_ACCENT = {
+  Admin: "bg-sky-500/10 border-sky-500/30 text-sky-300",
+  Organizer: "bg-amber-500/10 border-amber-500/30 text-amber-300",
+  HorseOwner: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300",
+  Jockey: "bg-orange-500/10 border-orange-500/30 text-orange-300",
+  Referee: "bg-violet-500/10 border-violet-500/30 text-violet-300",
+  Spectator: "bg-sb-gold-soft border-sb-gold-bd text-sb-gold-2",
+};
+
+const ROLE_ICON = {
+  Admin: ShieldCheck,
+  Organizer: Flag,
+  HorseOwner: PawPrint,
+  Jockey: Award,
+  Referee: ClipboardCheck,
+  Spectator: Trophy,
 };
 
 const NOTIF_TYPE_CONFIG = {
@@ -113,6 +146,8 @@ export default function Topbar({ title }) {
   }, [role, fetchWalletBalance]);
 
   const unreadCount = notifications.filter((n) => n.unread && !readIds.has(n.id)).length;
+  const RoleIcon = ROLE_ICON[role] || User;
+  const roleAccent = ROLE_ACCENT[role] || "bg-sb-emerald-soft border-sb-emerald-bd text-sb-emerald-ink";
 
   const markAllRead = async () => {
     try { await notificationService.markAllAsRead(); } catch { /* keep the local read state */ }
@@ -233,10 +268,8 @@ export default function Topbar({ title }) {
             onClick={() => { setDropdownOpen((p) => !p); setBellOpen(false); }}
             className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl bg-sb-s2 border border-sb-border hover:border-sb-border-2 transition-colors"
           >
-            <div className="w-7 h-7 rounded-full bg-sb-emerald-soft border border-sb-emerald-bd flex items-center justify-center shrink-0">
-              <span className="text-xs font-bold text-sb-emerald-ink">
-                {(user?.fullName || user?.username || "U")[0].toUpperCase()}
-              </span>
+            <div className={`w-7 h-7 rounded-full border flex items-center justify-center shrink-0 ${roleAccent}`}>
+              <RoleIcon size={14} />
             </div>
             <div className="hidden sm:block text-left">
               <p className="text-xs font-semibold text-sb-tx leading-tight">{user?.fullName || user?.username}</p>
@@ -252,7 +285,8 @@ export default function Topbar({ title }) {
                 <div className="px-4 py-3 border-b border-sb-border">
                   <p className="text-sb-tx text-sm font-semibold truncate">{user?.fullName || user?.username}</p>
                   <p className="text-sb-tx-3 text-xs truncate">{user?.email || user?.username}</p>
-                  <span className="inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 font-medium">
+                  <span className={`inline-flex items-center gap-1.5 mt-1.5 text-[10px] px-2 py-0.5 rounded-full border font-medium ${roleAccent}`}>
+                    <RoleIcon size={11} />
                     {ROLE_LABEL[role] || role}
                   </span>
                 </div>

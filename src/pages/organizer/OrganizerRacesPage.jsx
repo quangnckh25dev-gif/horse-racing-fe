@@ -387,7 +387,7 @@ export default function OrganizerRacesPage() {
                   <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {ongoingCount} ongoing
                 </span>
               )}
-              {(scheduledCount + regOpenCount) > 0 && <span className="stat-pill text-blue-400">{scheduledCount + regOpenCount} upcoming</span>}
+              {(draftCount + regOpenCount) > 0 && <span className="stat-pill text-blue-400">{draftCount + regOpenCount} upcoming</span>}
               {finishedCount > 0 && <span className="stat-pill text-green-400">{finishedCount} finished</span>}
             </div>
           </div>

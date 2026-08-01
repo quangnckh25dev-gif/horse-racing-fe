@@ -550,22 +550,29 @@ export default function OrganizerRacesPage() {
                         <StatusBadge status={race.status} />
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
-                        {race.startTime && (
-                          <span className="flex items-center gap-1 text-sb-tx-3 text-xs">
-                            <Clock size={10} /> {new Date(race.startTime).toLocaleString("vi-VN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                          </span>
-                        )}
-                        {race.distance && (
-                          <span className="stat-pill">📏 {race.distance}m</span>
-                        )}
-                        {race.maxEntries && (
-                          <span className="stat-pill"><Users size={9} /> {race.maxEntries}</span>
-                        )}
-                        {race.prizePool && (
-                          <span className="text-xs font-semibold text-[#D4AF37] neon-gold">
-                            💰 {Number(race.prizePool).toLocaleString("vi-VN")} VND
-                          </span>
-                        )}
+                        {(() => {
+                          // BE tra ve raceDate/trackLength/maxParticipants/prizeFirst (giu fallback ten cu)
+                          const when = race.raceDate || race.startTime;
+                          const dist = race.trackLength || race.distance;
+                          const slots = race.maxParticipants || race.maxEntries;
+                          const prize = race.prizeFirst || race.prizePool;
+                          return (
+                            <>
+                              {when && (
+                                <span className="flex items-center gap-1 text-sb-tx-3 text-xs">
+                                  <Clock size={10} /> {new Date(when).toLocaleString("vi-VN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                              )}
+                              {dist && <span className="stat-pill">📏 {dist}m</span>}
+                              {slots && <span className="stat-pill"><Users size={9} /> {slots}</span>}
+                              {prize && (
+                                <span className="text-xs font-semibold text-[#D4AF37] neon-gold">
+                                  💰 {Number(prize).toLocaleString("vi-VN")} VND
+                                </span>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
 

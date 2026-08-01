@@ -57,13 +57,19 @@ function InfoTab({ race }) {
   if (!race) return null;
   const statusCfg = RACE_STATUS_CONFIG[race.status] || {};
 
+  // BE (RaceSummaryResponse) tra ve: raceDate, trackLength, trackType, maxParticipants,
+  // prizeFirst/Second/Third, registrationOpen, registrationClose (giu fallback ten cu)
+  const raceWhen = race.raceDate || race.startTime;
+  const dist = race.trackLength || race.distance;
+  const slots = race.maxParticipants || race.maxEntries;
+  const prize = race.prizeFirst || race.prizePool;
   const infoCards = [
     { icon: "🏁", label: "Race Name",        value: race.raceName,       accent: "#D4AF37" },
-    { icon: "📅", label: "Start",             value: race.startTime ? new Date(race.startTime).toLocaleString("vi-VN") : "—" },
-    { icon: "🏁", label: "End",            value: race.endTime ? new Date(race.endTime).toLocaleString("vi-VN") : "—" },
-    { icon: "📏", label: "Distance",               value: race.distance ? `${race.distance}m` : "—" },
-    { icon: "👥", label: "Max Participants",     value: race.maxEntries || "—" },
-    { icon: "💰", label: "Prize",         value: race.prizePool ? `${Number(race.prizePool).toLocaleString("vi-VN")} VND` : "—", accent: "#D4AF37" },
+    { icon: "📅", label: "Race Time",         value: raceWhen ? new Date(raceWhen).toLocaleString("vi-VN") : "—" },
+    { icon: "🛤️", label: "Track Type",        value: race.trackType || "—" },
+    { icon: "📏", label: "Distance",          value: dist ? `${dist}m` : "—" },
+    { icon: "👥", label: "Max Participants",  value: slots || "—" },
+    { icon: "💰", label: "First Prize",       value: prize ? `${Number(prize).toLocaleString("vi-VN")} VND` : "—", accent: "#D4AF37" },
   ];
 
   return (
@@ -771,15 +777,15 @@ export default function OrganizerRaceDetailPage() {
                       {statusCfg.label || race.status}
                     </span>
                   )}
-                  {race?.startTime && (
+                  {(race?.raceDate || race?.startTime) && (
                     <span className="stat-pill">
-                      📅 {new Date(race.startTime).toLocaleDateString("vi-VN")}
+                      📅 {new Date(race.raceDate || race.startTime).toLocaleDateString("vi-VN")}
                     </span>
                   )}
-                  {race?.distance && <span className="stat-pill">📏 {race.distance}m</span>}
-                  {race?.prizePool && (
+                  {(race?.trackLength || race?.distance) && <span className="stat-pill">📏 {race.trackLength || race.distance}m</span>}
+                  {(race?.prizeFirst || race?.prizePool) && (
                     <span className="text-xs font-bold text-[#D4AF37] neon-gold">
-                      💰 {Number(race.prizePool).toLocaleString("vi-VN")} VND
+                      💰 {Number(race.prizeFirst || race.prizePool).toLocaleString("vi-VN")} VND
                     </span>
                   )}
                 </div>

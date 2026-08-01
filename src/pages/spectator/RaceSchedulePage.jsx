@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar, AlertCircle, Loader2, RefreshCw,
@@ -8,6 +8,8 @@ import {
 import AdminLayout from "../../components/layout/AdminLayout";
 import RaceReplay from "../../components/sb/RaceReplay";
 import { spectatorService } from "../../services/spectator";
+import { tournamentService } from "../../services/tournament";
+import TournamentBracket from "../../components/tournament/TournamentBracket";
 
 const STATUS_CONFIG = {
   Scheduled:        {
@@ -68,6 +70,7 @@ export default function RaceSchedulePage() {
   const [results, setResults] = useState([]);
   const [resultsLoading, setResultsLoading] = useState(false);
   const [replayOpen, setReplayOpen] = useState(false);
+  const [roundsByTournament, setRoundsByTournament] = useState({});
 
   const openResults = useCallback(async (race) => {
     setShowResults(race);
@@ -98,6 +101,40 @@ export default function RaceSchedulePage() {
   }, []);
 
   useEffect(() => { fetchRaces(); }, [fetchRaces]);
+
+  const tournamentGroups = useMemo(() => {
+    const map = new Map();
+    races.forEach((race) => {
+      if (!race.tournamentId) return;
+      if (!map.has(race.tournamentId)) {
+        map.set(race.tournamentId, {
+          tournamentId: race.tournamentId,
+          tournamentName: race.tournamentName || `Tournament #${race.tournamentId}`,
+          races: [],
+        });
+      }
+      map.get(race.tournamentId).races.push(race);
+    });
+    return Array.from(map.values());
+  }, [races]);
+
+  useEffect(() => {
+    if (tournamentGroups.length === 0) {
+      setRoundsByTournament({});
+      return undefined;
+    }
+    let alive = true;
+    Promise.all(
+      tournamentGroups.map((tournament) =>
+        tournamentService.getPublicRounds(tournament.tournamentId)
+          .then((res) => [tournament.tournamentId, res.data || []])
+          .catch(() => [tournament.tournamentId, []])
+      )
+    ).then((pairs) => {
+      if (alive) setRoundsByTournament(Object.fromEntries(pairs));
+    });
+    return () => { alive = false; };
+  }, [tournamentGroups]);
 
   const filtered = races.filter((r) => {
     const matchStatus = filterStatus === "all" || r.status === filterStatus;
@@ -205,6 +242,20 @@ export default function RaceSchedulePage() {
         )}
 
         {/* ── Race list ── */}
+        {tournamentGroups.length > 0 && (
+          <div className="space-y-4">
+            {tournamentGroups.map((tournament) => (
+              <TournamentBracket
+                key={tournament.tournamentId}
+                tournament={tournament}
+                rounds={roundsByTournament[tournament.tournamentId] || []}
+                races={tournament.races}
+                compact
+              />
+            ))}
+          </div>
+        )}
+
         {loading ? (
           <div className="space-y-3">
             {[...Array(6)].map((_, i) => (

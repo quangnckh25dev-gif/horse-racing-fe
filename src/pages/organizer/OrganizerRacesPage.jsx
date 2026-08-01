@@ -9,6 +9,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { organizerService } from "../../services/organizer";
 import { tournamentService } from "../../services/tournament";
 import { useAuth } from "../../context/AuthContext";
+import TournamentBracket from "../../components/tournament/TournamentBracket";
 
 const STATUS_CONFIG = {
   Draft:            { label: "Draft", color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue", borderCls: "border-l-blue-glow", icon: Clock, iconCls: "text-blue-400", glow: "hover:shadow-blue-500/10" },
@@ -464,6 +465,14 @@ export default function OrganizerRacesPage() {
                           </div>
                         );
                       })}
+                    </div>
+                    <div className="mt-3">
+                      <TournamentBracket
+                        tournament={t}
+                        rounds={tRounds}
+                        races={races.filter((race) => String(race.tournamentId) === String(t.tournamentId))}
+                        compact
+                      />
                     </div>
                   </div>
                 );

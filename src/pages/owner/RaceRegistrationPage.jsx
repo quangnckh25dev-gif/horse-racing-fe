@@ -2,7 +2,7 @@
 import {
   AlertCircle, Loader2, Trophy, Calendar, X, Plus,
   RefreshCw, CheckCircle2, Clock, XCircle, Send,
-  Flag, ClipboardList, Activity,
+  Flag, ClipboardList, Activity, FileWarning,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { confirmBox } from "../../lib/toast";
@@ -10,6 +10,7 @@ import { entryService } from "../../services/entry";
 import { horseService } from "../../services/horse";
 import { spectatorService } from "../../services/spectator";
 import { invitationService } from "../../services/invitation";
+import { complaintService } from "../../services/complaint";
 
 // Status Ä‘áº§y Ä‘á»§ theo flow: Pending Organizer Approval â†’ Approved/waiting for jockey â†’ Ready to Race
 const ENTRY_STATUS = {
@@ -43,6 +44,13 @@ const jockeyWinRate = (j) => {
 const selectCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
 const inputCls  = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
 const labelCls  = "block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5";
+
+const COMPLAINT_STATUS = {
+  Pending: { label: "Pending Referee Review", cls: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40" },
+  Resolved: { label: "Resolved", cls: "bg-green-500/20 text-green-300 border-green-500/40" },
+  Rejected: { label: "Rejected", cls: "bg-red-500/20 text-red-300 border-red-500/40" },
+  Forwarded: { label: "Forwarded to Organizer", cls: "bg-purple-500/20 text-purple-300 border-purple-500/40" },
+};
 
 function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   return (
@@ -78,6 +86,10 @@ export default function RaceRegistrationPage() {
   const [actionLoading, setActionLoading] = useState("");
   const [entryFilter, setEntryFilter] = useState("all");
   const [raceSlots, setRaceSlots] = useState({});
+  const [complaints, setComplaints] = useState([]);
+  const [complaintsLoading, setComplaintsLoading] = useState(false);
+  const [showComplaint, setShowComplaint] = useState(null);
+  const [complaintForm, setComplaintForm] = useState({ reason: "", evidenceUrl: "" });
 
   const [jockeys, setJockeys] = useState([]);
 
@@ -120,8 +132,21 @@ export default function RaceRegistrationPage() {
     }
   }, []);
 
+  const loadComplaints = useCallback(async () => {
+    setComplaintsLoading(true);
+    try {
+      const res = await complaintService.getMyRaceComplaints();
+      setComplaints(res.data || []);
+    } catch {
+      setComplaints([]);
+    } finally {
+      setComplaintsLoading(false);
+    }
+  }, []);
+
   useEffect(() => { loadRaces(); }, [loadRaces]);
   useEffect(() => { if (activeTab === "entries") loadMyEntries(); }, [activeTab, loadMyEntries]);
+  useEffect(() => { if (activeTab === "complaints") loadComplaints(); }, [activeTab, loadComplaints]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -177,6 +202,31 @@ export default function RaceRegistrationPage() {
     }
   };
 
+  const handleCreateComplaint = async (e) => {
+    e.preventDefault();
+    if (!complaintForm.reason.trim()) { setFormError("Reason is required"); return; }
+    setFormLoading(true); setFormError("");
+    try {
+      await complaintService.createRaceComplaint({
+        raceId: showComplaint.raceId,
+        entryId: showComplaint.entryId,
+        reason: complaintForm.reason.trim(),
+        evidenceUrl: complaintForm.evidenceUrl.trim() || undefined,
+      });
+      setShowComplaint(null);
+      setComplaintForm({ reason: "", evidenceUrl: "" });
+      setActiveTab("complaints");
+      loadComplaints();
+    } catch (err) {
+      setFormError(err.message || "Failed to submit race complaint");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const raceOfEntry = (entry) => races.find((race) => Number(race.raceId) === Number(entry.raceId));
+  const canComplainEntry = (entry) => raceOfEntry(entry)?.status === "Finished";
+
   const upcomingRaces = races.filter((r) => r.status === "RegistrationOpen");
   const pendingEntries  = myEntries.filter((e) => entryStatusOf(e) === "Pending").length;
   const approvedEntries = myEntries.filter((e) => entryStatusOf(e) === "Approved").length;
@@ -214,6 +264,7 @@ export default function RaceRegistrationPage() {
               )}
               {approvedEntries > 0 && <span className="stat-pill text-blue-400">{approvedEntries} waiting for jockey</span>}
               {readyEntries > 0 && <span className="stat-pill text-green-400">{readyEntries} ready to race</span>}
+              {complaints.length > 0 && <span className="stat-pill text-purple-300">{complaints.length} complaints</span>}
             </div>
           </div>
           <button onClick={loadRaces}
@@ -229,6 +280,7 @@ export default function RaceRegistrationPage() {
           {[
             { id: "upcoming", label: "Races upcoming", icon: Flag },
             { id: "entries",  label: "My Registrations",  icon: ClipboardList },
+            { id: "complaints", label: "Race Complaints", icon: FileWarning },
           ].map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -401,6 +453,17 @@ export default function RaceRegistrationPage() {
                             <Send size={12} /> Invite Jockey
                           </button>
                         )}
+                        {canComplainEntry(entry) && (
+                          <button
+                            onClick={() => {
+                              setComplaintForm({ reason: "", evidenceUrl: "" });
+                              setFormError("");
+                              setShowComplaint(entry);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-orange-600/15 border border-orange-600/30 text-orange-300 hover:bg-orange-600/25 rounded-xl text-xs font-bold transition-all">
+                            <FileWarning size={12} /> Complaint
+                          </button>
+                        )}
                         {status === "Pending" && (
                           <button onClick={() => handleCancel(entry.raceId, entry.entryId)} disabled={isBusy}
                             className="flex items-center gap-1.5 px-3 py-2 bg-red-600/10 border border-red-600/20 text-red-400 hover:bg-red-600/20 rounded-xl text-xs transition-all disabled:opacity-50">
@@ -416,6 +479,58 @@ export default function RaceRegistrationPage() {
             </div>
           )}
           </>
+        )}
+
+        {activeTab === "complaints" && (
+          complaintsLoading ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => <div key={i} className="h-24 shimmer rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />)}
+            </div>
+          ) : complaints.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/5 border border-orange-500/10 flex items-center justify-center mb-4">
+                <FileWarning size={24} className="text-orange-400/40" />
+              </div>
+              <p className="text-white font-semibold mb-1">No race complaints</p>
+              <p className="text-sb-tx-3 text-sm">Complaints submitted after finished races will appear here.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {complaints.map((item, idx) => {
+                const cfg = COMPLAINT_STATUS[item.status] || COMPLAINT_STATUS.Pending;
+                return (
+                  <div key={item.complaintId}
+                    className="bg-[#0d1117] border border-sb-border rounded-xl p-5 animate-fade-in-up"
+                    style={{ animationDelay: `${idx * 50}ms` }}>
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+                        <FileWarning size={17} className="text-orange-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <h3 className="text-white font-bold">{item.raceName || `Race #${item.raceId}`}</h3>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${cfg.cls}`}>{cfg.label}</span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap text-xs text-sb-tx-3">
+                          <span className="stat-pill">{item.horseName || `Entry #${item.entryId}`}</span>
+                          {item.createdAt && <span>{new Date(item.createdAt).toLocaleString("vi-VN")}</span>}
+                        </div>
+                        <p className="mt-3 text-sm text-sb-tx-2">{item.reason}</p>
+                        {item.evidenceUrl && (
+                          <a href={item.evidenceUrl} target="_blank" rel="noreferrer"
+                            className="mt-2 inline-flex text-xs font-semibold text-[#D4AF37] hover:underline">
+                            View evidence
+                          </a>
+                        )}
+                        {item.refereeNote && <p className="mt-2 text-xs text-blue-300">Referee note: {item.refereeNote}</p>}
+                        {item.organizerNote && <p className="mt-1 text-xs text-purple-300">Organizer note: {item.organizerNote}</p>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
         )}
       </div>
 
@@ -519,6 +634,51 @@ export default function RaceRegistrationPage() {
                 className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
                 {formLoading && <Loader2 size={14} className="animate-spin" />}
                 <Send size={14} /> Send Invitation
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {showComplaint && (
+        <Modal title="Submit Race Complaint" accentColor="rgb(249,115,22)" onClose={() => setShowComplaint(null)}>
+          <p className="text-sb-tx-3 text-sm mb-4">
+            Complaint for <span className="text-white font-semibold">{showComplaint.raceName || `Race #${showComplaint.raceId}`}</span>
+            {showComplaint.horseName ? ` - ${showComplaint.horseName}` : ""}
+          </p>
+          {formError && (
+            <div className="mb-3 flex items-center gap-2 p-3 bg-red-950/50 border border-red-900/50 rounded-xl text-red-300 text-sm">
+              <AlertCircle size={13} /> {formError}
+            </div>
+          )}
+          <form onSubmit={handleCreateComplaint} className="space-y-4">
+            <div>
+              <label className={labelCls}>Reason *</label>
+              <textarea
+                value={complaintForm.reason}
+                onChange={(e) => setComplaintForm((p) => ({ ...p, reason: e.target.value }))}
+                placeholder="Explain why you disagree with the race result..."
+                rows={4}
+                className={inputCls + " resize-none"}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Evidence URL</label>
+              <input
+                value={complaintForm.evidenceUrl}
+                onChange={(e) => setComplaintForm((p) => ({ ...p, evidenceUrl: e.target.value }))}
+                placeholder="https://..."
+                className={inputCls}
+              />
+              <p className="text-sb-tx-3 text-xs mt-1">Attach an image or file link if available.</p>
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={() => setShowComplaint(null)}
+                className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Cancel</button>
+              <button type="submit" disabled={formLoading}
+                className="flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
+                {formLoading && <Loader2 size={14} className="animate-spin" />}
+                Submit
               </button>
             </div>
           </form>

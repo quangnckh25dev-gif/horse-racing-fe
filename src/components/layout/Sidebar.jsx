@@ -47,6 +47,7 @@ const MENU_BY_ROLE = {
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
     { label: "Race Schedule",        icon: Calendar,      path: "/spectator/schedule" },
     { label: "Betting",            icon: DollarSign,    path: "/spectator/betting" },
+    { label: "Betting History",          icon: FileText,        path: "/spectator/betting/history" },
     { label: "My Wallet",          icon: Wallet,        path: "/spectator/wallet" },
     { label: "Leaderboard",       icon: BarChart2,     path: "/leaderboard" },
   ],

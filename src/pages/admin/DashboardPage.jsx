@@ -7,7 +7,6 @@ import {
   Calendar,
   CheckCircle2,
   ChevronRight,
-  ClipboardList,
   Clock,
   DollarSign,
   FileText,
@@ -53,7 +52,6 @@ const ROLE_ACTIONS = {
   ],
   Organizer: [
     { label: "Race Management", icon: Flag, path: "/organizer/races" },
-    { label: "Assign Referees", icon: ClipboardList, path: "/organizer/referees" },
     { label: "Approve Results", icon: Award, path: "/organizer/results" },
     { label: "Profile", icon: User, path: "/profile" },
   ],

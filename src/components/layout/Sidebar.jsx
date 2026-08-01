@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   Home, Users, UserCheck, Trophy, LogOut,
   ChevronLeft, ChevronRight,
-  Flag, ClipboardList, Mail, Calendar,
+  Flag, Mail, Calendar,
   Award, PawPrint, User, BarChart2, Wallet, DollarSign,
   FileText, Settings,
 } from "lucide-react";
@@ -22,7 +22,6 @@ const MENU_BY_ROLE = {
   Organizer: [
     { label: "Dashboard",           icon: Home,          path: "/dashboard" },
     { label: "Race Management",    icon: Flag,          path: "/organizer/races" },
-    { label: "Assign Referees", icon: ClipboardList, path: "/organizer/referees" },
     { label: "Approve Results",       icon: Award,         path: "/organizer/results" },
     { label: "Profile",       icon: User,          path: "/profile" },
   ],

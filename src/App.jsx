@@ -105,8 +105,6 @@ export default function App() {
             element={guard(["Organizer"], <OrganizerRaceDetailPage />)} />
           <Route path="/organizer/results"
             element={guard(["Organizer"], <OrganizerResultsPage />)} />
-          <Route path="/organizer/referees"
-            element={guard(["Organizer"], <OrganizerRacesPage />)} />
 
           {/* ── HorseOwner — F2 ─────────────────────────────── */}
           <Route path="/owner/horses"

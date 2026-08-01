@@ -6,6 +6,7 @@ import {
   CheckCircle2, XCircle, Globe, RefreshCw,
   Clock, Zap, MapPin, Calendar, Trophy,
   Timer, User, Medal, ShieldCheck,
+  PlayCircle,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { confirmBox } from "../../lib/toast";
@@ -14,8 +15,8 @@ import { raceResultService } from "../../services/raceResult";
 import { useAuth } from "../../context/AuthContext";
 
 const RACE_STATUS_CONFIG = {
-  Scheduled:        { label: "Scheduled",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",       icon: Clock,        dot: "bg-blue-400" },
-  RegistrationOpen: { label: "Registration Open",   color: "bg-purple-500/20 text-purple-300 border-purple-500/40",                 icon: Calendar,     dot: "bg-purple-400" },
+  Draft:            { label: "Draft", color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue", icon: Clock, dot: "bg-blue-400" },
+  RegistrationOpen: { label: "Registration Open", color: "bg-purple-500/20 text-purple-300 border-purple-500/40", icon: Calendar, dot: "bg-purple-400" },
   Ongoing:          { label: "Ongoing", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", icon: Zap,          dot: "bg-yellow-400" },
   Finished:         { label: "Finished",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",   icon: CheckCircle2, dot: "bg-green-400" },
   Cancelled:        { label: "Cancelled",       color: "bg-red-500/20 text-red-300 border-red-500/40",                          icon: XCircle,      dot: "bg-red-400" },
@@ -647,6 +648,7 @@ export default function OrganizerRaceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("info");
+  const [statusBusy, setStatusBusy] = useState(false);
 
   const fetchRace = useCallback(async () => {
     setLoading(true);
@@ -663,6 +665,20 @@ export default function OrganizerRaceDetailPage() {
   useEffect(() => { fetchRace(); }, [fetchRace]);
 
   const statusCfg = RACE_STATUS_CONFIG[race?.status] || {};
+  const canOpenRegistration = race?.status === "Draft";
+
+  const handleOpenRegistration = async () => {
+    setStatusBusy(true);
+    setError("");
+    try {
+      await organizerService.openRaceRegistration(raceId);
+      await fetchRace();
+    } catch (e) {
+      setError(e.message || "Failed to open registration");
+    } finally {
+      setStatusBusy(false);
+    }
+  };
 
   return (
     <AdminLayout title="Details races">
@@ -705,10 +721,18 @@ export default function OrganizerRaceDetailPage() {
               </>
             )}
           </div>
-          <button onClick={fetchRace}
-            className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all shrink-0">
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
-          </button>
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {canOpenRegistration && (
+              <button onClick={handleOpenRegistration} disabled={statusBusy}
+                className="flex items-center gap-2 px-3 py-2 bg-purple-500/10 border border-purple-500/30 rounded-xl text-purple-300 hover:text-purple-200 hover:border-purple-400/50 text-sm font-semibold transition-all disabled:opacity-50">
+                {statusBusy ? <Loader2 size={13} className="animate-spin" /> : <PlayCircle size={13} />} Open Registration
+              </button>
+            )}
+            <button onClick={fetchRace}
+              className="flex items-center gap-2 px-3 py-2 bg-sb-s2 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-tx text-sm transition-all">
+              <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
+            </button>
+          </div>
         </div>
       </div>
 

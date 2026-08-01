@@ -11,6 +11,7 @@ import {
   DollarSign,
   FileText,
   Flag,
+  History,
   Home,
   Loader2,
   Mail,

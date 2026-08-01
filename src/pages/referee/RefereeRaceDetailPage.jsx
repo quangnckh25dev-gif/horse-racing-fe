@@ -9,6 +9,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { confirmBox } from "../../lib/toast";
 import { raceResultService } from "../../services/raceResult";
 import { spectatorService } from "../../services/spectator";
+import { uploadService } from "../../services/upload";
 
 const TABS = [
   { id: "results",    label: "Race Results", icon: Award },
@@ -32,7 +33,28 @@ function Modal({ title, onClose, children }) {
 
 function isValidRaceEntry(entry) {
   const status = String(entry.registrationStatus || "").toLowerCase();
-  return ["approved", "ready"].includes(status) && (entry.jockeyId || entry.jockeyName);
+  return status === "ready" && Boolean(entry.jockeyId || entry.jockeyName) && entry.jockeyConfirmed !== false;
+}
+
+function isImageUrl(url) {
+  return /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(String(url || ""));
+}
+
+function EvidenceLink({ url, label = "Evidence" }) {
+  const finalUrl = uploadService.normalizeUploadUrl(url);
+  if (!finalUrl) return null;
+  if (isImageUrl(finalUrl)) {
+    return (
+      <a href={finalUrl} target="_blank" rel="noreferrer" className="inline-block">
+        <img src={finalUrl} alt={label} className="mt-2 h-24 max-w-[180px] rounded-lg border border-sb-border object-cover" />
+      </a>
+    );
+  }
+  return (
+    <a href={finalUrl} target="_blank" rel="noreferrer" className="break-all text-xs font-bold text-[#D4AF37] hover:underline">
+      {label}
+    </a>
+  );
 }
 
 function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
@@ -67,6 +89,10 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
     }
     if (!preRaceChecked) {
       alert("Please confirm the pre-race horse information check.");
+      return;
+    }
+    if (raceable.length === 0) {
+      alert("No ready entries with confirmed jockey.");
       return;
     }
     const initialForm = raceable.map((e, i) => ({
@@ -140,8 +166,13 @@ function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
           <AlertCircle size={14} /> {disabledReason || "Pre-race check confirmation is required before entering results."}
         </div>
       )}
+      {!disabledReason && raceable.length === 0 && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-red-950/40 border border-red-900 text-red-300 text-sm">
+          <AlertCircle size={14} /> No ready entries with confirmed jockey.
+        </div>
+      )}
       <div className="flex justify-end">
-        <button onClick={initForm} disabled={!!disabledReason || !preRaceChecked}
+        <button onClick={initForm} disabled={!!disabledReason || !preRaceChecked || raceable.length === 0}
           title={disabledReason || (!preRaceChecked ? "Complete pre-race check before entering results." : "Enter race results")}
           className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <Edit2 size={14} /> {results.length > 0 ? "Update Results" : "Enter Results"}
@@ -263,6 +294,7 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ entryId: "", violationType: "", evidenceImageUrl: "", description: "" });
   const [formLoading, setFormLoading] = useState(false);
+  const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const [rankingMessage, setRankingMessage] = useState("");
 
   const load = useCallback(async () => {
@@ -289,6 +321,7 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   const selectedOption = violationOptions.find((option) => getOptionValue(option) === form.violationType);
   const selectedPenalty = selectedOption ? getOptionPenalty(selectedOption) : null;
   const isSelectedDq = Boolean(selectedOption?.isDq);
+  const raceable = entries.filter(isValidRaceEntry);
 
   const formatPenalty = (value, isDq) => {
     if (isDq) return "DQ";
@@ -313,6 +346,10 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
       alert("Please confirm the pre-race horse information check.");
       return;
     }
+    if (raceable.length === 0) {
+      alert("No ready entries with confirmed jockey.");
+      return;
+    }
     setFormLoading(true);
     setRankingMessage("");
     try {
@@ -330,6 +367,20 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
       setError(err.message || "Failed to record violation. Please check the selected horse and violation type.");
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  const handleEvidenceUpload = async (file) => {
+    if (!file) return;
+    setUploadingEvidence(true);
+    setError("");
+    try {
+      const uploaded = await uploadService.uploadEvidence(file);
+      setForm((previous) => ({ ...previous, evidenceImageUrl: uploaded.url }));
+    } catch (err) {
+      setError(err.message || "Evidence upload failed.");
+    } finally {
+      setUploadingEvidence(false);
     }
   };
 
@@ -360,8 +411,13 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
           <AlertCircle size={14} /> {disabledReason || "Pre-race check confirmation is required before recording violations."}
         </div>
       )}
+      {!disabledReason && raceable.length === 0 && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-red-950/40 border border-red-900 text-red-300 text-sm">
+          <AlertCircle size={14} /> No ready entries with confirmed jockey.
+        </div>
+      )}
       <div className="flex justify-end">
-        <button onClick={() => setShowAdd(true)} disabled={!!disabledReason || !preRaceChecked}
+        <button onClick={() => setShowAdd(true)} disabled={!!disabledReason || !preRaceChecked || raceable.length === 0}
           title={disabledReason || (!preRaceChecked ? "Complete pre-race check before recording violations." : "Record a violation")}
           className="flex items-center gap-2 px-4 py-2 bg-red-600/20 border border-red-600/40 text-red-300 hover:bg-red-600/30 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <Plus size={14} /> Record Violation
@@ -389,10 +445,7 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
                     Penalty: {formatPenalty(v.penaltySeconds, v.isDq)}
                   </span>
                   {v.evidenceImageUrl && (
-                    <a href={v.evidenceImageUrl} target="_blank" rel="noreferrer"
-                      className="text-[#D4AF37] hover:underline text-xs">
-                      Evidence
-                    </a>
+                    <EvidenceLink url={v.evidenceImageUrl} label="View evidence" />
                   )}
                 </div>
               </div>
@@ -414,7 +467,7 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
               <select value={form.entryId} onChange={(e) => setForm((p) => ({ ...p, entryId: e.target.value }))} required
                 className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]">
                 <option value="">-- Choose Horse --</option>
-                {entries.filter(isValidRaceEntry).map((e) => <option key={e.entryId} value={e.entryId}>{e.horseName || `Horse #${e.horseId}`}</option>)}
+                {raceable.map((e) => <option key={e.entryId} value={e.entryId}>{e.horseName || `Horse #${e.horseId}`}</option>)}
               </select>
             </div>
             <div>
@@ -454,14 +507,13 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
                 <input type="file" accept="image/*,application/pdf" hidden
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (!file) return;
-                    const demoUrl = `demo-evidence/${file.name}`;
-                    setForm((p) => ({ ...p, evidenceImageUrl: demoUrl }));
+                    handleEvidenceUpload(file);
                   }} />
                 <span className="text-sm text-sb-tx-2">
-                  {form.evidenceImageUrl || "Choose evidence image/PDF..."}
+                  {uploadingEvidence ? "Uploading..." : (form.evidenceImageUrl || "Choose evidence image/PDF...")}
                 </span>
               </label>
+              <EvidenceLink url={form.evidenceImageUrl} label="Open uploaded evidence" />
             </div>
             <div>
               <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Description</label>
@@ -489,6 +541,7 @@ function MinutesTab({ raceId, disabledReason }) {
   const [form, setForm] = useState({ content: "", weatherCondition: "Clear", minutesFileUrl: "" });
   const [fileName, setFileName] = useState("");
   const [formLoading, setFormLoading] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const weatherOptions = ["Clear", "Cloudy", "Rainy", "Windy", "Foggy", "Wet Track"];
 
@@ -550,26 +603,18 @@ function MinutesTab({ raceId, disabledReason }) {
     }
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const demoFileUrl = `demo-uploads/${file.name}`;
-    setFileName(file.name);
-    setForm((prev) => ({ ...prev, minutesFileUrl: demoFileUrl }));
-
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          localStorage.setItem(`minutes-img-${raceId}`, reader.result);
-          localStorage.setItem(`minutes-file-${demoFileUrl}`, reader.result);
-        } catch {
-          // Ignore oversized local demo images.
-        }
-      };
-      reader.readAsDataURL(file);
-    } else {
-      try { localStorage.removeItem(`minutes-img-${raceId}`); } catch { /* ignore */ }
+    setUploadingFile(true);
+    try {
+      const uploaded = await uploadService.uploadEvidence(file);
+      setFileName(file.name);
+      setForm((prev) => ({ ...prev, minutesFileUrl: uploaded.url }));
+    } catch (err) {
+      alert(err.message || "Evidence upload failed.");
+    } finally {
+      setUploadingFile(false);
     }
   };
 
@@ -617,9 +662,7 @@ function MinutesTab({ raceId, disabledReason }) {
               <div key={label} className="rounded-xl bg-[#0A0E1A]/60 p-4">
                 <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-sb-tx-3">{label}</p>
                 {label === "Evidence File" ? (
-                  <a href={value} target="_blank" rel="noreferrer" className="break-all text-sm text-[#D4AF37] hover:underline">
-                    {value}
-                  </a>
+                  <EvidenceLink url={value} label="Open evidence file" />
                 ) : (
                   <p className="whitespace-pre-wrap text-sm text-white">{value}</p>
                 )}
@@ -665,7 +708,8 @@ function MinutesTab({ raceId, disabledReason }) {
                   {fileName || form.minutesFileUrl || "Click to attach evidence image/PDF..."}
                 </span>
               </label>
-              <p className="mt-1 text-[11px] text-sb-tx-3">Demo upload saves the file name as the evidence URL.</p>
+              <p className="mt-1 text-[11px] text-sb-tx-3">{uploadingFile ? "Uploading evidence..." : "Images show as previews. PDF files open in a new tab."}</p>
+              <EvidenceLink url={form.minutesFileUrl} label="Open uploaded evidence" />
             </div>
             <div className="flex gap-3">
               <button type="button" onClick={() => setEditing(false)} className="flex-1 rounded-lg border border-sb-border py-2 text-sm text-sb-tx-3 hover:text-sb-tx">
@@ -789,7 +833,7 @@ export default function RefereeRaceDetailPage() {
                   )}
                   {startBlockedNoHorse && (
                     <span className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm font-semibold">
-                      <AlertCircle size={14} /> No horse with jockey available - cannot start
+                      <AlertCircle size={14} /> No ready entries with confirmed jockey.
                     </span>
                   )}
                   {startBlockedPreCheck && (

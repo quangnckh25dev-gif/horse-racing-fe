@@ -80,7 +80,7 @@ export default function RaceRegistrationPage() {
   const [inviteForm, setInviteForm]     = useState({ jockeyId: "", dealAmount: "", note: "" });
   const [formLoading, setFormLoading]   = useState(false);
   const [formError, setFormError]       = useState("");
-  const [activeTab, setActiveTab]       = useState("upcoming");
+  const [activeTab, setActiveTab]       = useState("open");
   const [actionLoading, setActionLoading] = useState("");
   const [entryFilter, setEntryFilter] = useState("all");
   const [raceSlots, setRaceSlots] = useState({});
@@ -142,7 +142,7 @@ export default function RaceRegistrationPage() {
   }, []);
 
   useEffect(() => { loadRaces(); }, [loadRaces]);
-  useEffect(() => { if (activeTab === "entries") loadMyEntries(); }, [activeTab, loadMyEntries]);
+  useEffect(() => { if (["entries", "completed"].includes(activeTab)) loadMyEntries(); }, [activeTab, loadMyEntries]);
   useEffect(() => { if (activeTab === "complaints") loadComplaints(); }, [activeTab, loadComplaints]);
 
   const handleRegister = async (e) => {
@@ -220,9 +220,17 @@ export default function RaceRegistrationPage() {
   };
 
   const raceOfEntry = (entry) => races.find((race) => Number(race.raceId) === Number(entry.raceId));
-  const canComplainEntry = (entry) => raceOfEntry(entry)?.status === "Finished";
+  const isCompletedEntry = (entry) => {
+    const race = raceOfEntry(entry);
+    return race?.status === "Finished"
+      || entry.raceStatus === "Finished"
+      || entry.resultStatus === "Published"
+      || entry.approvalStatus === "Published"
+      || Boolean(entry.publishedAt || entry.resultPublished);
+  };
 
   const upcomingRaces = races.filter((r) => r.status === "RegistrationOpen");
+  const completedEntries = myEntries.filter(isCompletedEntry);
   const pendingEntries  = myEntries.filter((e) => entryStatusOf(e) === "Pending").length;
   const approvedEntries = myEntries.filter((e) => entryStatusOf(e) === "Approved").length;
   const readyEntries    = myEntries.filter((e) => entryStatusOf(e) === "Ready").length;
@@ -250,7 +258,8 @@ export default function RaceRegistrationPage() {
             </div>
             <h1 className="text-2xl font-black text-white leading-tight">Race Registration</h1>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <span className="stat-pill"><span className="text-white font-bold">{upcomingRaces.length}</span> races upcoming</span>
+              <span className="stat-pill"><span className="text-white font-bold">{upcomingRaces.length}</span> open races</span>
+              {completedEntries.length > 0 && <span className="stat-pill text-orange-300">{completedEntries.length} completed</span>}
               {pendingEntries > 0 && (
                 <span className="stat-pill text-yellow-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot inline-block" /> {pendingEntries} pending organizer approval
@@ -271,9 +280,10 @@ export default function RaceRegistrationPage() {
       <div className="p-6 space-y-5">
         <div className="flex gap-1 bg-sb-s2 p-1 rounded-xl border border-sb-border w-fit">
           {[
-            { id: "upcoming", label: "Races upcoming", icon: Flag },
+            { id: "open", label: "Open Races", icon: Flag },
             { id: "entries",  label: "My Registrations",  icon: ClipboardList },
-            { id: "complaints", label: "Race Complaints", icon: FileWarning },
+            { id: "completed", label: "Completed Races", icon: Trophy },
+            { id: "complaints", label: "Complaints", icon: FileWarning },
           ].map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -292,7 +302,7 @@ export default function RaceRegistrationPage() {
           </div>
         )}
 
-        {activeTab === "upcoming" ? (
+        {activeTab === "open" ? (
           loading ? (
             <div className="space-y-3">
               {[...Array(4)].map((_, i) => <div key={i} className="h-24 shimmer rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />)}
@@ -302,8 +312,8 @@ export default function RaceRegistrationPage() {
               <div className="w-16 h-16 rounded-2xl bg-orange-500/5 border border-orange-500/10 flex items-center justify-center mb-4 animate-float">
                 <Trophy size={24} className="text-orange-400/30" />
               </div>
-              <p className="text-white font-semibold mb-1">No upcoming races</p>
-              <p className="text-sb-tx-3 text-sm">Check back later for new races</p>
+              <p className="text-white font-semibold mb-1">No open races</p>
+              <p className="text-sb-tx-3 text-sm">Only Registration Open races appear here.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -443,17 +453,6 @@ export default function RaceRegistrationPage() {
                             <Send size={12} /> Invite Jockey
                           </button>
                         )}
-                        {canComplainEntry(entry) && (
-                          <button
-                            onClick={() => {
-                              setComplaintForm({ reason: "", evidenceUrl: "" });
-                              setFormError("");
-                              setShowComplaint(entry);
-                            }}
-                            className="flex items-center gap-1.5 px-3 py-2 bg-orange-600/15 border border-orange-600/30 text-orange-300 hover:bg-orange-600/25 rounded-xl text-xs font-bold transition-all">
-                            <FileWarning size={12} /> Complaint
-                          </button>
-                        )}
                         {status === "Pending" && (
                           <button onClick={() => handleCancel(entry.raceId, entry.entryId)} disabled={isBusy}
                             className="flex items-center gap-1.5 px-3 py-2 bg-red-600/10 border border-red-600/20 text-red-400 hover:bg-red-600/20 rounded-xl text-xs transition-all disabled:opacity-50">
@@ -469,6 +468,69 @@ export default function RaceRegistrationPage() {
             </div>
           )}
           </>
+        )}
+
+        {activeTab === "completed" && (
+          entriesLoading ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => <div key={i} className="h-24 shimmer rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />)}
+            </div>
+          ) : completedEntries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/5 border border-orange-500/10 flex items-center justify-center mb-4">
+                <Trophy size={24} className="text-orange-400/40" />
+              </div>
+              <p className="text-white font-semibold mb-1">No completed races yet</p>
+              <p className="text-sb-tx-3 text-sm">Finished races and published results will appear here.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {completedEntries.map((entry, idx) => {
+                const status = entryStatusOf(entry);
+                const race = raceOfEntry(entry);
+                return (
+                  <div key={entry.entryId}
+                    className="group bg-[#0d1117] border border-sb-border rounded-xl overflow-hidden card-hover border-l-gold-glow animate-fade-in-up"
+                    style={{ animationDelay: `${idx * 50}ms` }}>
+                    <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+                        <Trophy size={17} className="text-orange-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
+                          <h3 className="text-white font-bold">{entry.raceName || race?.raceName || `Race #${entry.raceId}`}</h3>
+                          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full border bg-orange-500/20 text-orange-300 border-orange-500/40">
+                            {race?.status === "Finished" || entry.raceStatus === "Finished" ? "Finished" : "Published"}
+                          </span>
+                          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full border bg-sb-s2 text-sb-tx-2 border-sb-border">
+                            {ENTRY_STATUS[status]?.label || status}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          {entry.horseName && <span className="stat-pill">Horse {entry.horseName}</span>}
+                          {entry.jockeyName && <span className="stat-pill">Jockey {entry.jockeyName}</span>}
+                          {(race?.raceDate || race?.startTime || entry.raceDate) && (
+                            <span className="text-sb-tx-3 text-xs">
+                              {new Date(race?.raceDate || race?.startTime || entry.raceDate).toLocaleString("vi-VN")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setComplaintForm({ reason: "", evidenceUrl: "" });
+                          setFormError("");
+                          setShowComplaint(entry);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-orange-600/15 border border-orange-600/30 text-orange-300 hover:bg-orange-600/25 rounded-xl text-xs font-bold transition-all shrink-0">
+                        <FileWarning size={12} /> Complaint
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
         )}
 
         {activeTab === "complaints" && (

@@ -15,7 +15,7 @@ const TX_TYPE = {
   BetPlaced: { label: "Bet Placed", cls: "text-sb-lose", sign: "-", icon: ArrowUpRight },
   BetWon: { label: "Bet Won", cls: "text-sb-win", sign: "+", icon: TrendingUp },
   BetRefund: { label: "Refunded", cls: "text-sb-info", sign: "+", icon: RotateCcw },
-  PrizeAwarded: { label: "Prize Awarded", cls: "text-sb-gold-2", sign: "+", icon: Trophy },
+  PrizeAwarded: { label: "Prize Awarded", cls: "text-sb-win", sign: "+", icon: Trophy },
 };
 
 const QUICK_AMOUNTS = [100_000, 200_000, 500_000, 1_000_000, 2_000_000, 5_000_000];
@@ -255,13 +255,20 @@ export default function WalletPage() {
     load();
   };
 
+  const prizeTransactions = transactions.filter((tx) => (tx.type || tx.transactionType) === "PrizeAwarded");
+  const prizeTotal = prizeTransactions.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+
   return (
     <AdminLayout title="My Wallet">
       <SbPageHeader
         eyebrow="Spectator"
         title="My Wallet"
         icon={Wallet}
-        stats={[`${transactions.length} transactions`, `${depositRequests.length} deposit requests`]}
+        stats={[
+          `${transactions.length} transactions`,
+          `${depositRequests.length} deposit requests`,
+          `${fmt(prizeTotal)} VND prizes`,
+        ]}
         actions={
           <button onClick={() => { setSuccess(""); setError(""); setDepositOpen(true); }}
             className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-gold text-[#0B0F14] font-bold text-sm hover:opacity-90">
@@ -282,6 +289,14 @@ export default function WalletPage() {
               <p className="text-sb-tx-3 text-[10px] uppercase tracking-widest font-bold mb-2">Current Balance</p>
               <p className="text-4xl font-black text-sb-gold-2 tabular-nums">{wallet?.balance != null ? fmt(wallet.balance) : "-"}</p>
               <p className="text-sb-tx-3 text-xs mt-1">VND</p>
+              <div className="mt-5 rounded-xl border border-sb-emerald-bd bg-sb-emerald-soft p-3">
+                <div className="flex items-center justify-center gap-2 text-sb-emerald-ink">
+                  <Trophy size={15} />
+                  <span className="text-xs font-bold uppercase tracking-wider">Prize Awarded</span>
+                </div>
+                <p className="mt-1 text-lg font-black text-sb-win tabular-nums">{fmt(prizeTotal)} VND</p>
+                <p className="text-[11px] text-sb-tx-3">{prizeTransactions.length} prize transactions</p>
+              </div>
             </div>
 
             <div className="lg:col-span-2 space-y-5">
@@ -324,9 +339,10 @@ export default function WalletPage() {
                       const key = tx.type || tx.transactionType;
                       const type = TX_TYPE[key] || { label: key || "Transaction", cls: "text-sb-tx-2", sign: "", icon: History };
                       const TxIcon = type.icon;
+                      const isPrize = key === "PrizeAwarded";
                       return (
-                        <div key={tx.transactionId || i} className="flex items-center gap-4 px-5 py-4 hover:bg-sb-s2 transition-colors">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-sb-s2 border border-sb-border ${type.cls}`}>
+                        <div key={tx.transactionId || i} className={`flex items-center gap-4 px-5 py-4 transition-colors ${isPrize ? "bg-sb-emerald-soft/40 hover:bg-sb-emerald-soft/60" : "hover:bg-sb-s2"}`}>
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${isPrize ? "bg-sb-emerald-soft border-sb-emerald-bd" : "bg-sb-s2 border-sb-border"} ${type.cls}`}>
                             <TxIcon size={14} />
                           </div>
                           <div className="flex-1 min-w-0">

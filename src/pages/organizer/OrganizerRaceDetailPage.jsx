@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Flag, Users, Award, FileText,
@@ -52,7 +52,7 @@ function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   );
 }
 
-// ── Tab: Race Info ────────────────────────────────────────────────────────────
+// â”€â”€ Tab: Race Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function InfoTab({ race }) {
   if (!race) return null;
   const statusCfg = RACE_STATUS_CONFIG[race.status] || {};
@@ -64,12 +64,12 @@ function InfoTab({ race }) {
   const slots = race.maxParticipants || race.maxEntries;
   const prize = race.prizeFirst || race.prizePool;
   const infoCards = [
-    { icon: "🏁", label: "Race Name",        value: race.raceName,       accent: "#D4AF37" },
-    { icon: "📅", label: "Race Time",         value: raceWhen ? new Date(raceWhen).toLocaleString("vi-VN") : "—" },
-    { icon: "🛤️", label: "Track Type",        value: race.trackType || "—" },
-    { icon: "📏", label: "Distance",          value: dist ? `${dist}m` : "—" },
-    { icon: "👥", label: "Max Participants",  value: slots || "—" },
-    { icon: "💰", label: "First Prize",       value: prize ? `${Number(prize).toLocaleString("vi-VN")} VND` : "—", accent: "#D4AF37" },
+    { icon: "ðŸ", label: "Race Name",        value: race.raceName,       accent: "#D4AF37" },
+    { icon: "ðŸ“…", label: "Race Time",         value: raceWhen ? new Date(raceWhen).toLocaleString("vi-VN") : "â€”" },
+    { icon: "ðŸ›¤ï¸", label: "Track Type",        value: race.trackType || "â€”" },
+    { icon: "ðŸ“", label: "Distance",          value: dist ? `${dist}m` : "â€”" },
+    { icon: "ðŸ‘¥", label: "Max Participants",  value: slots || "â€”" },
+    { icon: "ðŸ’°", label: "First Prize",       value: prize ? `${Number(prize).toLocaleString("vi-VN")} VND` : "â€”", accent: "#D4AF37" },
   ];
 
   return (
@@ -107,7 +107,7 @@ function InfoTab({ race }) {
       {/* Description */}
       {race.description && (
         <div className="bg-sb-s2 border border-sb-border rounded-xl p-4">
-          <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-2">📝 Description</p>
+          <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-2">ðŸ“ Description</p>
           <p className="text-sb-tx-3 text-sm leading-relaxed">{race.description}</p>
         </div>
       )}
@@ -115,7 +115,7 @@ function InfoTab({ race }) {
   );
 }
 
-// ── Tab: Referees ─────────────────────────────────────────────────────────────
+// â”€â”€ Tab: Referees â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function RefereesTab({ raceId }) {
   const [assigned, setAssigned] = useState([]);
   const [allReferees, setAllReferees] = useState([]);
@@ -125,7 +125,7 @@ function RefereesTab({ raceId }) {
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // BE chỉ nhận role: Chief | Assistant
+  // BE chá»‰ nháº­n role: Chief | Assistant
   const ROLE_LABELS = {
     Chief:     { label: "Chief Referee", color: "text-[#D4AF37] bg-[#D4AF37]/10 border-[#D4AF37]/25" },
     Assistant: { label: "Assistant Referee", color: "text-blue-300 bg-blue-500/10 border-blue-500/25" },
@@ -173,7 +173,7 @@ function RefereesTab({ raceId }) {
     }
   };
 
-  // Assigned List chỉ trả refereeId → tra tên/email từ danh sách referees
+  // Assigned List chá»‰ tráº£ refereeId â†’ tra tÃªn/email tá»« danh sÃ¡ch referees
   const refById = {};
   allReferees.forEach((r) => { refById[r.refereeId] = r; });
 
@@ -282,7 +282,7 @@ const REFEREE_ROLES_LABELS = {
   Assistant: "Assistant Referee",
 };
 
-// ── Tab: Entries ──────────────────────────────────────────────────────────────
+// â”€â”€ Tab: Entries â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function EntriesTab({ raceId }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -316,7 +316,7 @@ function EntriesTab({ raceId }) {
     }
   };
 
-  // Rejected kèm lý do (Owner sẽ thấy lý do này)
+  // Rejected kÃ¨m lÃ½ do (Owner sáº½ tháº¥y lÃ½ do nÃ y)
   const [rejectEntry, setRejectEntry] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
   const handleReject = async () => {
@@ -337,7 +337,7 @@ function EntriesTab({ raceId }) {
     }
   };
 
-  // BE trả registrationStatus (không phải status)
+  // BE tráº£ registrationStatus (khÃ´ng pháº£i status)
   const statusOf = (e) => e.registrationStatus || e.status || "Pending";
 
   if (loading) return (
@@ -365,7 +365,7 @@ function EntriesTab({ raceId }) {
       {entries.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-14 text-center">
           <div className="w-14 h-14 rounded-2xl bg-sb-s1/[0.03] border border-sb-border flex items-center justify-center mb-3 animate-float">
-            <span className="text-3xl">🐴</span>
+            <span className="text-3xl">ðŸ´</span>
           </div>
           <p className="text-white font-semibold text-sm mb-1">No entries yet</p>
           <p className="text-sb-tx-3 text-xs">Teams will appear after registration</p>
@@ -387,21 +387,21 @@ function EntriesTab({ raceId }) {
                 style={{ animationDelay: `${idx * 50}ms` }}>
                 {/* Horse avatar */}
                 <div className="w-11 h-11 rounded-xl bg-sb-s1/[0.03] border border-sb-border flex items-center justify-center shrink-0 text-xl">
-                  🐴
+                  ðŸ´
                 </div>
 
                 {/* Entry info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-semibold text-sm">{entry.horseName || `Horse #${entry.horseId}`}</p>
                   <div className="flex items-center gap-3 mt-1 flex-wrap">
-                    {entry.ownerName && <span className="stat-pill">👤 {entry.ownerName}</span>}
+                    {entry.ownerName && <span className="stat-pill">ðŸ‘¤ {entry.ownerName}</span>}
                     {entry.healthStatus && (
                       <span className={`stat-pill ${entry.healthStatus === "Active" ? "text-green-300" : "text-red-300"}`}>
                         <HeartPulse size={10} /> {entry.healthStatus}
                       </span>
                     )}
                     {entry.jockeyName ? (
-                      <span className="stat-pill">🏇 {entry.jockeyName}</span>
+                      <span className="stat-pill">ðŸ‡ {entry.jockeyName}</span>
                     ) : (
                       <span className="text-sb-tx-2 text-xs italic">No jockey yet</span>
                     )}
@@ -434,7 +434,7 @@ function EntriesTab({ raceId }) {
                       st === "Rejected" ? "bg-red-500/15 text-red-300 border-red-500/30" :
                       "bg-gray-500/15 text-sb-tx-3 border-gray-500/30"
                     }`}>
-                      {isReady ? "Ready to Race" : isApproved ? "✓ Approved · waiting for jockey" : st === "Rejected" ? "✕ Rejected" : st}
+                      {isReady ? "Ready to Race" : isApproved ? "âœ“ Approved Â· waiting for jockey" : st === "Rejected" ? "âœ• Rejected" : st}
                     </span>
                   )}
                 </div>
@@ -444,7 +444,7 @@ function EntriesTab({ raceId }) {
         </div>
       )}
 
-      {/* Modal từ chối kèm lý do */}
+      {/* Modal tá»« chá»‘i kÃ¨m lÃ½ do */}
       {detailEntry && (
         <Modal title={`Entry Detail: ${detailEntry.horseName || `Horse #${detailEntry.horseId}`}`} onClose={() => setDetailEntry(null)}>
           <div className="space-y-4">
@@ -514,14 +514,12 @@ function EntriesTab({ raceId }) {
   );
 }
 
-// ── Tab: Results ──────────────────────────────────────────────────────────────
+// â”€â”€ Tab: Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ResultsTab({ raceId, race, role, onRefresh }) {
+  const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [actionLoading, setActionLoading] = useState("");
-  const [showReject, setShowReject] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -537,27 +535,10 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleAction = async (action, extra = {}) => {
-    setActionLoading(action);
-    try {
-      if (action === "approve") await organizerService.approveResults(raceId);
-      else if (action === "reject") await organizerService.rejectResults(raceId, extra.reason);
-      else if (action === "publish") await organizerService.publishResults(raceId);
-      load();
-      onRefresh && onRefresh();
-      if (action === "reject") { setShowReject(false); setRejectReason(""); }
-    } catch (err) {
-      alert(err.message || "Action failed");
-    } finally {
-      setActionLoading("");
-    }
-  };
-
-  // 1 role Organizer duy nhất — được duyệt/công bố kết quả
   const isHead = role === "Organizer";
   const sorted = [...results].sort((a, b) => (a.position || 99) - (b.position || 99));
 
-  // Status duyệt suy từ approvalStatus các kết quả
+  // Status duyá»‡t suy tá»« approvalStatus cÃ¡c káº¿t quáº£
   const resStatus = (() => {
     if (!results || results.length === 0) return "NoResults";
     const st = results.map((r) => r.approvalStatus || "Pending");
@@ -574,56 +555,29 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
   );
 
   const PODIUM = [
-    { pos: 1, icon: "🥇", bg: "from-[#D4AF37]/20 to-[#D4AF37]/5", border: "border-[#D4AF37]/30", text: "text-[#D4AF37] neon-gold" },
-    { pos: 2, icon: "🥈", bg: "from-gray-400/20 to-gray-400/5",   border: "border-gray-400/30",   text: "text-sb-tx-3" },
-    { pos: 3, icon: "🥉", bg: "from-amber-700/20 to-amber-700/5", border: "border-amber-700/30",  text: "text-amber-500" },
+    { pos: 1, icon: "ðŸ¥‡", bg: "from-[#D4AF37]/20 to-[#D4AF37]/5", border: "border-[#D4AF37]/30", text: "text-[#D4AF37] neon-gold" },
+    { pos: 2, icon: "ðŸ¥ˆ", bg: "from-gray-400/20 to-gray-400/5",   border: "border-gray-400/30",   text: "text-sb-tx-3" },
+    { pos: 3, icon: "ðŸ¥‰", bg: "from-amber-700/20 to-amber-700/5", border: "border-amber-700/30",  text: "text-amber-500" },
   ];
 
   return (
     <div className="space-y-5">
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
 
-      {/* Result Actions — hiện nút theo trạng thái duyệt (tránh bấm lại khi approved/công bố) */}
       {isHead && race?.status === "Finished" && resStatus !== "NoResults" && (
         <div className="flex items-center gap-3 flex-wrap p-4 bg-sb-s2 border border-sb-border rounded-xl">
-          <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mr-auto">Result Actions</p>
-
-          {resStatus === "Pending" && (
-            <>
-              <button onClick={() => handleAction("approve")} disabled={!!actionLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-xl text-sm font-bold transition-all disabled:opacity-60">
-                {actionLoading === "approve" ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-                Approve Results
-              </button>
-              <button onClick={() => setShowReject(true)} disabled={!!actionLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/20 text-red-400 hover:bg-red-600/20 rounded-xl text-sm font-medium transition-all disabled:opacity-60">
-                {actionLoading === "reject" ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
-                Rejected
-              </button>
-            </>
-          )}
-
-          {resStatus === "Approved" && (
-            <button onClick={() => handleAction("publish")} disabled={!!actionLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] rounded-xl text-sm font-bold transition-all disabled:opacity-60 btn-gold-glow">
-              {actionLoading === "publish" ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />}
-              Publish
-            </button>
-          )}
-
-          {resStatus === "Published" && (
-            <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/30 text-green-300 text-sm font-bold">
-              <Globe size={14} /> Published
-            </span>
-          )}
-          {resStatus === "Rejected" && (
-            <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm font-bold">
-              <XCircle size={14} /> Declined - waiting for referee edits
-            </span>
-          )}
+          <div className="mr-auto">
+            <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-wider">Result Review</p>
+            <p className="text-sb-tx-2 text-xs mt-1">Approve, reject, and publish results from the dedicated review page.</p>
+          </div>
+          <button
+            onClick={() => navigate(`/organizer/results/${raceId}`)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] rounded-xl text-sm font-bold transition-all btn-gold-glow"
+          >
+            <Eye size={14} /> Open Result Review
+          </button>
         </div>
       )}
-
       {results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-14 text-center">
           <div className="w-14 h-14 rounded-2xl bg-[#D4AF37]/5 border border-[#D4AF37]/10 flex items-center justify-center mb-3 animate-float">
@@ -644,8 +598,8 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
                   <div key={pos} className={`bg-gradient-to-br ${bg} border ${border} rounded-xl p-4 text-center`}>
                     <div className="text-3xl mb-2">{icon}</div>
                     <p className={`text-base font-black ${text}`}>{r.horseName || (r.horseId ? `Horse #${r.horseId}` : "None yet")}</p>
-                    <p className="text-sb-tx-3 text-xs mt-1">🏇 {r.jockeyName || "No jockey yet"}</p>
-                    {r.finishTime && <p className="text-sb-tx-3 text-xs mt-1">⏱ {r.finishTime}</p>}
+                    <p className="text-sb-tx-3 text-xs mt-1">ðŸ‡ {r.jockeyName || "No jockey yet"}</p>
+                    {r.finishTime && <p className="text-sb-tx-3 text-xs mt-1">â± {r.finishTime}</p>}
                   </div>
                 );
               })}
@@ -664,13 +618,13 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
                   r.position === 3 ? "bg-amber-700/20 text-amber-500 border-amber-700/30" :
                   "bg-sb-s1/[0.03] text-sb-tx-3 border-sb-border"
                 }`}>
-                  {r.position ?? "—"}
+                  {r.position ?? "â€”"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-semibold text-sm">{r.horseName || (r.horseId ? `Horse #${r.horseId}` : "None yet")}</p>
                   <div className="flex items-center gap-3 flex-wrap mt-0.5">
-                    <span className="text-sb-tx-3 text-xs">🏇 {r.jockeyName || "No jockey yet"}</span>
-                    {r.finishTime && <span className="stat-pill">⏱ {r.finishTime}</span>}
+                    <span className="text-sb-tx-3 text-xs">ðŸ‡ {r.jockeyName || "No jockey yet"}</span>
+                    {r.finishTime && <span className="stat-pill">â± {r.finishTime}</span>}
                   </div>
                 </div>
                 {r.status && (
@@ -688,29 +642,11 @@ function ResultsTab({ raceId, race, role, onRefresh }) {
         </>
       )}
 
-      {showReject && (
-        <Modal title="Reject Result" accentColor="rgb(239,68,68)" onClose={() => setShowReject(false)}>
-          <p className="text-sb-tx-3 text-sm mb-3">Enter the rejection reason so the referee knows what to fix:</p>
-          <textarea
-            value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
-            placeholder="VD: Missing finish time for horse number 3..." rows={4}
-            className={inputCls + " mb-4"}
-          />
-          <div className="flex gap-3">
-            <button onClick={() => setShowReject(false)}
-              className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Cancel</button>
-            <button onClick={() => handleAction("reject", { reason: rejectReason })} disabled={!!actionLoading}
-              className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
-              {actionLoading === "reject" && <Loader2 size={14} className="animate-spin" />} Rejected
-            </button>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function OrganizerRaceDetailPage() {
   const { raceId } = useParams();
   const navigate = useNavigate();
@@ -754,10 +690,10 @@ export default function OrganizerRaceDetailPage() {
   return (
     <AdminLayout title="Details races">
 
-      {/* ── Page Header Banner ── */}
+      {/* â”€â”€ Page Header Banner â”€â”€ */}
       <div className="page-header">
         <div className="absolute right-0 top-0 w-72 h-full bg-gradient-to-l from-[#D4AF37]/[0.04] to-transparent pointer-events-none" />
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.07] select-none pointer-events-none animate-float">🏁</div>
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.07] select-none pointer-events-none animate-float">ðŸ</div>
 
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -779,13 +715,13 @@ export default function OrganizerRaceDetailPage() {
                   )}
                   {(race?.raceDate || race?.startTime) && (
                     <span className="stat-pill">
-                      📅 {new Date(race.raceDate || race.startTime).toLocaleDateString("vi-VN")}
+                      ðŸ“… {new Date(race.raceDate || race.startTime).toLocaleDateString("vi-VN")}
                     </span>
                   )}
-                  {(race?.trackLength || race?.distance) && <span className="stat-pill">📏 {race.trackLength || race.distance}m</span>}
+                  {(race?.trackLength || race?.distance) && <span className="stat-pill">ðŸ“ {race.trackLength || race.distance}m</span>}
                   {(race?.prizeFirst || race?.prizePool) && (
                     <span className="text-xs font-bold text-[#D4AF37] neon-gold">
-                      💰 {Number(race.prizeFirst || race.prizePool).toLocaleString("vi-VN")} VND
+                      ðŸ’° {Number(race.prizeFirst || race.prizePool).toLocaleString("vi-VN")} VND
                     </span>
                   )}
                 </div>
@@ -808,7 +744,7 @@ export default function OrganizerRaceDetailPage() {
       </div>
 
       <div className="p-6 space-y-5">
-        {/* ── Error ── */}
+        {/* â”€â”€ Error â”€â”€ */}
         {error && (
           <div className="flex items-center gap-3 p-4 bg-red-950/40 border border-red-900 rounded-xl text-red-300 text-sm">
             <AlertCircle size={16} /> {error}
@@ -825,7 +761,7 @@ export default function OrganizerRaceDetailPage() {
           </div>
         ) : !error && (
           <>
-            {/* ── Tab bar ── */}
+            {/* â”€â”€ Tab bar â”€â”€ */}
             <div className="flex gap-1 bg-sb-s2 p-1 rounded-xl border border-sb-border w-fit flex-wrap">
               {TABS.map((tab) => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -840,7 +776,7 @@ export default function OrganizerRaceDetailPage() {
               ))}
             </div>
 
-            {/* ── Tab content ── */}
+            {/* â”€â”€ Tab content â”€â”€ */}
             <div className="bg-sb-s1/[0.015] border border-sb-border rounded-2xl p-5">
               {activeTab === "info"     && <InfoTab race={race} />}
               {activeTab === "referees" && <RefereesTab raceId={raceId} />}
@@ -855,3 +791,5 @@ export default function OrganizerRaceDetailPage() {
     </AdminLayout>
   );
 }
+
+

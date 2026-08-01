@@ -15,6 +15,7 @@ import {
   Loader2,
   Mail,
   PawPrint,
+  ReceiptText,
   RefreshCw,
   Settings,
   Trophy,
@@ -31,6 +32,8 @@ import { dashboardService } from "../../services/dashboard";
 import { leaderboardService } from "../../services/leaderboard";
 import { notificationService } from "../../services/notification";
 import { spectatorService } from "../../services/spectator";
+import { walletService } from "../../services/wallet";
+import { betService } from "../../services/bet";
 
 const ROLE_LABELS = {
   Admin: "Administrator",
@@ -226,6 +229,183 @@ function LeaderList({ title, items, fallback }) {
   );
 }
 
+function SpectatorDashboard({ user }) {
+  const navigate = useNavigate();
+  const [wallet, setWallet] = useState(null);
+  const [openRaces, setOpenRaces] = useState([]);
+  const [recentBets, setRecentBets] = useState([]);
+  const [recentTickets, setRecentTickets] = useState([]);
+  const [jockeys, setJockeys] = useState([]);
+  const [horses, setHorses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [walletRes, racesRes, historyRes, jockeyRes, horseRes] = await Promise.all([
+        walletService.getMyWallet().catch(() => null),
+        spectatorService.getRaces().catch(() => ({ data: [] })),
+        betService.getBetHistory().catch(() => ({ data: { singleBets: [], parlayTickets: [] } })),
+        leaderboardService.getGlobalJockeyLeaderboard().catch(() => ({ data: [] })),
+        leaderboardService.getGlobalHorseLeaderboard().catch(() => ({ data: [] })),
+      ]);
+      const historyData = historyRes?.data || {};
+      setWallet(walletRes?.data || null);
+      setOpenRaces((racesRes.data || []).filter((race) => race.status === "RegistrationOpen").slice(0, 4));
+      setRecentBets(Array.isArray(historyData) ? historyData.slice(0, 4) : (historyData.singleBets || []).slice(0, 4));
+      setRecentTickets((historyData.parlayTickets || []).slice(0, 3));
+      setJockeys(getArray(jockeyRes?.data, ["topJockeys", "jockeys", "items", "content", "data"]));
+      setHorses(getArray(horseRes?.data, ["topHorses", "horses", "items", "content", "data"]));
+    } catch (e) {
+      setError(e.message || "Unable to load spectator dashboard.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const totalRecent = recentBets.length + recentTickets.length;
+
+  return (
+    <AdminLayout title="Dashboard">
+      <div className="p-6 max-w-7xl mx-auto space-y-5">
+        {error && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
+            <AlertCircle size={15} /> {error}
+          </div>
+        )}
+
+        <section
+          className="relative overflow-hidden rounded-2xl border border-sb-border bg-sb-s1 min-h-[260px] flex items-end"
+          style={{
+            backgroundImage: "linear-gradient(90deg, rgba(10,14,26,0.95), rgba(10,14,26,0.70), rgba(10,14,26,0.40)), url('/bg-horse.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="relative z-10 p-6 md:p-8 w-full">
+            <span className="px-3 py-1 rounded-full bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2 text-[10px] font-black uppercase tracking-widest">
+              Spectator
+            </span>
+            <div className="mt-4 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+              <div>
+                <h1 className="font-display text-3xl md:text-4xl font-black text-white leading-tight">
+                  Welcome back, {user?.fullName || user?.username || "Spectator"}
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm md:text-base text-sb-tx-3">
+                  Track your wallet, open betting races, recent tickets, and racing leaders in one customer dashboard.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => navigate("/spectator/betting")} className="btn-gold inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold">
+                  Start Betting <ChevronRight size={15} />
+                </button>
+                <button onClick={() => navigate("/spectator/wallet")} className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-sb-s1/20 hover:bg-sb-s1/30 border border-white/20 text-white/85 text-sm font-semibold">
+                  Wallet
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <OverviewCard icon={Wallet} label="Wallet balance" value={wallet ? formatMoney(wallet.balance).replace(" VND", "") : loading ? "..." : "0"} hint="Available for betting" tone="text-sb-gold-2 bg-sb-gold-soft" />
+          <OverviewCard icon={DollarSign} label="Open betting races" value={openRaces.length} hint="Registration Open only" tone="text-sb-emerald-ink bg-sb-emerald-soft" />
+          <OverviewCard icon={History} label="Recent tickets" value={totalRecent} hint="Single and parlay tickets" tone="text-sb-info bg-sb-info/10" />
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          <section className="xl:col-span-2 rounded-2xl border border-sb-border bg-sb-s1 p-5 space-y-4">
+            <SectionTitle icon={DollarSign} title="Open For Betting" action="Open betting" onAction={() => navigate("/spectator/betting")} />
+            {loading ? (
+              <div className="flex justify-center py-10"><Loader2 size={22} className="animate-spin text-sb-gold-2" /></div>
+            ) : openRaces.length === 0 ? (
+              <div className="py-10 text-center text-sm text-sb-tx-3">No races are open for betting right now.</div>
+            ) : (
+              <div className="divide-y divide-sb-border">
+                {openRaces.map((race) => (
+                  <div key={race.raceId} className="py-4 flex flex-col md:flex-row md:items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-sm font-black text-sb-tx">{race.raceName || "Race"}</h3>
+                        <span className="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd">
+                          Registration Open
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-sb-tx-3">
+                        <span>{formatDate(raceTime(race))}</span>
+                        {race.location && <span>{race.location}</span>}
+                        {racePrize(race) && <span className="font-bold text-sb-gold-2">{formatMoney(racePrize(race))}</span>}
+                      </div>
+                    </div>
+                    <button onClick={() => navigate("/spectator/betting")}
+                      className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-gold text-sb-bg text-xs font-black">
+                      Bet Now <ChevronRight size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-2xl border border-sb-border bg-sb-s1 p-5 space-y-4">
+            <SectionTitle icon={Trophy} title="Leaderboard Preview" action="Open leaderboard" onAction={() => navigate("/leaderboard")} />
+            <LeaderList title="Top Jockeys" items={jockeys} fallback="Leaderboard data will appear after results are published." />
+            <LeaderList title="Top Horses" items={horses} fallback="Leaderboard data will appear after results are published." />
+          </section>
+        </div>
+
+        <section className="rounded-2xl border border-sb-border bg-sb-s1 p-5 space-y-4">
+          <SectionTitle icon={ReceiptText} title="Recent Betting Tickets" action="View history" onAction={() => navigate("/spectator/betting/history")} />
+          {loading ? (
+            <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-sb-gold-2" /></div>
+          ) : totalRecent === 0 ? (
+            <div className="py-8 text-center text-sm text-sb-tx-3">Your recent betting tickets will appear here.</div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {recentBets.map((bet) => (
+                <div key={`bet-${bet.betId}`} className="rounded-xl border border-sb-border bg-sb-s2 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-sb-tx">{bet.raceName || `Race #${bet.raceId}`}</p>
+                      <p className="text-xs text-sb-tx-3">{bet.horseName || `Entry #${bet.entryId}`} | {bet.betTypeLabel || bet.betType} | {bet.odds}x</p>
+                    </div>
+                    <span className="text-xs font-black text-sb-gold-2">{formatMoney(bet.amount)}</span>
+                  </div>
+                </div>
+              ))}
+              {recentTickets.map((ticket) => (
+                <div key={`ticket-${ticket.ticketId}`} className="rounded-xl border border-sb-border bg-sb-s2 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-sb-tx">{ticket.raceName || `Race #${ticket.raceId}`}</p>
+                      <p className="text-xs text-sb-tx-3">Parlay | {ticket.selections?.length || 0} selections | {Number(ticket.odds || 0).toFixed(2)}x</p>
+                    </div>
+                    <span className="text-xs font-black text-sb-emerald-ink">{formatMoney(ticket.amount)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-sb-border bg-sb-s1 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-black text-sb-tx">Customer Support</h2>
+            <p className="mt-1 text-sm text-sb-tx-3">Need help with deposits, betting tickets, or wallet history?</p>
+          </div>
+          <button onClick={() => navigate("/spectator/wallet")} className="inline-flex items-center justify-center gap-2 rounded-xl bg-sb-s2 border border-sb-border px-4 h-10 text-sm font-bold text-sb-tx-2 hover:text-sb-tx">
+            Open Support
+          </button>
+        </section>
+      </div>
+    </AdminLayout>
+  );
+}
+
 export default function DashboardPage() {
   const { user, role } = useAuth();
   const navigate = useNavigate();
@@ -272,8 +452,8 @@ export default function DashboardPage() {
   }, [role]);
 
   useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
+    if (role !== "Spectator") loadDashboard();
+  }, [loadDashboard, role]);
 
   const overview = useMemo(() => {
     if (summary && role !== "Referee") {
@@ -304,6 +484,10 @@ export default function DashboardPage() {
   const actions = ROLE_ACTIONS[role] || [];
   const roleLabel = ROLE_LABELS[role] || role || "Member";
   const leaderboardEmpty = "Leaderboard data will appear after results are published.";
+
+  if (role === "Spectator") {
+    return <SpectatorDashboard user={user} />;
+  }
 
   return (
     <AdminLayout title="Dashboard">

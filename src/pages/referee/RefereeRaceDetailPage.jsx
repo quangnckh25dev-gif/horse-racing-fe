@@ -268,8 +268,9 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ entryId: "", violationType: "", description: "", penalty: "" });
+  const [form, setForm] = useState({ entryId: "", violationType: "", evidenceImageUrl: "", description: "" });
   const [formLoading, setFormLoading] = useState(false);
+  const [rankingMessage, setRankingMessage] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -289,12 +290,23 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const getOptionValue = (option) => option.type || option.violationType || option.name || "";
+  const getOptionLabel = (option) => option.label || getOptionValue(option);
+  const getOptionPenalty = (option) => option.penalty ?? option.penaltySeconds ?? option.defaultPenalty ?? 0;
+  const selectedOption = violationOptions.find((option) => getOptionValue(option) === form.violationType);
+  const selectedPenalty = selectedOption ? getOptionPenalty(selectedOption) : null;
+  const isSelectedDq = Boolean(selectedOption?.isDq);
+
+  const formatPenalty = (value, isDq) => {
+    if (isDq) return "DQ";
+    const amount = Number(value || 0);
+    return amount > 0 ? `+${amount}s` : "0s";
+  };
+
   const handleViolationTypeChange = (violationType) => {
-    const opt = violationOptions.find((o) => (o.violationType || o.type || o.name) === violationType);
     setForm((p) => ({
       ...p,
       violationType,
-      penalty: opt ? (opt.defaultPenalty || opt.penalty || "") : "",
     }));
   };
 
@@ -309,13 +321,20 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
       return;
     }
     setFormLoading(true);
+    setRankingMessage("");
     try {
-      await raceResultService.addViolation(raceId, form);
+      await raceResultService.addViolation(raceId, {
+        entryId: form.entryId,
+        violationType: form.violationType,
+        evidenceImageUrl: form.evidenceImageUrl,
+        description: form.description,
+      });
       setShowAdd(false);
-      setForm({ entryId: "", violationType: "", description: "", penalty: "" });
-      load();
+      setForm({ entryId: "", violationType: "", evidenceImageUrl: "", description: "" });
+      await Promise.all([load(), raceResultService.getResults(raceId)]);
+      setRankingMessage("Violation saved. Ranking has been recalculated.");
     } catch (err) {
-      alert(err.message || "Failed to add violation");
+      setError(err.message || "Failed to record violation. Please check the selected horse and violation type.");
     } finally {
       setFormLoading(false);
     }
@@ -323,11 +342,13 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
 
   const handleDelete = async (violationId) => {
     if (!(await confirmBox("Confirm deleting this violation?", { okText: "Delete", danger: true }))) return;
+    setRankingMessage("");
     try {
       await raceResultService.deleteViolation(violationId);
-      load();
+      await Promise.all([load(), raceResultService.getResults(raceId)]);
+      setRankingMessage("Violation deleted. Ranking has been recalculated.");
     } catch (err) {
-      alert(err.message || "Delete failed");
+      setError(err.message || "Failed to delete violation.");
     }
   };
 
@@ -336,6 +357,11 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   return (
     <div className="space-y-4">
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
+      {rankingMessage && (
+        <div className="text-sb-emerald-ink text-sm p-3 bg-sb-emerald-soft border border-sb-emerald-bd rounded-xl">
+          {rankingMessage}
+        </div>
+      )}
       {(disabledReason || !preRaceChecked) && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
           <AlertCircle size={14} /> {disabledReason || "Pre-race check confirmation is required before recording violations."}
@@ -366,7 +392,17 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
                 <p className="text-white font-medium text-sm">{horse}</p>
                 <p className="text-orange-300 text-xs font-medium mt-0.5">{v.violationType}</p>
                 {v.description && <p className="text-sb-tx-3 text-xs mt-1">{v.description}</p>}
-                {v.penalty && <p className="text-red-300 text-xs mt-0.5">Penalty: {v.penalty}</p>}
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <span className="text-red-300 text-xs font-semibold">
+                    Penalty: {formatPenalty(v.penaltySeconds, v.isDq)}
+                  </span>
+                  {v.evidenceImageUrl && (
+                    <a href={v.evidenceImageUrl} target="_blank" rel="noreferrer"
+                      className="text-[#D4AF37] hover:underline text-xs">
+                      Evidence
+                    </a>
+                  )}
+                </div>
               </div>
               <button onClick={() => handleDelete(v.violationId)}
                 className="p-2 text-sb-tx-3 hover:text-red-400 transition-colors ml-2">
@@ -398,8 +434,8 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
                   className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]">
                   <option value="">-- Select violation type --</option>
                   {violationOptions.map((o) => {
-                    const label = o.violationType || o.type || o.name || "";
-                    return <option key={label} value={label}>{label}</option>;
+                    const value = getOptionValue(o);
+                    return <option key={value} value={value}>{getOptionLabel(o)}</option>;
                   })}
                 </select>
               ) : (
@@ -409,18 +445,37 @@ function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
               )}
             </div>
             <div>
-              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Detailed Description</label>
-              <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={2}
-                className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37] resize-none" />
+              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Auto Penalty</label>
+              <div className={`w-full rounded-lg border px-3 py-2 text-sm font-bold ${
+                selectedOption ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-[#0A0E1A] border-sb-border text-sb-tx-3"
+              }`}>
+                {selectedOption ? `${formatPenalty(selectedPenalty, isSelectedDq)} - ${getOptionLabel(selectedOption)}` : "Select a violation type to see the penalty"}
+              </div>
             </div>
             <div>
-              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">
-                Penalty {form.violationType && <span className="text-[#D4AF37] normal-case">(auto-filled from violation type)</span>}
+              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Evidence Image/File</label>
+              <input value={form.evidenceImageUrl}
+                onChange={(e) => setForm((p) => ({ ...p, evidenceImageUrl: e.target.value }))}
+                placeholder="Paste evidence URL or choose a file below..."
+                className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37]" />
+              <label className="mt-2 flex items-center gap-3 bg-[#0A0E1A] border border-dashed border-sb-border-2 rounded-lg px-3 py-3 cursor-pointer hover:border-[#D4AF37] transition-colors">
+                <input type="file" accept="image/*,application/pdf" hidden
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const demoUrl = `demo-evidence/${file.name}`;
+                    setForm((p) => ({ ...p, evidenceImageUrl: demoUrl }));
+                  }} />
+                <span className="text-sm text-sb-tx-2">
+                  {form.evidenceImageUrl || "Choose evidence image/PDF..."}
+                </span>
               </label>
-              <input value={form.penalty}
-                onChange={(e) => setForm((p) => ({ ...p, penalty: e.target.value }))}
-                placeholder="Auto-filled when selecting violation type..."
-                className={`w-full bg-[#0A0E1A] border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#D4AF37] ${form.penalty ? "border-amber-600/50 text-amber-300" : "border-sb-border text-white"}`} />
+            </div>
+            <div>
+              <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-wider mb-1">Description</label>
+              <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={2}
+                placeholder="Optional when evidence is provided..."
+                className="w-full bg-[#0A0E1A] border border-sb-border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#D4AF37] resize-none" />
             </div>
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2 rounded-lg border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm">Cancel</button>

@@ -1,53 +1,53 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-  Home, Users, UserCheck, Trophy, LogOut,
+  LayoutDashboard, Users, UserCheck, Trophy, LogOut,
   ChevronLeft, ChevronRight,
   Flag, Mail, Calendar,
   Award, PawPrint, User, BarChart2, Wallet, DollarSign,
-  FileText, Settings, MessageSquareWarning,
+  FileText, Settings, MessageSquareWarning, ClipboardCheck, ShieldCheck, ReceiptText,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const MENU_BY_ROLE = {
   Admin: [
-    { label: "Dashboard",           icon: Home,          path: "/dashboard" },
+    { label: "Dashboard",           icon: LayoutDashboard,          path: "/dashboard" },
     { label: "Approve Accounts",     icon: UserCheck,     path: "/admin/users/pending" },
     { label: "User Management",  icon: Users,         path: "/admin/users" },
-    { label: "Approve Tournaments",      icon: Trophy,        path: "/admin/tournaments" },
+    { label: "Tournament Review",      icon: Trophy,        path: "/admin/tournaments" },
     { label: "Approve Deposits",      icon: Wallet,        path: "/admin/deposit-requests" },
     { label: "Deposit Complaints",      icon: MessageSquareWarning,        path: "/admin/deposit-complaints" },
     { label: "System Logs",    icon: FileText,      path: "/admin/audit-logs" },
     { label: "System Configurations",   icon: Settings,      path: "/admin/configs" },
   ],
   Organizer: [
-    { label: "Dashboard",           icon: Home,          path: "/dashboard" },
+    { label: "Dashboard",           icon: LayoutDashboard,          path: "/dashboard" },
     { label: "Race Management",    icon: Flag,          path: "/organizer/races" },
-    { label: "Approve Results",       icon: Award,         path: "/organizer/results" },
+    { label: "Result Review",       icon: Award,         path: "/organizer/results" },
     { label: "Profile",       icon: User,          path: "/profile" },
   ],
   HorseOwner: [
-    { label: "Dashboard",           icon: Home,          path: "/dashboard" },
+    { label: "Dashboard",           icon: LayoutDashboard,          path: "/dashboard" },
     { label: "My Horses",        icon: PawPrint,      path: "/owner/horses" },
     { label: "Race Registration",     icon: Trophy,        path: "/owner/race-registration" },
     { label: "Jockey Invitations",      icon: Mail,          path: "/owner/invitations" },
     { label: "Profile",       icon: User,          path: "/profile" },
   ],
   Jockey: [
-    { label: "Dashboard",           icon: Home,          path: "/dashboard" },
+    { label: "Dashboard",           icon: LayoutDashboard,          path: "/dashboard" },
     { label: "Race Invitations",     icon: Mail,          path: "/jockey/invitations" },
     { label: "Profile",       icon: User,          path: "/profile" },
   ],
   Referee: [
-    { label: "Dashboard",           icon: Home,          path: "/dashboard" },
-    { label: "My Races",    icon: Flag,          path: "/referee/races" },
+    { label: "Dashboard",           icon: LayoutDashboard,          path: "/dashboard" },
+    { label: "My Races",    icon: ClipboardCheck,          path: "/referee/races" },
     { label: "Profile",       icon: User,          path: "/profile" },
   ],
   Spectator: [
-    { label: "Dashboard",           icon: Home,          path: "/dashboard" },
+    { label: "Dashboard",           icon: LayoutDashboard,          path: "/dashboard" },
     { label: "Race Schedule",        icon: Calendar,      path: "/spectator/schedule" },
     { label: "Betting",            icon: DollarSign,    path: "/spectator/betting" },
-    { label: "Betting History",          icon: FileText,        path: "/spectator/betting/history" },
+    { label: "Betting History",          icon: ReceiptText,        path: "/spectator/betting/history" },
     { label: "My Wallet",          icon: Wallet,        path: "/spectator/wallet" },
     { label: "Leaderboard",       icon: BarChart2,     path: "/leaderboard" },
   ],
@@ -62,6 +62,24 @@ const ROLE_LABEL = {
   Spectator:  "Spectator",
 };
 
+const ROLE_ACCENT = {
+  Admin: "bg-sky-500/10 border-sky-500/30 text-sky-300",
+  Organizer: "bg-amber-500/10 border-amber-500/30 text-amber-300",
+  HorseOwner: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300",
+  Jockey: "bg-orange-500/10 border-orange-500/30 text-orange-300",
+  Referee: "bg-violet-500/10 border-violet-500/30 text-violet-300",
+  Spectator: "bg-sb-gold-soft border-sb-gold-bd text-sb-gold-2",
+};
+
+const ROLE_ICON = {
+  Admin: ShieldCheck,
+  Organizer: Flag,
+  HorseOwner: PawPrint,
+  Jockey: Award,
+  Referee: ClipboardCheck,
+  Spectator: Trophy,
+};
+
 export default function Sidebar() {
   const { logout, role } = useAuth();
   const navigate = useNavigate();
@@ -69,6 +87,8 @@ export default function Sidebar() {
 
   const menu = MENU_BY_ROLE[role] || [];
   const roleLabel = ROLE_LABEL[role];
+  const RoleIcon = ROLE_ICON[role] || Flag;
+  const roleAccent = ROLE_ACCENT[role] || "bg-sb-emerald-soft border-sb-emerald-bd text-sb-emerald-ink";
 
   return (
     <aside
@@ -79,13 +99,13 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-sb-border shrink-0">
         {collapsed ? (
-          <div className="mx-auto w-8 h-8 rounded-lg flex items-center justify-center bg-sb-emerald-soft border border-sb-emerald-bd text-base">
+          <div className={`mx-auto w-8 h-8 rounded-lg flex items-center justify-center border text-base ${roleAccent}`}>
             <Flag size={16} />
           </div>
         ) : (
           <>
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-sb-emerald-soft border border-sb-emerald-bd text-base shrink-0">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center border text-base shrink-0 ${roleAccent}`}>
                 <Flag size={16} />
               </div>
               <div className="overflow-hidden">
@@ -157,8 +177,8 @@ export default function Sidebar() {
       {/* Role and logout */}
       <div className="border-t border-sb-border p-3 space-y-2 shrink-0">
         {roleLabel && !collapsed && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-sb-s2 border border-sb-border text-xs font-semibold text-sb-tx-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-sb-emerald" />
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold ${roleAccent}`}>
+            <RoleIcon size={13} />
             <span className="truncate">{roleLabel}</span>
           </div>
         )}

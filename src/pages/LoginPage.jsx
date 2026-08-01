@@ -4,6 +4,7 @@ import { User, Lock, Eye, EyeOff, Loader2, AlertCircle, Wrench, Clock } from "lu
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/auth";
 import AuthShell from "../components/auth/AuthShell";
+import GoogleSignInButton from "../components/auth/GoogleSignInButton";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -140,6 +141,18 @@ export default function LoginPage() {
           {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Processing...</> : "LOGIN"}
         </button>
       </form>
+
+      {/* FE-04: đăng nhập nhanh bằng Google (tạo tài khoản Spectator tự động) */}
+      {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+        <>
+          <div className="flex items-center gap-3 my-5">
+            <span className="h-px flex-1 bg-sb-border" />
+            <span className="text-sb-tx-3 text-xs uppercase tracking-widest">or</span>
+            <span className="h-px flex-1 bg-sb-border" />
+          </div>
+          <GoogleSignInButton onError={setErrorMsg} rememberMe={rememberMe} />
+        </>
+      )}
 
       <div className="mt-6 pt-5 border-t border-sb-border text-center space-y-2">
         <p className="text-sm text-sb-tx-3">

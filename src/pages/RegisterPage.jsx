@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { authService } from "../services/auth";
 import AuthShell from "../components/auth/AuthShell";
+import GoogleSignInButton from "../components/auth/GoogleSignInButton";
 
 // value = enum BE (GET /api/auth/register-roles). Admin is NOT selectable here.
 const ROLE_OPTIONS = [
@@ -178,6 +179,18 @@ export default function RegisterPage() {
           {formik.isSubmitting ? <><Loader2 className="h-5 w-5 animate-spin" /> Processing...</> : "CREATE ACCOUNT"}
         </button>
       </form>
+
+      {/* FE-04: đăng ký/đăng nhập nhanh bằng Google (tạo tài khoản Spectator tự động) */}
+      {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+        <>
+          <div className="flex items-center gap-3 my-5">
+            <span className="h-px flex-1 bg-sb-border" />
+            <span className="text-sb-tx-3 text-xs uppercase tracking-widest">or</span>
+            <span className="h-px flex-1 bg-sb-border" />
+          </div>
+          <GoogleSignInButton onError={setServerError} />
+        </>
+      )}
 
       <div className="mt-6 pt-5 border-t border-sb-border text-center space-y-2">
         <p className="text-sm text-sb-tx-3">

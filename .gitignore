@@ -143,6 +143,11 @@ logs
 node_modules
 bower_components
 
+# Local env (chua Client ID Google - moi nguoi tu tao rieng, xem .env.example)
+.env
+.env.local
+.env.*.local
+
 *.sublime*
 
 psd

@@ -1,43 +1,66 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Plus, Edit2, AlertCircle, Loader2,
-  RefreshCw, X, Heart, Activity, PawPrint,
-  Dna, Mars, Venus,
+  Activity,
+  AlertCircle,
+  Edit2,
+  Heart,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Search,
+  X,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { horseService } from "../../services/horse";
 
+const STATUS_OPTIONS = ["Active", "Injured", "Inactive"];
+const FILTER_OPTIONS = ["Active", "Injured", "Inactive", "All"];
+
 const STATUS_CONFIG = {
-  Active:   { label: "Active",       color: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", strip: "from-green-400/20 to-green-400/5", dot: "bg-green-500" },
-  Injured:  { label: "Injured",       color: "bg-sb-lose/10 text-sb-lose border-sb-lose/30",       strip: "from-red-400/20 to-red-400/5",    dot: "bg-red-500" },
-  Inactive: { label: "Inactive", color: "bg-sb-s2 text-sb-tx-3 border-sb-border",    strip: "from-gray-400/15 to-gray-400/5",  dot: "bg-gray-400" },
+  Active: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd",
+  Injured: "bg-sb-lose/10 text-sb-lose border-sb-lose/30",
+  Inactive: "bg-sb-s2 text-sb-tx-3 border-sb-border",
 };
 
-const HORSE_COLORS = [
-  "Brown", "Black", "White", "Gray", "Bay", "Palomino",
-  "Pinto", "Light Brown (Chestnut)", "Dapple Gray",
-  "Solid Black", "Golden Brown (Buckskin)", "Cremello",
-];
-
 const HORSE_BREEDS = [
-  "Thoroughbred", "Arabian", "Quarter Horse", "Warmblood", "Appaloosa",
-  "Morgan", "Friesian", "Mustang", "Andalusian", "Hanoverian",
-  "Paint", "Standardbred", "Irish Draught", "Clydesdale", "Vietnamese Horse",
+  "Thoroughbred",
+  "Arabian",
+  "Quarter Horse",
+  "Warmblood",
+  "Appaloosa",
+  "Morgan",
+  "Friesian",
+  "Mustang",
+  "Andalusian",
+  "Hanoverian",
+  "Paint",
+  "Standardbred",
+  "Irish Draught",
+  "Clydesdale",
+  "Vietnamese Horse",
 ];
 
 const EMPTY_FORM = {
-  horseName: "", breed: "", birthYear: "", gender: "", color: "",
-  weightKg: "", description: "", status: "Active",
+  horseName: "",
+  breed: "",
+  birthYear: "",
+  gender: "",
+  color: "",
+  weightKg: "",
+  status: "Active",
 };
 
-function Modal({ title, accentColor = "#2563EB", onClose, children }) {
+const currentYear = new Date().getFullYear();
+const inputCls = "w-full bg-sb-s1 border border-sb-border rounded-xl px-3 py-2.5 text-sb-tx text-sm focus:outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all placeholder:text-sb-tx-3";
+
+function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl shadow-black/20 max-h-[90vh] overflow-y-auto animate-scale-in">
+      <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-xl shadow-2xl shadow-black/20 max-h-[90vh] overflow-y-auto animate-scale-in">
         <div className="h-0.5 w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }} />
         <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border">
           <h3 className="text-sb-tx font-bold">{title}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx-2 hover:bg-sb-s2 transition-colors">
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx-2 hover:bg-sb-s2 transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -47,71 +70,92 @@ function Modal({ title, accentColor = "#2563EB", onClose, children }) {
   );
 }
 
-function FormField({ label, children }) {
+function FormField({ label, required, children, hint }) {
   return (
     <div>
-      <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">{label}</label>
+      <label className="block text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+        {label}{required && <span className="text-sb-lose"> *</span>}
+      </label>
       {children}
+      {hint && <p className="mt-1 text-[11px] text-sb-tx-3">{hint}</p>}
     </div>
   );
 }
 
-const inputCls = "w-full bg-sb-s1 border border-sb-border rounded-xl px-3 py-2.5 text-sb-tx text-sm focus:outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all placeholder:text-sb-tx-3";
+function normalizeStatus(status) {
+  if (STATUS_OPTIONS.includes(status)) return status;
+  if (status === true || status === "true") return "Active";
+  if (status === false || status === "false") return "Inactive";
+  return "Active";
+}
 
-const currentYear = new Date().getFullYear();
+function validateHorseForm(form) {
+  if (!form.horseName.trim()) return "Horse name is required.";
+  if (!form.birthYear) return "Birth year is required.";
+  const birthYear = Number(form.birthYear);
+  if (Number.isNaN(birthYear) || birthYear < 1980 || birthYear > currentYear) {
+    return `Birth year must be between 1980 and ${currentYear}.`;
+  }
+  if (!form.weightKg) return "Weight is required.";
+  const weight = Number(form.weightKg);
+  if (Number.isNaN(weight) || weight <= 0) return "Weight must be greater than 0.";
+  if (!STATUS_OPTIONS.includes(form.status)) return "Status is invalid.";
+  return "";
+}
 
 function HorseForm({ form, onChange, onSubmit, onCancel, loading, submitLabel }) {
-  const calcAge = form.birthYear ? currentYear - Number(form.birthYear) : null;
+  const age = form.birthYear ? currentYear - Number(form.birthYear) : null;
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="col-span-2">
-          <FormField label="Horse Name *">
-            <input name="horseName" value={form.horseName} onChange={onChange} required className={inputCls} placeholder="VD: Thunder Storm" />
-          </FormField>
-        </div>
+      <FormField label="Horse Name" required>
+        <input name="horseName" value={form.horseName} onChange={onChange} required className={inputCls} placeholder="Thunder Storm" />
+      </FormField>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <FormField label="Breed">
           <select name="breed" value={form.breed} onChange={onChange} className={inputCls}>
-            <option value="">-- Select Breed --</option>
-            {HORSE_BREEDS.map((b) => <option key={b} value={b}>{b}</option>)}
+            <option value="">Choose breed</option>
+            {HORSE_BREEDS.map((breed) => (
+              <option key={breed} value={breed}>{breed}</option>
+            ))}
           </select>
         </FormField>
-        <FormField label={`Birth Year${calcAge !== null ? ` (${calcAge} years old)` : ""}`}>
-          <input name="birthYear" type="number" min="1990" max={currentYear} value={form.birthYear} onChange={onChange}
-            className={inputCls} placeholder={String(currentYear - 5)} />
+
+        <FormField label="Birth Year" required hint={age !== null && age >= 0 ? `${age} years old` : ""}>
+          <input name="birthYear" type="number" min="1980" max={currentYear} value={form.birthYear} onChange={onChange} required className={inputCls} placeholder={String(currentYear - 5)} />
         </FormField>
+
         <FormField label="Gender">
           <select name="gender" value={form.gender} onChange={onChange} className={inputCls}>
-            <option value="">-- Select --</option>
-            <option value="Male">Male ♂</option>
-            <option value="Female">Female ♀</option>
+            <option value="">Choose gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
           </select>
         </FormField>
+
         <FormField label="Color">
-          <select name="color" value={form.color} onChange={onChange} className={inputCls}>
-            <option value="">-- Select Color --</option>
-            {HORSE_COLORS.map((c) => <option key={c} value={c}>{c}</option>)}
+          <input name="color" value={form.color} onChange={onChange} className={inputCls} placeholder="Bay, black, chestnut..." />
+        </FormField>
+
+        <FormField label="Weight (kg)" required>
+          <input name="weightKg" type="number" min="1" step="0.1" value={form.weightKg} onChange={onChange} required className={inputCls} placeholder="450" />
+        </FormField>
+
+        <FormField label="Status" required>
+          <select name="status" value={form.status} onChange={onChange} className={inputCls}>
+            {STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>{status}</option>
+            ))}
           </select>
         </FormField>
-        <div className="col-span-2">
-          <FormField label="Weight (kg)">
-            <input name="weightKg" type="number" min="100" max="1000" value={form.weightKg} onChange={onChange} className={inputCls} placeholder="450" />
-          </FormField>
-        </div>
-        <div className="col-span-2">
-          <FormField label="Description">
-            <textarea name="description" value={form.description} onChange={onChange} rows={2}
-              className={inputCls + " resize-none"} placeholder="Additional Notes..." />
-          </FormField>
-        </div>
       </div>
+
       <div className="flex gap-3 pt-1">
-        <button type="button" onClick={onCancel}
-          className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-sb-border-2 text-sm transition-colors">
+        <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-sb-border-2 text-sm transition-colors">
           Cancel
         </button>
-        <button type="submit" disabled={loading}
-          className="flex-1 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 btn-gold-glow transition-all">
+        <button type="submit" disabled={loading} className="flex-1 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 btn-gold-glow transition-all">
           {loading && <Loader2 size={14} className="animate-spin" />}
           {submitLabel}
         </button>
@@ -124,7 +168,7 @@ function HealthModal({ horseId, horseName, onClose }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ checkDate: "", condition: "", notes: "", veterinarian: "" });
+  const [addForm, setAddForm] = useState({ checkDate: "", healthStatus: "Active", vetName: "", notes: "" });
   const [addLoading, setAddLoading] = useState(false);
 
   const load = useCallback(async () => {
@@ -141,16 +185,20 @@ function HealthModal({ horseId, horseName, onClose }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleAdd = async (e) => {
-    e.preventDefault();
+  const handleAdd = async (event) => {
+    event.preventDefault();
+    if (!addForm.checkDate) {
+      alert("Check date is required.");
+      return;
+    }
     setAddLoading(true);
     try {
       await horseService.addHealthRecord(horseId, addForm);
       setShowAdd(false);
-      setAddForm({ checkDate: "", condition: "", notes: "", veterinarian: "" });
+      setAddForm({ checkDate: "", healthStatus: "Active", vetName: "", notes: "" });
       load();
     } catch (err) {
-      alert(err.message || "Failed to add health record");
+      alert(err.message || "Failed to add health record.");
     } finally {
       setAddLoading(false);
     }
@@ -159,30 +207,29 @@ function HealthModal({ horseId, horseName, onClose }) {
   return (
     <Modal title={`Health Records - ${horseName}`} accentColor="rgb(244,114,182)" onClose={onClose}>
       <div className="space-y-4">
-        <button onClick={() => setShowAdd(!showAdd)}
-          className="flex items-center gap-2 px-3 py-2 bg-pink-500/10 border border-pink-500/30 text-pink-400 rounded-xl text-xs font-semibold hover:bg-pink-500/20 transition-colors">
-          <Plus size={13} /> Add New Record
+        <button type="button" onClick={() => setShowAdd((value) => !value)} className="flex items-center gap-2 px-3 py-2 bg-pink-500/10 border border-pink-500/30 text-pink-400 rounded-xl text-xs font-semibold hover:bg-pink-500/20 transition-colors">
+          <Plus size={13} /> Add Record
         </button>
 
         {showAdd && (
           <form onSubmit={handleAdd} className="bg-sb-s2 rounded-xl border border-sb-border p-4 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <FormField label="Check Date">
-                <input type="date" value={addForm.checkDate} onChange={(e) => setAddForm((p) => ({ ...p, checkDate: e.target.value }))} className={inputCls} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField label="Check Date" required>
+                <input type="date" value={addForm.checkDate} onChange={(e) => setAddForm((p) => ({ ...p, checkDate: e.target.value }))} className={inputCls} required />
               </FormField>
-              <FormField label="Condition">
-                <input value={addForm.condition} onChange={(e) => setAddForm((p) => ({ ...p, condition: e.target.value }))}
-                  placeholder="VD: Tốt, Injured..." className={inputCls} />
+              <FormField label="Health Status" required>
+                <select value={addForm.healthStatus} onChange={(e) => setAddForm((p) => ({ ...p, healthStatus: e.target.value }))} className={inputCls}>
+                  {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{status}</option>)}
+                </select>
               </FormField>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <FormField label="Veterinarian">
-                  <input value={addForm.veterinarian} onChange={(e) => setAddForm((p) => ({ ...p, veterinarian: e.target.value }))} className={inputCls} />
+                  <input value={addForm.vetName} onChange={(e) => setAddForm((p) => ({ ...p, vetName: e.target.value }))} className={inputCls} placeholder="Dr. Smith" />
                 </FormField>
               </div>
-              <div className="col-span-2">
-                <FormField label="Note">
-                  <textarea value={addForm.notes} onChange={(e) => setAddForm((p) => ({ ...p, notes: e.target.value }))} rows={2}
-                    className={inputCls + " resize-none"} />
+              <div className="sm:col-span-2">
+                <FormField label="Notes">
+                  <textarea value={addForm.notes} onChange={(e) => setAddForm((p) => ({ ...p, notes: e.target.value }))} rows={2} className={`${inputCls} resize-none`} placeholder="Optional notes" />
                 </FormField>
               </div>
             </div>
@@ -200,18 +247,18 @@ function HealthModal({ horseId, horseName, onClose }) {
         ) : records.length === 0 ? (
           <div className="text-center py-10">
             <Activity size={32} className="mx-auto text-sb-tx-3 mb-2" />
-            <p className="text-sb-tx-3 text-sm">No health records yet</p>
+            <p className="text-sb-tx-3 text-sm">No health records yet.</p>
           </div>
         ) : (
           <div className="space-y-2 max-h-72 overflow-y-auto">
-            {records.map((r, i) => (
-              <div key={i} className="bg-sb-s2 border border-sb-border rounded-xl p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sb-tx text-sm font-semibold">{r.condition || "—"}</span>
-                  <span className="text-sb-tx-3 text-xs bg-sb-s2 px-2 py-0.5 rounded-full">{r.checkDate || "—"}</span>
+            {records.map((record) => (
+              <div key={record.recordId || `${record.horseId}-${record.checkDate}`} className="bg-sb-s2 border border-sb-border rounded-xl p-3">
+                <div className="flex items-center justify-between gap-3 mb-1">
+                  <span className="text-sb-tx text-sm font-semibold">{record.healthStatus || record.diagnosis || "Health Check"}</span>
+                  <span className="text-sb-tx-3 text-xs bg-sb-s1 px-2 py-0.5 rounded-full">{record.checkDate || "No date"}</span>
                 </div>
-                {r.veterinarian && <p className="text-sb-tx-3 text-xs">🩺 {r.veterinarian}</p>}
-                {r.notes && <p className="text-sb-tx-3 text-xs mt-1 italic">"{r.notes}"</p>}
+                {record.vetName && <p className="text-sb-tx-3 text-xs">Veterinarian: {record.vetName}</p>}
+                {record.notes && <p className="text-sb-tx-3 text-xs mt-1">{record.notes}</p>}
               </div>
             ))}
           </div>
@@ -225,6 +272,8 @@ export default function HorsesPage() {
   const [horses, setHorses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Active");
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(null);
   const [showHealth, setShowHealth] = useState(null);
@@ -238,9 +287,9 @@ export default function HorsesPage() {
     setError("");
     try {
       const res = await horseService.getMyHorses();
-      setHorses(res.data || []);
-    } catch (e) {
-      setError(e.message || "Unable to load horses");
+      setHorses((res.data || []).map((horse) => ({ ...horse, status: normalizeStatus(horse.status || horse.healthStatus || horse.active) })));
+    } catch (err) {
+      setError(err.message || "Unable to load horses.");
     } finally {
       setLoading(false);
     }
@@ -248,50 +297,99 @@ export default function HorsesPage() {
 
   useEffect(() => { fetchHorses(); }, [fetchHorses]);
 
-  const handleFormChange = (e) => setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const filteredHorses = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    return horses.filter((horse) => {
+      const matchesSearch = !keyword || String(horse.horseName || "").toLowerCase().includes(keyword);
+      const matchesFilter = statusFilter === "All" || normalizeStatus(horse.status || horse.healthStatus || horse.active) === statusFilter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [horses, search, statusFilter]);
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
+  const counts = useMemo(() => ({
+    total: horses.length,
+    active: horses.filter((horse) => normalizeStatus(horse.status || horse.healthStatus || horse.active) === "Active").length,
+    injured: horses.filter((horse) => normalizeStatus(horse.status || horse.healthStatus || horse.active) === "Injured").length,
+    inactive: horses.filter((horse) => normalizeStatus(horse.status || horse.healthStatus || horse.active) === "Inactive").length,
+  }), [horses]);
+
+  const handleFormChange = (event) => {
+    setFormData((previous) => ({ ...previous, [event.target.name]: event.target.value }));
+  };
+
+  const submitPayload = () => ({
+    horseName: formData.horseName.trim(),
+    breed: formData.breed || null,
+    birthYear: formData.birthYear ? Number(formData.birthYear) : null,
+    gender: formData.gender || null,
+    color: formData.color.trim() || null,
+    weightKg: formData.weightKg ? Number(formData.weightKg) : null,
+    status: formData.status,
+  });
+
+  const handleCreate = async (event) => {
+    event.preventDefault();
+    const validationError = validateHorseForm(formData);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+
     setFormLoading(true);
     setFormError("");
     try {
-      await horseService.create(formData);
+      await horseService.create(submitPayload());
       setShowCreate(false);
       setFormData(EMPTY_FORM);
       fetchHorses();
     } catch (err) {
-      setFormError(err.message || "Create failed");
+      setFormError(err.message || "Create failed.");
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleEdit = async (e) => {
-    e.preventDefault();
+  const handleEdit = async (event) => {
+    event.preventDefault();
+    const validationError = validateHorseForm(formData);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+
     setFormLoading(true);
     setFormError("");
     try {
-      await horseService.update(showEdit.horseId, formData);
+      await horseService.update(showEdit.horseId, submitPayload());
       setShowEdit(null);
       fetchHorses();
     } catch (err) {
-      setFormError(err.message || "Update failed");
+      setFormError(err.message || "Update failed.");
     } finally {
       setFormLoading(false);
     }
   };
-
 
   const handleChangeStatus = async (horseId, newStatus) => {
     setStatusLoading(horseId);
     try {
       await horseService.changeStatus(horseId, newStatus);
-      setHorses((prev) => prev.map((h) => h.horseId === horseId ? { ...h, status: newStatus } : h));
+      setHorses((previous) => previous.map((horse) => (
+        horse.horseId === horseId
+          ? { ...horse, status: newStatus, healthStatus: newStatus, active: newStatus !== "Inactive" }
+          : horse
+      )));
     } catch (err) {
-      alert(err.message || "Failed to change status");
+      alert(err.message || "Failed to change status.");
     } finally {
       setStatusLoading("");
     }
+  };
+
+  const openCreate = () => {
+    setFormData(EMPTY_FORM);
+    setFormError("");
+    setShowCreate(true);
   };
 
   const openEdit = (horse) => {
@@ -302,49 +400,37 @@ export default function HorsesPage() {
       gender: horse.gender || "",
       color: horse.color || "",
       weightKg: horse.weightKg || horse.weight || "",
-      description: horse.description || "",
-      status: horse.status || "Active",
+      status: normalizeStatus(horse.status || horse.healthStatus || horse.active),
     });
     setShowEdit(horse);
     setFormError("");
   };
 
-  const activeCount   = horses.filter((h) => h.status === "Active").length;
-  const injuredCount  = horses.filter((h) => h.status === "Injured").length;
-  const inactiveCount = horses.filter((h) => h.status === "Inactive").length;
-
   return (
     <AdminLayout title="My Horses">
-
-      {/* ── Page Header Banner ── */}
       <div className="page-header mb-0">
-        {/* right glow */}
         <div className="absolute right-0 top-0 w-80 h-full bg-gradient-to-l from-orange-500/[0.05] to-transparent pointer-events-none" />
-        {/* floating emoji */}
-
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <div className="w-7 h-7 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-                <PawPrint size={14} className="text-orange-400" />
+                <Activity size={14} className="text-orange-400" />
               </div>
               <span className="text-[10px] font-bold text-sb-tx-3 uppercase tracking-widest">Horse Management</span>
             </div>
             <h1 className="text-2xl font-black text-sb-tx leading-tight">My Horses</h1>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="stat-pill"><span className="text-sb-tx font-bold">{horses.length}</span> total</span>
-              {activeCount > 0 && <span className="stat-pill text-green-400"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block mr-1" />{activeCount} active</span>}
-              {injuredCount > 0 && <span className="stat-pill text-red-400"><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block mr-1" />{injuredCount} injured</span>}
-              {inactiveCount > 0 && <span className="stat-pill text-sb-tx-3"><span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block mr-1" />{inactiveCount} inactive</span>}
+            <div className="flex flex-wrap items-center gap-3 mt-2">
+              <span className="stat-pill"><span className="text-sb-tx font-bold">{counts.total}</span> total</span>
+              <span className="stat-pill text-green-400">{counts.active} active</span>
+              <span className="stat-pill text-red-400">{counts.injured} injured</span>
+              <span className="stat-pill text-sb-tx-3">{counts.inactive} inactive</span>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button onClick={fetchHorses}
-              className="flex items-center gap-2 px-3 py-2 bg-sb-s1 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-info hover:border-blue-300 text-sm transition-all">
+            <button type="button" onClick={fetchHorses} className="flex items-center gap-2 px-3 py-2 bg-sb-s1 border border-sb-border rounded-xl text-sb-tx-3 hover:text-sb-info hover:border-blue-300 text-sm transition-all" title="Refresh">
               <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
             </button>
-            <button onClick={() => { setFormData(EMPTY_FORM); setFormError(""); setShowCreate(true); }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm transition-all btn-gold-glow">
+            <button type="button" onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm transition-all btn-gold-glow">
               <Plus size={15} /> Add Horse
             </button>
           </div>
@@ -358,137 +444,112 @@ export default function HorsesPage() {
           </div>
         )}
 
-        {/* ── Horse Grid ── */}
+        <div className="bg-sb-s1 border border-sb-border rounded-2xl p-4">
+          <div className="flex flex-col lg:flex-row gap-3 lg:items-center justify-between">
+            <div className="relative flex-1">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-sb-tx-3" />
+              <input value={search} onChange={(event) => setSearch(event.target.value)} className={`${inputCls} pl-9`} placeholder="Search by horse name" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {FILTER_OPTIONS.map((status) => (
+                <button key={status} type="button" onClick={() => setStatusFilter(status)} className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all ${statusFilter === status ? "bg-sb-emerald text-[#07130f] border-sb-emerald" : "bg-sb-s2 text-sb-tx-3 border-sb-border hover:text-sb-tx"}`}>
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-52 shimmer rounded-2xl" style={{ animationDelay: `${i * 80}ms` }} />
+          <div className="space-y-3">
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="h-20 shimmer rounded-2xl" style={{ animationDelay: `${index * 80}ms` }} />
             ))}
           </div>
         ) : horses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 rounded-2xl bg-orange-500/5 border border-orange-500/10 flex items-center justify-center mb-4 animate-float">
-              <span className="text-4xl">🐴</span>
+            <div className="w-16 h-16 rounded-2xl bg-orange-500/5 border border-orange-500/10 flex items-center justify-center mb-4">
+              <Activity size={28} className="text-orange-400" />
             </div>
             <p className="text-sb-tx font-semibold mb-1">No horses yet</p>
-            <p className="text-sb-tx-3 text-sm mb-4">Add your first horse to your stable</p>
-            <button onClick={() => { setFormData(EMPTY_FORM); setFormError(""); setShowCreate(true); }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm btn-gold-glow">
+            <p className="text-sb-tx-3 text-sm mb-4">Add your first horse to your stable.</p>
+            <button type="button" onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm btn-gold-glow">
               <Plus size={15} /> Add First Horse
             </button>
           </div>
+        ) : filteredHorses.length === 0 ? (
+          <div className="bg-sb-s1 border border-sb-border rounded-2xl py-16 text-center">
+            <p className="text-sb-tx font-semibold">No matching horses</p>
+            <p className="text-sb-tx-3 text-sm mt-1">Try another keyword or status filter.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {horses.map((horse, idx) => {
-              const statusCfg = STATUS_CONFIG[horse.status] || { label: horse.status, color: "bg-gray-500/20 text-sb-tx-3 border-gray-500/40", strip: "from-gray-500/20 to-gray-500/5", dot: "bg-gray-400" };
-              return (
-                <div
-                  key={horse.horseId}
-                  className="group relative bg-sb-s1 border border-sb-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-sb-info/30 transition-all"
-                  style={{ animationDelay: `${idx * 60}ms` }}
-                >
-                  {/* Top gradient strip based on status */}
-                  <div className={`h-0.5 w-full bg-gradient-to-r ${statusCfg.strip}`} />
-
-                  <div className="p-5">
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        {/* Horse avatar */}
-                        <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br ${statusCfg.strip} border border-sb-border shrink-0`}>
-                          🐴
-                          <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${statusCfg.dot}`} />
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="text-sb-tx font-bold text-base leading-tight truncate">{horse.horseName}</h3>
-                          <p className="text-sb-tx-3 text-xs mt-0.5 flex items-center gap-1">
-                            <Dna size={10} className="shrink-0" />
-                            {horse.breed || "Unknown"}
-                          </p>
-                        </div>
-                      </div>
-                      <span className={`text-[10px] px-2 py-1 rounded-full border font-semibold shrink-0 ${statusCfg.color}`}>
-                        {statusCfg.label}
+          <div className="bg-sb-s1 border border-sb-border rounded-2xl overflow-hidden">
+            <div className="hidden lg:grid grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.8fr_1.3fr] gap-4 px-4 py-3 border-b border-sb-border bg-sb-s2/60 text-[10px] font-bold uppercase tracking-widest text-sb-tx-3">
+              <span>Horse</span>
+              <span>Profile</span>
+              <span>Age</span>
+              <span>Weight</span>
+              <span>Status</span>
+              <span className="text-right">Actions</span>
+            </div>
+            <div className="divide-y divide-sb-border">
+              {filteredHorses.map((horse) => {
+                const status = normalizeStatus(horse.status || horse.healthStatus || horse.active);
+                const age = horse.birthYear ? currentYear - horse.birthYear : horse.age;
+                return (
+                  <div key={horse.horseId} className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.8fr_1.3fr] gap-3 lg:gap-4 px-4 py-4 lg:items-center hover:bg-sb-s2/40 transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-sb-tx font-bold truncate">{horse.horseName}</p>
+                      <p className="text-sb-tx-3 text-xs truncate">{horse.registerCode || "No register code"}</p>
+                    </div>
+                    <div className="text-sm text-sb-tx-2">
+                      <p>{horse.breed || "Unknown breed"}</p>
+                      <p className="text-xs text-sb-tx-3">{[horse.gender, horse.color].filter(Boolean).join(" / ") || "No profile details"}</p>
+                    </div>
+                    <div className="text-sm text-sb-tx-2">{age ? `${age} years` : "No age"}</div>
+                    <div className="text-sm text-sb-tx-2">{horse.weightKg || horse.weight ? `${horse.weightKg || horse.weight} kg` : "No weight"}</div>
+                    <div>
+                      <span className={`inline-flex px-2.5 py-1 rounded-full border text-xs font-bold ${STATUS_CONFIG[status] || STATUS_CONFIG.Active}`}>
+                        {status}
                       </span>
                     </div>
-
-                    {/* Stats grid */}
-                    <div className="grid grid-cols-2 gap-2 mb-4">
-                      {[
-                        { label: "Age",   value: horse.birthYear ? `${currentYear - horse.birthYear}t` : (horse.age ? `${horse.age}t` : "—"), icon: "🎂" },
-                        { label: "Weight", value: (horse.weightKg || horse.weight) ? `${horse.weightKg || horse.weight}kg` : "—", icon: "⚖️" },
-                      ].map(({ label, value, icon }) => (
-                        <div key={label} className="bg-sb-s2 rounded-xl p-2.5 text-center border border-sb-border">
-                          <span className="text-sm block mb-0.5">{icon}</span>
-                          <p className="text-sb-tx text-sm font-bold leading-none">{value}</p>
-                          <p className="text-sb-tx-3 text-[9px] uppercase tracking-wider mt-0.5">{label}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Extra info */}
-                    <div className="flex flex-wrap gap-1.5 mb-4 min-h-[20px]">
-                      {horse.gender && (
-                        <span className="stat-pill">
-                          {horse.gender === "Male" ? <><Mars size={10} className="text-blue-400" /> Male</> : <><Venus size={10} className="text-pink-400" /> Female</>}
-                        </span>
-                      )}
-                      {horse.color && (
-                        <span className="stat-pill">{horse.color}</span>
-                      )}
-                    </div>
-
-                    {/* Status changer */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-sb-tx-3 text-[10px] uppercase tracking-wider shrink-0">Status:</span>
-                      <select
-                        value={horse.status || "Active"}
-                        disabled={statusLoading === horse.horseId}
-                        onChange={(e) => handleChangeStatus(horse.horseId, e.target.value)}
-                        className="flex-1 bg-sb-s1 border border-sb-border rounded-lg px-2 py-1 text-xs text-sb-tx focus:outline-none focus:border-sb-emerald transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        <option value="Active">🟢 Active</option>
-                        <option value="Injured">🔴 Injured</option>
-                        <option value="Inactive">⚫ Inactive</option>
+                    <div className="flex flex-col sm:flex-row lg:justify-end gap-2">
+                      <select value={status} disabled={statusLoading === horse.horseId} onChange={(event) => handleChangeStatus(horse.horseId, event.target.value)} className="bg-sb-s2 border border-sb-border rounded-xl px-3 py-2 text-xs text-sb-tx focus:outline-none focus:border-sb-emerald disabled:opacity-50">
+                        {STATUS_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
                       </select>
-                      {statusLoading === horse.horseId && <Loader2 size={12} className="animate-spin text-[#D4AF37] shrink-0" />}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-3 border-t border-sb-border">
-                      <button onClick={() => setShowHealth(horse)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-pink-500/10 border border-pink-500/30 text-pink-400 hover:bg-pink-500/20 hover:border-pink-300 rounded-xl text-xs font-semibold transition-all">
-                        <Heart size={11} /> Health
+                      <button type="button" onClick={() => setShowHealth(horse)} className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-pink-500/10 border border-pink-500/30 text-pink-400 hover:bg-pink-500/20 rounded-xl text-xs font-semibold transition-all">
+                        <Heart size={12} /> Health
                       </button>
-                      <button onClick={() => openEdit(horse)}
-                        className="p-2 bg-sb-s2 border border-sb-border text-sb-tx-3 hover:text-sb-info hover:border-blue-300 hover:bg-sb-info/10 rounded-xl transition-all">
-                        <Edit2 size={14} />
+                      <button type="button" onClick={() => openEdit(horse)} className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-sb-s2 border border-sb-border text-sb-tx-3 hover:text-sb-info hover:border-blue-300 rounded-xl text-xs font-semibold transition-all">
+                        <Edit2 size={12} /> Edit
                       </button>
+                      {statusLoading === horse.horseId && <Loader2 size={14} className="animate-spin text-[#D4AF37] self-center" />}
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
 
-      {/* ── Modals ── */}
       {showCreate && (
-        <Modal title="Add New Horse" onClose={() => setShowCreate(false)}>
+        <Modal title="Add Horse" onClose={() => setShowCreate(false)}>
           {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-sb-lose/10 border border-sb-lose/30 rounded-xl text-sb-lose text-sm"><AlertCircle size={13} />{formError}</div>}
           <HorseForm form={formData} onChange={handleFormChange} onSubmit={handleCreate} onCancel={() => setShowCreate(false)} loading={formLoading} submitLabel="Add Horse" />
         </Modal>
       )}
 
       {showEdit && (
-        <Modal title={`Edit - ${showEdit.horseName}`} onClose={() => setShowEdit(null)}>
+        <Modal title={`Edit ${showEdit.horseName}`} onClose={() => setShowEdit(null)}>
           {formError && <div className="mb-4 flex items-center gap-2 p-3 bg-sb-lose/10 border border-sb-lose/30 rounded-xl text-sb-lose text-sm"><AlertCircle size={13} />{formError}</div>}
           <HorseForm form={formData} onChange={handleFormChange} onSubmit={handleEdit} onCancel={() => setShowEdit(null)} loading={formLoading} submitLabel="Save Changes" />
         </Modal>
       )}
 
-      {showHealth &&<HealthModal horseId={showHealth.horseId} horseName={showHealth.horseName} onClose={() => setShowHealth(null)} />}
+      {showHealth && (
+        <HealthModal horseId={showHealth.horseId} horseName={showHealth.horseName} onClose={() => setShowHealth(null)} />
+      )}
     </AdminLayout>
   );
 }

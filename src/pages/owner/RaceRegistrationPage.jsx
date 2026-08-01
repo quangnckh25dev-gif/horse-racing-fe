@@ -12,16 +12,14 @@ import { spectatorService } from "../../services/spectator";
 import { invitationService } from "../../services/invitation";
 import { complaintService } from "../../services/complaint";
 
-// Status Ä‘áº§y Ä‘á»§ theo flow: Pending Organizer Approval â†’ Approved/waiting for jockey â†’ Ready to Race
 const ENTRY_STATUS = {
   Pending:  { label: "Pending Organizer Approval",       color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", borderCls: "border-l-gold-glow",  icon: Clock },
-  Approved: { label: "Approved Â· waiting for jockey", color: "bg-blue-500/20 text-blue-300 border-blue-500/40",     borderCls: "border-l-blue-glow",  icon: CheckCircle2 },
+  Approved: { label: "Approved - waiting for jockey", color: "bg-blue-500/20 text-blue-300 border-blue-500/40",     borderCls: "border-l-blue-glow",  icon: CheckCircle2 },
   Ready:    { label: "Ready to Race",   color: "bg-green-500/20 text-green-300 border-green-500/40",   borderCls: "border-l-green-glow", icon: CheckCircle2 },
   Rejected: { label: "Rejected",              color: "bg-red-500/20 text-red-300 border-red-500/40",         borderCls: "border-l-red-glow",   icon: XCircle },
   Withdrawn:{ label: "Withdrawn",               color: "bg-sb-s2 text-sb-tx-3 border-sb-border",               borderCls: "",                    icon: XCircle },
 };
 
-// BE tráº£ registrationStatus; entry Approved + Ä‘Ã£ cÃ³ jockey xÃ¡c nháº­n = ready to race
 const entryStatusOf = (e) => {
   const raw = e.registrationStatus || e.status || "Pending";
   if (raw === "Approved" && (e.jockeyConfirmed || e.jockeyName)) return "Ready";
@@ -103,7 +101,6 @@ export default function RaceRegistrationPage() {
       ]);
       const openRaces = (racesRes.data || []).filter((r) => r.status === "RegistrationOpen");
       setRaces(racesRes.data || []);
-      // Horse Ä‘ang active (BE tráº£ active/statusLabel, khÃ´ng cÃ³ field status)
       setHorses((horsesRes.data || []).filter(activeHorse));
       setJockeys(jockeysRes.data || []);
 
@@ -156,7 +153,6 @@ export default function RaceRegistrationPage() {
       await entryService.registerForRace(showRegister.raceId, { horseId: Number(registerForm.horseId) });
       setShowRegister(null);
       setRegisterForm({ horseId: "" });
-      // Chuyá»ƒn sang tab "My Registrations" Ä‘á»ƒ tháº¥y ngay registrations má»›i (tráº¡ng thÃ¡i Pending Organizer Approval)
       setActiveTab("entries");
       loadMyEntries();
     } catch (err) {
@@ -173,7 +169,6 @@ export default function RaceRegistrationPage() {
     if (!Number.isFinite(dealAmount) || dealAmount <= 0) { setFormError("Deal amount must be greater than 0"); return; }
     setFormLoading(true); setFormError("");
     try {
-      // BE cáº§n jockeyId (sá»‘) + message
       await invitationService.sendInvitation(showInvite.entryId, {
         jockeyId: Number(inviteForm.jockeyId),
         dealAmount,
@@ -242,7 +237,6 @@ export default function RaceRegistrationPage() {
   return (
     <AdminLayout title="Race Registration">
 
-      {/* â”€â”€ Page Header Banner â”€â”€ */}
       <div className="page-header">
         <div className="absolute right-0 top-0 w-72 h-full bg-gradient-to-l from-orange-500/[0.04] to-transparent pointer-events-none" />
 
@@ -275,7 +269,6 @@ export default function RaceRegistrationPage() {
       </div>
 
       <div className="p-6 space-y-5">
-        {/* â”€â”€ Tab bar â”€â”€ */}
         <div className="flex gap-1 bg-sb-s2 p-1 rounded-xl border border-sb-border w-fit">
           {[
             { id: "upcoming", label: "Races upcoming", icon: Flag },
@@ -293,14 +286,12 @@ export default function RaceRegistrationPage() {
           ))}
         </div>
 
-        {/* â”€â”€ Error â”€â”€ */}
         {error && (
           <div className="flex items-center gap-3 p-4 bg-red-950/30 border border-red-900/50 rounded-xl text-red-300 text-sm">
             <AlertCircle size={15} /> {error}
           </div>
         )}
 
-        {/* â”€â”€ Tab: Upcoming Races â”€â”€ */}
         {activeTab === "upcoming" ? (
           loading ? (
             <div className="space-y-3">
@@ -340,8 +331,8 @@ export default function RaceRegistrationPage() {
                       )}
                       {race.trackType && <span className="stat-pill"><Activity size={10} /> {race.trackType}</span>}
                       {maxSlots > 0 && <span className={`stat-pill ${full ? "text-red-300" : "text-green-300"}`}>{currentSlots} / {maxSlots} slots</span>}
-                      {(race.trackLength || race.distance) && <span className="stat-pill">ðŸ“ {race.trackLength || race.distance}m</span>}
-                      {(race.prizePool || race.prizeFirst) && <span className="text-xs font-bold text-[#D4AF37] neon-gold">ðŸ’° {Number(race.prizePool || race.prizeFirst).toLocaleString("vi-VN")} VND</span>}
+                      {(race.trackLength || race.distance) && <span className="stat-pill">Distance {race.trackLength || race.distance}m</span>}
+                      {(race.prizePool || race.prizeFirst) && <span className="text-xs font-bold text-[#D4AF37] neon-gold">Prize {Number(race.prizePool || race.prizeFirst).toLocaleString("vi-VN")} VND</span>}
                     </div>
                   </div>
                   <button
@@ -357,7 +348,6 @@ export default function RaceRegistrationPage() {
           )
         ) : null}
 
-        {/* â”€â”€ Tab: My Entries â”€â”€ */}
         {activeTab === "entries" && (
           <>
           <div className="flex gap-2 flex-wrap">
@@ -431,9 +421,9 @@ export default function RaceRegistrationPage() {
                           </span>
                         </div>
                         <div className="flex items-center gap-3 flex-wrap">
-                          {entry.horseName  && <span className="stat-pill">ðŸ´ {entry.horseName}</span>}
+                          {entry.horseName  && <span className="stat-pill">Horse {entry.horseName}</span>}
                           {entry.jockeyName
-                            ? <span className="stat-pill text-green-400">ðŸ‡ {entry.jockeyName} {entry.jockeyConfirmed ? "âœ“" : ""}</span>
+                            ? <span className="stat-pill text-green-400">Jockey {entry.jockeyName} {entry.jockeyConfirmed ? "Approved" : ""}</span>
                             : status === "Approved"
                               ? <span className="text-blue-300 text-xs italic">No jockey yet - send an invitation</span>
                               : <span className="text-sb-tx-2 text-xs italic">No jockey yet</span>
@@ -534,7 +524,6 @@ export default function RaceRegistrationPage() {
         )}
       </div>
 
-      {/* â”€â”€ Register Modal â”€â”€ */}
       {showRegister && (
         <Modal title={`Register: ${showRegister.raceName}`} onClose={() => setShowRegister(null)}>
           {formError && (
@@ -563,7 +552,6 @@ export default function RaceRegistrationPage() {
         </Modal>
       )}
 
-      {/* â”€â”€ Invite Jockey Modal â”€â”€ */}
       {showInvite && (
         <Modal title="Invite Jockey" accentColor="rgb(147,51,234)" onClose={() => setShowInvite(null)}>
           <p className="text-sb-tx-3 text-sm mb-4">
@@ -577,7 +565,6 @@ export default function RaceRegistrationPage() {
           <form onSubmit={handleInvite} className="space-y-4">
             <div>
               <label className={labelCls}>Select Jockey *</label>
-              {/* Dropdown gá»­i Ä‘Ãºng jockeyId (khÃ´ng pháº£i userId) â€” háº¿t lá»—i "KhÃ´ng tÃ¬m tháº¥y jockey" */}
               <select value={inviteForm.jockeyId}
                 onChange={(e) => setInviteForm((p) => ({ ...p, jockeyId: e.target.value }))}
                 required className={selectCls}>

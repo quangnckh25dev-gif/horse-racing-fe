@@ -151,7 +151,6 @@ export default function OwnerInvitationsPage() {
     Cancelled: invitations.filter((i) => i.status === "Cancelled").length,
   };
 
-  // Withdraw invitation Ä‘ang pending responses
   const [cancelBusy, setCancelBusy] = useState(null);
   const handleCancel = async (inv) => {
     if (!(await confirmBox(`Withdraw invitation sent to ${inv.jockeyName || "this jockey"}?`, { okText: "Withdraw", danger: true }))) return;
@@ -169,9 +168,8 @@ export default function OwnerInvitationsPage() {
   return (
     <AdminLayout title="Jockey Invitations">
 
-      {/* â”€â”€ Page Header â”€â”€ */}
       <div className="relative p-6 pb-5 border-b border-sb-border bg-sb-s1 overflow-hidden">
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.05] select-none pointer-events-none">ðŸ“¨</div>
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.05] select-none pointer-events-none">Invitation</div>
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -212,7 +210,6 @@ export default function OwnerInvitationsPage() {
 
       <div className="p-6 space-y-5">
 
-        {/* â”€â”€ Mini stats â”€â”€ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
             const Icon = cfg.icon;
@@ -231,14 +228,12 @@ export default function OwnerInvitationsPage() {
           })}
         </div>
 
-        {/* â”€â”€ Error â”€â”€ */}
         {error && (
           <div className="flex items-center gap-3 p-4 bg-sb-lose/10 border border-sb-lose/30 rounded-xl text-sb-lose text-sm">
             <AlertCircle size={15} /> {error}
           </div>
         )}
 
-        {/* â”€â”€ List â”€â”€ */}
         {loading ? (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
@@ -290,10 +285,10 @@ export default function OwnerInvitationsPage() {
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
                         {inv.horseName && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs">ðŸ´ {inv.horseName}</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs">Horse {inv.horseName}</span>
                         )}
                         {inv.raceName && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs">ðŸ {inv.raceName}</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs">Race {inv.raceName}</span>
                         )}
                         {inv.dealAmount != null && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2 text-xs font-bold">
@@ -315,7 +310,6 @@ export default function OwnerInvitationsPage() {
                       )}
                     </div>
 
-                    {/* Pending â†’ cho thu há»“i; cÃ²n láº¡i chá»‰ hiá»‡n icon tráº¡ng thÃ¡i */}
                     {status === "Pending" ? (
                       <button onClick={() => handleCancel(inv)} disabled={cancelBusy === inv.invitationId}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20 text-xs font-bold disabled:opacity-50 transition-colors shrink-0">
@@ -335,7 +329,6 @@ export default function OwnerInvitationsPage() {
         )}
       </div>
 
-      {/* â”€â”€ Send Invitation Modal â”€â”€ */}
       {showModal && (
         <Modal title="Send Invitation Jockey" onClose={() => setShowModal(false)}>
           {modalLoading ? (
@@ -365,7 +358,7 @@ export default function OwnerInvitationsPage() {
                     <option value="">-- Select entry --</option>
                     {entries.map((en) => (
                       <option key={en.entryId} value={en.entryId}>
-                        {en.horseName || `Horse #${en.horseId}`} â€” {en.raceName || `Race #${en.raceId}`}
+                        {en.horseName || `Horse #${en.horseId}`} N/A {en.raceName || `Race #${en.raceId}`}
                       </option>
                     ))}
                   </select>

@@ -37,7 +37,7 @@ const EMPTY_FORM = {
 };
 
 const formatVND = (n) =>
-  n ? new Intl.NumberFormat("vi-VN").format(n) + " ₫" : null;
+  n ? new Intl.NumberFormat("en-US").format(n) + " VND" : null;
 
 export default function TournamentManagementPage() {
   const navigate = useNavigate();
@@ -128,7 +128,6 @@ export default function TournamentManagementPage() {
   return (
     <AdminLayout title="Tournament Management">
 
-      {/* ── Page Header Banner ── */}
       <div className="page-header">
         <div className="absolute right-0 top-0 w-72 h-full bg-gradient-to-l from-[#D4AF37]/[0.04] to-transparent pointer-events-none" />
 
@@ -229,7 +228,7 @@ export default function TournamentManagementPage() {
                       )}
                       <div className="flex items-center gap-2 text-sb-tx-3 text-xs">
                         <Calendar size={11} className="shrink-0 text-sb-tx-3" />
-                        <span>{t.startDate?.slice(0, 10)} → {t.endDate?.slice(0, 10)}</span>
+                        <span>{t.startDate?.slice(0, 10)} to {t.endDate?.slice(0, 10)}</span>
                       </div>
                       {t.prizeFund > 0 && (
                         <div className="flex items-center gap-2 text-sb-gold-2 text-xs font-bold">
@@ -271,7 +270,6 @@ export default function TournamentManagementPage() {
         )}
       </div>
 
-      {/* ── Modal Create / Edit ── */}
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl animate-scale-in">
@@ -284,7 +282,7 @@ export default function TournamentManagementPage() {
                 onClick={() => setModal(null)}
                 className="p-1.5 rounded-lg text-sb-tx-3 hover:text-sb-tx-2 hover:bg-sb-s2 transition-colors"
               >
-                ×
+                X
               </button>
             </div>
 
@@ -302,7 +300,7 @@ export default function TournamentManagementPage() {
                 <Input
                   value={form.tournamentName}
                   onChange={(e) => setForm({ ...form, tournamentName: e.target.value })}
-                  placeholder="VD: Summer Racing Tournament 2026"
+                  placeholder="Example: Summer Racing Tournament 2026"
                   className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                   required
                 />
@@ -315,7 +313,7 @@ export default function TournamentManagementPage() {
                 <Input
                   value={form.location}
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  placeholder="VD: Ho Chi Minh City"
+                  placeholder="Example: Ho Chi Minh City"
                   className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
                 />
               </div>
@@ -368,7 +366,7 @@ export default function TournamentManagementPage() {
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Description về tournaments..."
+                  placeholder="Describe this tournament..."
                   rows={3}
                   className="w-full rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] resize-none placeholder:text-sb-tx-3"
                 />

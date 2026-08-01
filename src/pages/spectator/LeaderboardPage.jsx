@@ -1,23 +1,47 @@
-import { useState, useEffect, useCallback } from "react";
-import { Trophy, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Award, Crown, Medal, RefreshCw, Star, Trophy } from "lucide-react";
 import { leaderboardService } from "../../services/leaderboard";
-import { SbAlert, SbSpinner, SbEmpty } from "../../components/sb/Feedback";
-import { SbTabs, SbTable, SbTr, SbPageHeader } from "../../components/sb/Data";
+import { SbAlert, SbEmpty, SbSpinner } from "../../components/sb/Feedback";
+import { SbPageHeader, SbTable, SbTabs, SbTr } from "../../components/sb/Data";
 
 const TABS = [
-  { id: "jockey", label: "Jockey", emoji: "🏇" },
-  { id: "horse",  label: "Racehorse", emoji: "🐴" },
+  { id: "jockey", label: "Top Jockeys" },
+  { id: "horse", label: "Top Horses" },
 ];
 
 const PODIUM = [
-  { pos: 0, icon: "🥇", cls: "bg-sb-gold-soft border-sb-gold-bd",    text: "text-sb-gold-2" },
-  { pos: 1, icon: "🥈", cls: "bg-sb-s2 border-sb-border-2",          text: "text-sb-tx" },
-  { pos: 2, icon: "🥉", cls: "bg-sb-emerald-soft border-sb-emerald-bd", text: "text-sb-emerald-ink" },
+  {
+    sourceIndex: 1,
+    rank: 2,
+    label: "Silver",
+    icon: Medal,
+    height: "sm:min-h-[210px]",
+    shell: "border-slate-400/35 bg-slate-400/10",
+    accent: "text-slate-200",
+  },
+  {
+    sourceIndex: 0,
+    rank: 1,
+    label: "Gold",
+    icon: Crown,
+    height: "sm:min-h-[250px]",
+    shell: "border-sb-gold-bd bg-sb-gold-soft shadow-[0_18px_60px_rgba(212,175,55,0.16)]",
+    accent: "text-sb-gold-2",
+  },
+  {
+    sourceIndex: 2,
+    rank: 3,
+    label: "Bronze",
+    icon: Award,
+    height: "sm:min-h-[190px]",
+    shell: "border-amber-700/40 bg-amber-700/10",
+    accent: "text-amber-300",
+  },
 ];
 
-// BE trả { rank, entityId, name, totalRaces, totalWins, totalPodiums, totalPrize, points }
-const nameOf   = (it) => it.name ?? it.jockeyName ?? it.horseName ?? "—";
-const pointsOf = (it) => it.points ?? it.totalPoints;
+const nameOf = (item) => item?.name ?? item?.jockeyName ?? item?.horseName ?? "Unknown";
+const pointsOf = (item) => item?.points ?? item?.totalPoints ?? 0;
+const rankOf = (item, index) => item?.rank ?? index + 1;
 
 export default function LeaderboardPage() {
   const [activeTab, setActiveTab] = useState("jockey");
@@ -30,39 +54,50 @@ export default function LeaderboardPage() {
     setLoading(true);
     setError("");
     try {
-      const [jRes, hRes] = await Promise.all([
+      const [jockeyResponse, horseResponse] = await Promise.all([
         leaderboardService.getGlobalJockeyLeaderboard(),
         leaderboardService.getGlobalHorseLeaderboard(),
       ]);
-      setJockeys(jRes.data || []);
-      setHorses(hRes.data || []);
-    } catch (e) {
-      setError(e.message || "Unable to load leaderboard");
+      setJockeys(jockeyResponse.data || []);
+      setHorses(horseResponse.data || []);
+    } catch (err) {
+      setError(err.message || "Unable to load leaderboard.");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const data = activeTab === "jockey" ? jockeys : horses;
+  const title = activeTab === "jockey" ? "Jockey Leaderboard" : "Horse Leaderboard";
+  const podiumItems = useMemo(
+    () => PODIUM.map((slot) => ({ ...slot, item: data[slot.sourceIndex] })).filter((slot) => slot.item),
+    [data]
+  );
 
   return (
     <>
       <SbPageHeader
-        eyebrow="System-wide"
+        eyebrow="System-wide rankings"
         title="Leaderboard"
         icon={Trophy}
-        stats={[`${data.length} ${activeTab === "jockey" ? "jockeys" : "racehorses"}`]}
+        stats={[`${data.length} ranked ${activeTab === "jockey" ? "jockeys" : "horses"}`]}
         actions={
-          <button onClick={load} disabled={loading}
-            className="flex items-center gap-2 px-3 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm transition-colors">
-            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          <button
+            onClick={load}
+            disabled={loading}
+            className="flex h-10 items-center gap-2 rounded-xl border border-sb-border bg-sb-s2 px-3 text-sm text-sb-tx-2 transition-colors hover:text-sb-tx disabled:opacity-60"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            Refresh
           </button>
         }
       />
 
-      <div className="p-6 space-y-5 max-w-4xl">
+      <div className="max-w-6xl space-y-5 p-6">
         <SbTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
         {error && <SbAlert tone="error">{error}</SbAlert>}
@@ -70,64 +105,82 @@ export default function LeaderboardPage() {
         {loading ? (
           <SbSpinner />
         ) : data.length === 0 ? (
-          <SbEmpty icon="🏆" title="No leaderboard data yet"
-            hint="Data will appear after race results are published" />
+          <SbEmpty icon={<Trophy size={28} />} title="No leaderboard data yet" hint="Rankings will appear after race results are published." />
         ) : (
           <>
-            {/* Top 3 */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {PODIUM.map(({ pos, icon, cls, text }) => {
-                const item = data[pos];
-                if (!item) return null;
-                return (
-                  <div key={pos} className={`rounded-2xl border p-5 text-center ${cls}`}>
-                    <div className="text-4xl mb-2">{icon}</div>
-                    <p className={`text-base font-black ${text}`}>{nameOf(item)}</p>
-                    <div className="flex items-center justify-center gap-3 mt-2 flex-wrap">
-                      <span className="text-xs text-sb-tx-3">
-                        <span className="font-bold text-sb-tx tabular-nums">{item.totalWins ?? 0}</span> wins
-                      </span>
-                      <span className="text-xs text-sb-tx-3">
-                        <span className="font-bold text-sb-gold-2 tabular-nums">{pointsOf(item) ?? 0}</span> points
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <section className="rounded-2xl border border-sb-border bg-sb-s1/70 p-4 sm:p-6">
+              <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-sb-gold-2">{title}</p>
+                  <h2 className="text-xl font-black text-sb-tx">Podium Top 3</h2>
+                </div>
+                <p className="text-sm text-sb-tx-3">Gold is centered and highlighted for quick demo scanning.</p>
+              </div>
 
-            {/* Bảng đầy đủ */}
+              <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-3">
+                {podiumItems.map(({ item, rank, label, icon: Icon, height, shell, accent }, index) => (
+                  <article
+                    key={`${rank}-${item.entityId ?? nameOf(item)}`}
+                    className={`relative overflow-hidden rounded-2xl border p-5 text-center ${height} ${shell}`}
+                  >
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-current/30 bg-black/20">
+                      <Icon size={28} className={accent} />
+                    </div>
+                    <div className={`mx-auto mb-3 inline-flex h-8 min-w-8 items-center justify-center rounded-full border border-current/30 px-3 text-sm font-black ${accent}`}>
+                      #{rank}
+                    </div>
+                    <p className="line-clamp-2 text-lg font-black text-sb-tx">{nameOf(item)}</p>
+                    <p className="mt-1 text-xs font-bold uppercase tracking-widest text-sb-tx-3">{label} rank</p>
+                    <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+                      <MiniStat label="Wins" value={item.totalWins ?? 0} tone="text-sb-emerald-ink" />
+                      <MiniStat label="Top 3" value={item.totalPodiums ?? 0} tone="text-sb-tx-2" />
+                      <MiniStat label="Points" value={pointsOf(item)} tone="text-sb-gold-2" />
+                    </div>
+                    {index === 1 && <Star className="absolute right-4 top-4 text-sb-gold-2/60" size={18} />}
+                  </article>
+                ))}
+              </div>
+            </section>
+
             <SbTable
               head={[
-                { label: "#" },
-                { label: activeTab === "jockey" ? "Jockey" : "Racehorse" },
+                { label: "Rank" },
+                { label: activeTab === "jockey" ? "Jockey" : "Horse" },
                 { label: "Wins", align: "center" },
                 { label: "Top 3", align: "center" },
                 { label: "Points", align: "center" },
                 { label: "Races", align: "center" },
               ]}
             >
-              {data.map((item, idx) => (
-                <SbTr key={item.entityId ?? idx}>
-                  <td className="px-5 py-3 w-14">
-                    {idx < 3
-                      ? <span className="text-xl">{["🥇", "🥈", "🥉"][idx]}</span>
-                      : <span className="text-sb-tx-3 font-bold text-sm tabular-nums">{item.rank ?? idx + 1}</span>}
+              {data.map((item, index) => (
+                <SbTr key={item.entityId ?? `${nameOf(item)}-${index}`}>
+                  <td className="w-20 px-5 py-3">
+                    <span className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full border px-2 text-sm font-black ${
+                      index === 0
+                        ? "border-sb-gold-bd bg-sb-gold-soft text-sb-gold-2"
+                        : index === 1
+                          ? "border-slate-400/30 bg-slate-400/10 text-slate-200"
+                          : index === 2
+                            ? "border-amber-700/30 bg-amber-700/10 text-amber-300"
+                            : "border-sb-border bg-sb-s2 text-sb-tx-3"
+                    }`}>
+                      {rankOf(item, index)}
+                    </span>
                   </td>
                   <td className="px-5 py-3">
-                    <p className="text-sb-tx font-semibold text-sm">{nameOf(item)}</p>
+                    <p className="text-sm font-semibold text-sb-tx">{nameOf(item)}</p>
                   </td>
                   <td className="px-5 py-3 text-center">
-                    <span className="text-sb-emerald-ink font-bold text-sm tabular-nums">{item.totalWins ?? 0}</span>
+                    <span className="text-sm font-bold tabular-nums text-sb-emerald-ink">{item.totalWins ?? 0}</span>
                   </td>
                   <td className="px-5 py-3 text-center">
-                    <span className="text-sb-tx-2 text-sm tabular-nums">{item.totalPodiums ?? 0}</span>
+                    <span className="text-sm tabular-nums text-sb-tx-2">{item.totalPodiums ?? 0}</span>
                   </td>
                   <td className="px-5 py-3 text-center">
-                    <span className="text-sb-gold-2 font-bold text-sm tabular-nums">{pointsOf(item) ?? 0}</span>
+                    <span className="text-sm font-bold tabular-nums text-sb-gold-2">{pointsOf(item)}</span>
                   </td>
                   <td className="px-5 py-3 text-center">
-                    <span className="text-sb-tx-3 text-sm tabular-nums">{item.totalRaces ?? 0}</span>
+                    <span className="text-sm tabular-nums text-sb-tx-3">{item.totalRaces ?? 0}</span>
                   </td>
                 </SbTr>
               ))}
@@ -136,5 +189,14 @@ export default function LeaderboardPage() {
         )}
       </div>
     </>
+  );
+}
+
+function MiniStat({ label, value, tone }) {
+  return (
+    <div className="rounded-xl border border-sb-border bg-black/15 px-2 py-2">
+      <p className={`text-sm font-black tabular-nums ${tone}`}>{value}</p>
+      <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-sb-tx-3">{label}</p>
+    </div>
   );
 }

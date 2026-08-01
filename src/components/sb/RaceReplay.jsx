@@ -3,11 +3,9 @@ import { X, Play, RotateCcw, Trophy } from "lucide-react";
 
 const HUES = ["#4ADE9E", "#FFD873", "#7DD3FC", "#FB7185", "#C4B5FD", "#FCA5A5", "#F0ABFC", "#FDBA74"];
 
-// Chuẩn hoá thời gian về seconds: nhận "hh:mm:ss.SSS", "mm:ss.SSS", số seconds, hoặc số.
 function toSeconds(v) {
   if (v == null) return null;
   if (typeof v === "number") return v;
-  // BE trả kiểu VN "00:01:07,200" → phẩy là dấu thập phân
   const s = String(v).trim().replace(",", ".");
   if (s.includes(":")) {
     const p = s.split(":").map(Number);
@@ -19,7 +17,6 @@ function toSeconds(v) {
   return isNaN(n) ? null : n;
 }
 
-// Chuẩn hoá 1 kết quả về { name, jockey, ft (finishTime seconds), dq }
 function normalize(results) {
   const rows = (results || []).map((r, i) => {
     const dq = Boolean(r.dq || r.dnf || r.isDq || r.isDnf);
@@ -65,7 +62,6 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
     const lw = W < 520 ? 92 : 140, sx = lw + 14, fx = W - 44, lh = (H - 20) / N;
 
     ctx.clearRect(0, 0, W, H);
-    // vạch đích ca-rô
     const sq = Math.max(6, lh / 5);
     for (let yy = 10; yy < H - 10; yy += sq) for (let c = 0; c < 2; c++) {
       ctx.fillStyle = ((Math.floor(yy / sq) + c) % 2 === 0) ? "#E8EEF4" : "#0B0F14";
@@ -79,7 +75,6 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
         if (f >= 1) { h.fin = rt; st.finishOrder.push(h); }
       }
       const f = h.f, x = sx + (fx - sx) * f, size = Math.max(20, Math.min(40, lh * 0.8));
-      // nền làn
       ctx.fillStyle = "rgba(255,255,255,.04)";
       ctx.fillRect(6, y - lh / 2 + 3, lw - 12, lh - 6);
       ctx.fillStyle = h.hue;
@@ -88,12 +83,10 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
       ctx.fillText(h.lane, 20, y);
       ctx.textAlign = "left"; ctx.fillStyle = "#F1F5FA"; ctx.font = "800 12px " + font;
       ctx.fillText(h.name.length > 12 ? h.name.slice(0, 11) + "…" : h.name, 34, y);
-      // ngựa (lật ngang cho chạy sang phải)
       const bob = st.running && f < 1 ? Math.sin(el * 16 + i) * 2.4 : 0;
       ctx.save(); ctx.translate(x, y + bob); ctx.scale(-1, 1);
       ctx.font = size + "px " + font; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillText("🐎", 0, 0); ctx.restore();
-      // DQ gạch đỏ
       if (f >= 1 && h.dq) {
         ctx.strokeStyle = "#FB4E4E"; ctx.lineWidth = 2.4;
         ctx.beginPath(); ctx.moveTo(x - size * 0.5, y - size * 0.5); ctx.lineTo(x + size * 0.5, y + size * 0.5); ctx.stroke();
@@ -124,7 +117,6 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // bảng xếp place chính thức (theo finishPosition nếu có, else theo finalTime)
   const ranked = [...horses].sort((a, b) => {
     if (a.dq && !b.dq) return 1;
     if (!a.dq && b.dq) return -1;
@@ -137,7 +129,6 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
       onClick={(e) => e.target === e.currentTarget && onClose?.()}>
       <div className="w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-sb-s1 border border-sb-border shadow-2xl shadow-black/50 overflow-hidden">
         <div className="h-0.5 bg-gradient-to-r from-sb-emerald to-transparent shrink-0" />
-        {/* Header cố định — nút đóng luôn thấy dù nhiều ngựa */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-sb-border shrink-0">
           <div>
             <h3 className="text-sb-tx font-bold text-sm">Race Replay</h3>
@@ -149,7 +140,6 @@ export default function RaceReplay({ raceName, results, bet, onClose }) {
         </div>
 
         <div className="p-4 overflow-y-auto">
-          {/* Vé bet của người xem — vị trí ngựa + tiền wins/thua */}
           {bet && (() => {
             const r = (results || []).find((x) => x.entryId === bet.entryId);
             const pos = r ? (r.finishPosition ?? r.position) : null;

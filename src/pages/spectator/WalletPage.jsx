@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Wallet, Plus, History, Loader2, ArrowUpRight, ArrowDownLeft, RotateCcw,
   TrendingUp, Trophy, ShieldCheck, Copy, QrCode, Clock3, CheckCircle2, XCircle,
+  MessageSquareWarning,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import SbModal from "../../components/sb/Modal";
@@ -9,6 +10,7 @@ import { SbAlert, SbSpinner, SbEmpty } from "../../components/sb/Feedback";
 import { SbPageHeader } from "../../components/sb/Data";
 import { SbInput } from "../../components/sb/Field";
 import { walletService } from "../../services/wallet";
+import { complaintService } from "../../services/complaint";
 
 const TX_TYPE = {
   Deposit: { label: "Deposit", cls: "text-sb-win", sign: "+", icon: ArrowDownLeft },
@@ -19,6 +21,7 @@ const TX_TYPE = {
 };
 
 const QUICK_AMOUNTS = [100_000, 200_000, 500_000, 1_000_000, 2_000_000, 5_000_000];
+const TX_FILTERS = ["All", "Deposit", "Bet Placed", "Bet Won", "Bet Refund", "Prize Awarded", "Money In", "Money Out"];
 
 const METHODS = [
   { id: "BANK", label: "Bank Transfer", hint: "Bank transfer", qr: "/payments/bank-qr.png" },
@@ -40,10 +43,21 @@ const PAYMENT_RECEIVER = {
 const STATUS = {
   Pending: { label: "Pending", cls: "bg-sb-gold-soft text-sb-gold-2 border-sb-gold-bd", icon: Clock3 },
   Approved: { label: "Approved", cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", icon: CheckCircle2 },
+  Resolved: { label: "Resolved", cls: "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd", icon: CheckCircle2 },
   Rejected: { label: "Rejected", cls: "bg-sb-lose/10 text-sb-lose border-sb-lose/30", icon: XCircle },
 };
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
+const txKey = (tx) => tx.type || tx.transactionType;
+const txAmount = (tx) => Number(tx.amount || 0);
+const isMoneyIn = (tx) => txAmount(tx) > 0 || ["Deposit", "BetWon", "BetRefund", "PrizeAwarded"].includes(txKey(tx));
+const txMatchesFilter = (tx, filter) => {
+  const key = txKey(tx);
+  if (filter === "All") return true;
+  if (filter === "Money In") return isMoneyIn(tx);
+  if (filter === "Money Out") return !isMoneyIn(tx);
+  return (TX_TYPE[key]?.label || key) === filter;
+};
 const getPaymentQr = (paymentMethod) =>
   METHODS.find((m) => m.id === paymentMethod)?.qr || "/payments/bank-qr.png";
 const getTransferContent = (request) => request?.transferCode || "";
@@ -214,6 +228,114 @@ function DepositModal({ onClose, onDone }) {
   );
 }
 
+function ComplaintModal({ depositRequests, onClose, onDone }) {
+  const [selectedId, setSelectedId] = useState("");
+  const [form, setForm] = useState({
+    transferCode: "",
+    amount: "",
+    paymentMethod: "BANK",
+    reason: "",
+    evidenceUrl: "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const selectDeposit = (id) => {
+    setSelectedId(id);
+    const req = depositRequests.find((item) => String(item.depositRequestId) === id);
+    if (!req) return;
+    setForm((prev) => ({
+      ...prev,
+      transferCode: req.transferCode || "",
+      amount: req.amount || "",
+      paymentMethod: req.paymentMethod || "BANK",
+    }));
+  };
+
+  const submit = async () => {
+    if (!form.transferCode.trim()) {
+      setError("Transfer code is required.");
+      return;
+    }
+    if (!Number(form.amount) || Number(form.amount) <= 0) {
+      setError("Amount must be greater than 0.");
+      return;
+    }
+    if (!form.reason.trim()) {
+      setError("Reason is required.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      await complaintService.createDepositComplaint({
+        depositRequestId: selectedId ? Number(selectedId) : null,
+        transferCode: form.transferCode.trim(),
+        amount: Number(form.amount),
+        paymentMethod: form.paymentMethod,
+        reason: form.reason.trim(),
+        evidenceUrl: form.evidenceUrl.trim(),
+      });
+      onDone?.();
+    } catch (e) {
+      setError(e.message || "Failed to submit complaint.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <SbModal title="Deposit Complaint" subtitle="Send missing deposit evidence to Admin" tone="gold" onClose={busy ? undefined : onClose}>
+      <div className="space-y-4">
+        {error && <SbAlert tone="error">{error}</SbAlert>}
+        <div>
+          <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-2">Deposit request</p>
+          <select
+            value={selectedId}
+            onChange={(e) => selectDeposit(e.target.value)}
+            className="w-full h-11 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-gold"
+          >
+            <option value="">Manual transfer code</option>
+            {depositRequests.map((req) => (
+              <option key={req.depositRequestId} value={req.depositRequestId}>
+                #{req.depositRequestId} - {req.transferCode} - {fmt(req.amount)} VND - {req.status}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <SbInput placeholder="Transfer code" value={form.transferCode} onChange={(e) => setForm({ ...form, transferCode: e.target.value })} />
+          <select
+            value={form.paymentMethod}
+            onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
+            className="h-11 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-gold"
+          >
+            <option value="BANK">BANK</option>
+            <option value="MOMO">MOMO</option>
+          </select>
+        </div>
+        <SbInput type="number" min="1" placeholder="Amount" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+        <textarea
+          rows={4}
+          value={form.reason}
+          onChange={(e) => setForm({ ...form, reason: e.target.value })}
+          placeholder="Describe the issue..."
+          className="w-full rounded-xl bg-sb-s2 border border-sb-border px-3 py-2 text-sm text-sb-tx outline-none focus:border-sb-gold"
+        />
+        <SbInput placeholder="Evidence image URL" value={form.evidenceUrl} onChange={(e) => setForm({ ...form, evidenceUrl: e.target.value })} />
+        <div className="flex gap-3">
+          <button onClick={onClose} disabled={busy} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm disabled:opacity-50">
+            Cancel
+          </button>
+          <button onClick={submit} disabled={busy} className="flex-1 py-2.5 rounded-xl bg-sb-gold text-[#0B0F14] font-bold text-sm disabled:opacity-50">
+            {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : "Submit complaint"}
+          </button>
+        </div>
+      </div>
+    </SbModal>
+  );
+}
+
 export default function WalletPage() {
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -222,6 +344,10 @@ export default function WalletPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [depositOpen, setDepositOpen] = useState(false);
+  const [complaintOpen, setComplaintOpen] = useState(false);
+  const [complaints, setComplaints] = useState([]);
+  const [txFilter, setTxFilter] = useState("All");
+  const [txDate, setTxDate] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -246,6 +372,13 @@ export default function WalletPage() {
     } finally {
       setLoading(false);
     }
+
+    try {
+      const cRes = await complaintService.getMyDepositComplaints();
+      setComplaints(cRes.data || []);
+    } catch {
+      setComplaints([]);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -257,6 +390,11 @@ export default function WalletPage() {
 
   const prizeTransactions = transactions.filter((tx) => (tx.type || tx.transactionType) === "PrizeAwarded");
   const prizeTotal = prizeTransactions.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+  const filteredTransactions = transactions.filter((tx) => {
+    if (!txMatchesFilter(tx, txFilter)) return false;
+    if (txDate && !String(tx.createdAt || "").startsWith(txDate)) return false;
+    return true;
+  });
 
   return (
     <AdminLayout title="My Wallet">
@@ -270,10 +408,16 @@ export default function WalletPage() {
           `${fmt(prizeTotal)} VND prizes`,
         ]}
         actions={
-          <button onClick={() => { setSuccess(""); setError(""); setDepositOpen(true); }}
-            className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-gold text-[#0B0F14] font-bold text-sm hover:opacity-90">
-            <Plus size={15} /> Deposit
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => { setSuccess(""); setError(""); setComplaintOpen(true); }}
+              className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx font-bold text-sm">
+              <MessageSquareWarning size={15} /> Complaint
+            </button>
+            <button onClick={() => { setSuccess(""); setError(""); setDepositOpen(true); }}
+              className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-gold text-[#0B0F14] font-bold text-sm hover:opacity-90">
+              <Plus size={15} /> Deposit
+            </button>
+          </div>
         }
       />
 
@@ -330,19 +474,83 @@ export default function WalletPage() {
 
               <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
                 <div className="flex items-center gap-2 p-5 border-b border-sb-border">
-                  <History size={14} className="text-sb-emerald-ink" />
-                  <h3 className="font-bold text-sm text-sb-tx">Transaction History</h3>
+                  <MessageSquareWarning size={14} className="text-sb-info" />
+                  <h3 className="font-bold text-sm text-sb-tx">Deposit complaints</h3>
                 </div>
-                {transactions.length === 0 ? <SbEmpty icon="TX" title="No transactions yet" hint="Deposit transactions appear only after Admin approval" /> : (
+                {complaints.length === 0 ? <SbEmpty icon="!" title="No complaints yet" hint="Submit a complaint if a transfer was missed" /> : (
                   <div className="divide-y divide-sb-border">
-                    {transactions.map((tx, i) => {
+                    {complaints.map((item) => (
+                      <div key={item.complaintId || item.id} className="px-5 py-4 hover:bg-sb-s2 transition-colors">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sb-tx text-sm font-bold tabular-nums">{fmt(item.amount)} VND</p>
+                              <StatusBadge status={item.status} />
+                              <span className="text-[11px] font-bold text-sb-tx-3">{item.paymentMethod}</span>
+                            </div>
+                            <p className="text-sb-tx-3 text-xs mt-1">
+                              Code: <span className="text-sb-gold-2 font-bold">{item.transferCode || "Manual"}</span>
+                            </p>
+                            {item.reason && <p className="text-sb-tx-2 text-xs mt-1 line-clamp-2">{item.reason}</p>}
+                            {item.adminNote && <p className="text-sb-info text-xs mt-1">Admin note: {item.adminNote}</p>}
+                            {item.evidenceUrl && (
+                              <a href={item.evidenceUrl} target="_blank" rel="noreferrer" className="text-sb-emerald-ink text-xs font-bold hover:underline">
+                                View evidence
+                              </a>
+                            )}
+                          </div>
+                          <p className="text-sb-tx-3 text-xs shrink-0">{item.createdAt ? new Date(item.createdAt).toLocaleString("vi-VN") : ""}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
+                <div className="flex flex-col gap-3 p-5 border-b border-sb-border">
+                  <div className="flex items-center gap-2">
+                    <History size={14} className="text-sb-emerald-ink" />
+                    <h3 className="font-bold text-sm text-sb-tx">Transaction History</h3>
+                  </div>
+                  <div className="flex flex-col xl:flex-row gap-2 xl:items-center">
+                    <div className="flex flex-wrap gap-1.5">
+                      {TX_FILTERS.map((filter) => (
+                        <button
+                          key={filter}
+                          onClick={() => setTxFilter(filter)}
+                          className={`px-3 h-9 rounded-xl border text-[11px] font-bold transition-colors ${
+                            txFilter === filter
+                              ? "bg-sb-emerald-soft text-sb-emerald-ink border-sb-emerald-bd"
+                              : "bg-sb-s2 text-sb-tx-3 border-sb-border hover:text-sb-tx"
+                          }`}
+                        >
+                          {filter}
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="date"
+                      value={txDate}
+                      onChange={(e) => setTxDate(e.target.value)}
+                      className="h-9 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx text-xs px-3 outline-none focus:border-sb-emerald"
+                    />
+                  </div>
+                </div>
+                {transactions.length === 0 ? <SbEmpty icon="TX" title="No transactions yet" hint="Deposit transactions appear only after Admin approval" /> : filteredTransactions.length === 0 ? (
+                  <SbEmpty icon="TX" title="No matching transactions" hint="Try another type or date filter" />
+                ) : (
+                  <div className="divide-y divide-sb-border">
+                    {filteredTransactions.map((tx, i) => {
                       const key = tx.type || tx.transactionType;
                       const type = TX_TYPE[key] || { label: key || "Transaction", cls: "text-sb-tx-2", sign: "", icon: History };
                       const TxIcon = type.icon;
                       const isPrize = key === "PrizeAwarded";
+                      const amount = txAmount(tx);
+                      const moneyIn = isMoneyIn(tx);
                       return (
                         <div key={tx.transactionId || i} className={`flex items-center gap-4 px-5 py-4 transition-colors ${isPrize ? "bg-sb-emerald-soft/40 hover:bg-sb-emerald-soft/60" : "hover:bg-sb-s2"}`}>
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${isPrize ? "bg-sb-emerald-soft border-sb-emerald-bd" : "bg-sb-s2 border-sb-border"} ${type.cls}`}>
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${isPrize ? "bg-sb-emerald-soft border-sb-emerald-bd" : "bg-sb-s2 border-sb-border"} ${moneyIn ? "text-sb-win" : "text-sb-lose"}`}>
                             <TxIcon size={14} />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -350,7 +558,9 @@ export default function WalletPage() {
                             {tx.description && <p className="text-sb-tx-3 text-xs mt-0.5 truncate">{tx.description}</p>}
                             {tx.createdAt && <p className="text-sb-tx-3 text-xs mt-0.5">{new Date(tx.createdAt).toLocaleString("vi-VN")}</p>}
                           </div>
-                          <span className={`font-bold text-sm shrink-0 tabular-nums ${type.cls}`}>{type.sign}{fmt(tx.amount)} VND</span>
+                          <span className={`font-bold text-sm shrink-0 tabular-nums ${moneyIn ? "text-sb-win" : "text-sb-lose"}`}>
+                            {moneyIn ? "+" : "-"}{fmt(Math.abs(amount))} VND
+                          </span>
                         </div>
                       );
                     })}
@@ -363,6 +573,17 @@ export default function WalletPage() {
       </div>
 
       {depositOpen && <DepositModal onClose={() => setDepositOpen(false)} onDone={onCreated} />}
+      {complaintOpen && (
+        <ComplaintModal
+          depositRequests={depositRequests}
+          onClose={() => setComplaintOpen(false)}
+          onDone={() => {
+            setComplaintOpen(false);
+            setSuccess("Deposit complaint submitted. Admin will review it soon.");
+            load();
+          }}
+        />
+      )}
     </AdminLayout>
   );
 }

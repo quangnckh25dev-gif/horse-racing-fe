@@ -37,7 +37,7 @@ export const adminService = {
     api.put(`/admin/configs/${configKey}`, { value }),
 
   // Deposit requests
-  getDepositRequests: () => api.get("/admin/deposit-requests"),
+  getDepositRequests: (filters) => api.get(`/admin/deposit-requests${qs(filters || {})}`),
   approveDepositRequest: (id) => api.put(`/admin/deposit-requests/${id}/approve`),
   rejectDepositRequest: (id, adminNote) =>
     api.put(`/admin/deposit-requests/${id}/reject`, { adminNote }),

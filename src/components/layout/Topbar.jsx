@@ -3,6 +3,7 @@ import { Bell, User, ChevronDown, LogOut, KeyRound, Info, CheckCircle2, Trophy, 
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { notificationService } from "../../services/notification";
+import { walletService } from "../../services/wallet";
 import MinutesViewer from "../sb/MinutesViewer";
 
 const ROLE_LABEL = {
@@ -52,6 +53,7 @@ function normalizeNotif(n) {
 }
 
 const HAS_PROFILE = ["HorseOwner", "Jockey", "Referee", "Organizer"];
+const fmtMoney = (n) => Number(n || 0).toLocaleString("vi-VN");
 
 export default function Topbar({ title }) {
   const { user, role, logout } = useAuth();
@@ -62,6 +64,9 @@ export default function Topbar({ title }) {
   const [notifLoaded, setNotifLoaded] = useState(false);
   const [readIds, setReadIds] = useState(new Set());
   const [viewMinutes, setViewMinutes] = useState(null);
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletError, setWalletError] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -77,6 +82,35 @@ export default function Topbar({ title }) {
   useEffect(() => {
     if (bellOpen && !notifLoaded) fetchNotifications();
   }, [bellOpen, notifLoaded, fetchNotifications]);
+
+  const fetchWalletBalance = useCallback(async () => {
+    if (role !== "Spectator") return;
+    setWalletLoading(true);
+    setWalletError(false);
+    try {
+      const res = await walletService.getMyWallet();
+      setWalletBalance(res.data?.balance ?? 0);
+    } catch {
+      setWalletError(true);
+    } finally {
+      setWalletLoading(false);
+    }
+  }, [role]);
+
+  useEffect(() => {
+    if (role !== "Spectator") {
+      setWalletBalance(null);
+      return undefined;
+    }
+    fetchWalletBalance();
+    const onFocus = () => fetchWalletBalance();
+    window.addEventListener("focus", onFocus);
+    const timer = window.setInterval(fetchWalletBalance, 30000);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.clearInterval(timer);
+    };
+  }, [role, fetchWalletBalance]);
 
   const unreadCount = notifications.filter((n) => n.unread && !readIds.has(n.id)).length;
 
@@ -103,6 +137,19 @@ export default function Topbar({ title }) {
       <h1 className="text-base font-bold text-sb-tx truncate">{title}</h1>
 
       <div className="flex items-center gap-3">
+        {role === "Spectator" && (
+          <button
+            onClick={() => navigate("/spectator/wallet")}
+            className="hidden sm:flex items-center gap-2 h-9 px-3 rounded-xl bg-sb-s2 border border-sb-border text-left hover:border-sb-gold-bd transition-colors"
+            title={walletError ? "Unable to load wallet balance" : "Wallet balance"}
+          >
+            <span className="w-2 h-2 rounded-full bg-sb-gold shrink-0" />
+            <span className="text-[10px] uppercase tracking-widest text-sb-tx-3 font-bold">Balance</span>
+            <span className="text-xs font-black text-sb-gold-2 tabular-nums">
+              {walletLoading ? "..." : walletError ? "Unavailable" : `${fmtMoney(walletBalance)} VND`}
+            </span>
+          </button>
+        )}
 
         {/* Notifications */}
         <div className="relative">

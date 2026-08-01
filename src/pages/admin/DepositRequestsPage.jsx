@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Clock3, Loader2, RefreshCw, Wallet, XCircle, Search, Zap } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import SbModal from "../../components/sb/Modal";
@@ -29,6 +29,9 @@ function StatusBadge({ status }) {
     </span>
   );
 }
+
+const getSpectatorName = (req) =>
+  req.fullName || req.spectatorName || req.customerName || req.username || req.email || `User #${req.userId}`;
 
 function RejectModal({ request, busy, onClose, onSubmit }) {
   const [note, setNote] = useState("");
@@ -78,14 +81,19 @@ export default function DepositRequestsPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await adminService.getDepositRequests();
+      const res = await adminService.getDepositRequests({
+        status: statusFilter,
+        paymentMethod: methodFilter,
+        date: dateFilter,
+        keyword,
+      });
       setItems(res.data || []);
     } catch (e) {
       setError(e.message || "Unable to load deposit requests");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusFilter, methodFilter, dateFilter, keyword]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -123,28 +131,13 @@ export default function DepositRequestsPage() {
 
   const pendingCount = items.filter((x) => x.status === "Pending").length;
 
-  // Ap dung filter + search o client (BE chua ho tro param)
-  const filtered = useMemo(() => {
-    const kw = keyword.trim().toLowerCase();
-    return items.filter((req) => {
-      if (statusFilter !== "All" && req.status !== statusFilter) return false;
-      if (methodFilter !== "All" && (req.paymentMethod || "").toUpperCase() !== methodFilter) return false;
-      if (dateFilter && (!req.createdAt || !String(req.createdAt).startsWith(dateFilter))) return false;
-      if (kw) {
-        const hay = `${req.depositRequestId} ${req.userId} ${req.transferCode || ""}`.toLowerCase();
-        if (!hay.includes(kw)) return false;
-      }
-      return true;
-    });
-  }, [items, statusFilter, methodFilter, dateFilter, keyword]);
-
   return (
     <AdminLayout title="Approve Deposits">
       <SbPageHeader
         eyebrow="Admin"
         title="Approve Deposits"
         icon={Wallet}
-        stats={[`${items.length} yeu cau`, `${pendingCount} pending`]}
+        stats={[`${items.length} requests`, `${pendingCount} pending`]}
         actions={
           <button onClick={load} disabled={loading} className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm disabled:opacity-50">
             <RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Refresh
@@ -164,7 +157,7 @@ export default function DepositRequestsPage() {
               <input
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search by user ID, transfer code, request #..."
+                placeholder="Search by spectator, email, phone, transfer code..."
                 className="w-full h-10 pl-10 pr-4 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm placeholder:text-sb-tx-3 outline-none focus:border-sb-emerald focus:ring-1 focus:ring-sb-emerald/40 transition-all"
               />
             </div>
@@ -211,7 +204,7 @@ export default function DepositRequestsPage() {
 
         {loading ? <SbSpinner /> : items.length === 0 ? (
           <SbEmpty icon="VND" title="No deposit requests yet" hint="New user requests will appear here" />
-        ) : filtered.length === 0 ? (
+        ) : items.length === 0 ? (
           <SbEmpty icon="🔍" title="No matching requests" hint="Try changing the filters or search" />
         ) : (
           <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
@@ -228,7 +221,7 @@ export default function DepositRequestsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-sb-border">
-                  {filtered.map((req) => {
+                  {items.map((req) => {
                     const busy = busyId === req.depositRequestId;
                     const isPending = req.status === "Pending";
                     const autoRej = isAutoRejected(req);
@@ -239,7 +232,7 @@ export default function DepositRequestsPage() {
                           <p className="text-sb-tx-3 text-xs">{req.createdAt ? new Date(req.createdAt).toLocaleString("vi-VN") : ""}</p>
                         </td>
                         <td className="px-5 py-4">
-                          <p className="text-sb-tx font-semibold">User #{req.userId}</p>
+                          <p className="text-sb-tx font-semibold">{getSpectatorName(req)}</p>
                           <p className="text-sb-tx-3 text-xs">Wallet #{req.walletId}</p>
                         </td>
                         <td className="px-5 py-4">

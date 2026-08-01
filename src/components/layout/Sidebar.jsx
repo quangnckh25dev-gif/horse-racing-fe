@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight,
   Flag, Mail, Calendar,
   Award, PawPrint, User, BarChart2, Wallet, DollarSign,
-  FileText, Settings,
+  FileText, Settings, MessageSquareWarning,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -16,6 +16,7 @@ const MENU_BY_ROLE = {
     { label: "User Management",  icon: Users,         path: "/admin/users" },
     { label: "Approve Tournaments",      icon: Trophy,        path: "/admin/tournaments" },
     { label: "Approve Deposits",      icon: Wallet,        path: "/admin/deposit-requests" },
+    { label: "Deposit Complaints",      icon: MessageSquareWarning,        path: "/admin/deposit-complaints" },
     { label: "System Logs",    icon: FileText,      path: "/admin/audit-logs" },
     { label: "System Configurations",   icon: Settings,      path: "/admin/configs" },
   ],

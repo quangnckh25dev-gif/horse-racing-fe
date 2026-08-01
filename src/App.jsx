@@ -37,6 +37,7 @@ import JockeyInvitationsPage from "./pages/jockey/JockeyInvitationsPage";
 // Referee pages
 import RefereeRacesPage from "./pages/referee/RefereeRacesPage";
 import RefereeRaceDetailPage from "./pages/referee/RefereeRaceDetailPage";
+import RefereePreRaceCheckPage from "./pages/referee/RefereePreRaceCheckPage";
 
 // Spectator pages
 import RaceSchedulePage from "./pages/spectator/RaceSchedulePage";
@@ -121,6 +122,8 @@ export default function App() {
           {/* ── Referee — F3 ────────────────────────────────── */}
           <Route path="/referee/races"
             element={guard(["Referee"], <RefereeRacesPage />)} />
+          <Route path="/referee/races/:raceId/pre-race-check"
+            element={guard(["Referee"], <RefereePreRaceCheckPage />)} />
           <Route path="/referee/races/:raceId"
             element={guard(["Referee"], <RefereeRaceDetailPage />)} />
 

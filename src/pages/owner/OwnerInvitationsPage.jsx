@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import {
   Mail, AlertCircle, RefreshCw,
   Clock, CheckCircle2, XCircle, Send, Plus,
@@ -49,6 +49,13 @@ const STATUS_CONFIG = {
 };
 
 const selectCls = "w-full h-10 rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 pr-8 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-sb-emerald";
+const moneyFmt = (value) => Number(value || 0).toLocaleString("vi-VN");
+const jockeyLabel = (j) => j.fullName || j.username || `Jockey #${j.jockeyId}`;
+const jockeyWinRate = (j) => {
+  const races = Number(j.totalRaces || 0);
+  if (!races) return "0%";
+  return `${Math.round((Number(j.totalWins || 0) / races) * 100)}%`;
+};
 
 function Modal({ title, onClose, children }) {
   return (
@@ -76,6 +83,7 @@ export default function OwnerInvitationsPage() {
   const [modalLoading, setModalLoading]     = useState(false);
   const [selectedEntry, setSelectedEntry]   = useState("");
   const [selectedJockey, setSelectedJockey] = useState("");
+  const [dealAmount, setDealAmount]         = useState("");
   const [message, setMessage]               = useState("");
   const [sending, setSending]               = useState(false);
   const [modalError, setModalError]         = useState("");
@@ -98,7 +106,7 @@ export default function OwnerInvitationsPage() {
   const openModal = async () => {
     setShowModal(true);
     setModalError(""); setModalSuccess("");
-    setSelectedEntry(""); setSelectedJockey(""); setMessage("");
+    setSelectedEntry(""); setSelectedJockey(""); setDealAmount(""); setMessage("");
     setModalLoading(true);
     try {
       const [entryRes, jockeyRes] = await Promise.all([
@@ -117,14 +125,17 @@ export default function OwnerInvitationsPage() {
   const handleSend = async () => {
     if (!selectedEntry)  { setModalError("Please select a race entry"); return; }
     if (!selectedJockey) { setModalError("Please select a jockey"); return; }
+    const amount = Number(String(dealAmount).replace(/,/g, ""));
+    if (!Number.isFinite(amount) || amount <= 0) { setModalError("Deal amount must be greater than 0"); return; }
     setSending(true); setModalError(""); setModalSuccess("");
     try {
       await invitationService.sendInvitation(Number(selectedEntry), {
         jockeyId: Number(selectedJockey),
+        dealAmount: amount,
         message: message.trim() || undefined,
       });
       setModalSuccess("Invitation sent successfully!");
-      setSelectedEntry(""); setSelectedJockey(""); setMessage("");
+      setSelectedEntry(""); setSelectedJockey(""); setDealAmount(""); setMessage("");
       fetchInvitations();
     } catch (e) {
       setModalError(e.message || "Failed to send invitation");
@@ -140,7 +151,7 @@ export default function OwnerInvitationsPage() {
     Cancelled: invitations.filter((i) => i.status === "Cancelled").length,
   };
 
-  // Withdraw invitation đang pending responses
+  // Withdraw invitation Ä‘ang pending responses
   const [cancelBusy, setCancelBusy] = useState(null);
   const handleCancel = async (inv) => {
     if (!(await confirmBox(`Withdraw invitation sent to ${inv.jockeyName || "this jockey"}?`, { okText: "Withdraw", danger: true }))) return;
@@ -158,9 +169,9 @@ export default function OwnerInvitationsPage() {
   return (
     <AdminLayout title="Jockey Invitations">
 
-      {/* ── Page Header ── */}
+      {/* â”€â”€ Page Header â”€â”€ */}
       <div className="relative p-6 pb-5 border-b border-sb-border bg-sb-s1 overflow-hidden">
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.05] select-none pointer-events-none">📨</div>
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-6xl opacity-[0.05] select-none pointer-events-none">ðŸ“¨</div>
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -201,7 +212,7 @@ export default function OwnerInvitationsPage() {
 
       <div className="p-6 space-y-5">
 
-        {/* ── Mini stats ── */}
+        {/* â”€â”€ Mini stats â”€â”€ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
             const Icon = cfg.icon;
@@ -220,14 +231,14 @@ export default function OwnerInvitationsPage() {
           })}
         </div>
 
-        {/* ── Error ── */}
+        {/* â”€â”€ Error â”€â”€ */}
         {error && (
           <div className="flex items-center gap-3 p-4 bg-sb-lose/10 border border-sb-lose/30 rounded-xl text-sb-lose text-sm">
             <AlertCircle size={15} /> {error}
           </div>
         )}
 
-        {/* ── List ── */}
+        {/* â”€â”€ List â”€â”€ */}
         {loading ? (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
@@ -279,25 +290,32 @@ export default function OwnerInvitationsPage() {
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
                         {inv.horseName && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs">🐴 {inv.horseName}</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs">ðŸ´ {inv.horseName}</span>
                         )}
                         {inv.raceName && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs">🏁 {inv.raceName}</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-s2 border border-sb-border text-sb-tx-2 text-xs">ðŸ {inv.raceName}</span>
                         )}
-                        {inv.createdAt && (
+                        {inv.dealAmount != null && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sb-gold-soft border border-sb-gold-bd text-sb-gold-2 text-xs font-bold">
+                            Deal: {moneyFmt(inv.dealAmount)} VND
+                          </span>
+                        )}                        {inv.createdAt && (
                           <span className="text-sb-tx-3 text-xs">
                             {new Date(inv.createdAt).toLocaleDateString("vi-VN")}
                           </span>
                         )}
                       </div>
-                      {inv.note && (
+                      {(inv.message || inv.note) && (
                         <p className="text-sb-tx-3 text-xs mt-2 italic px-3 py-1.5 bg-sb-s2 rounded-lg border border-sb-border">
-                          "{inv.note}"
+                          "{inv.message || inv.note}"
                         </p>
+                      )}
+                      {inv.responseReason && (
+                        <p className="text-red-300 text-xs mt-2">Reason: {inv.responseReason}</p>
                       )}
                     </div>
 
-                    {/* Pending → cho thu hồi; còn lại chỉ hiện icon trạng thái */}
+                    {/* Pending â†’ cho thu há»“i; cÃ²n láº¡i chá»‰ hiá»‡n icon tráº¡ng thÃ¡i */}
                     {status === "Pending" ? (
                       <button onClick={() => handleCancel(inv)} disabled={cancelBusy === inv.invitationId}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose hover:bg-sb-lose/20 text-xs font-bold disabled:opacity-50 transition-colors shrink-0">
@@ -317,7 +335,7 @@ export default function OwnerInvitationsPage() {
         )}
       </div>
 
-      {/* ── Send Invitation Modal ── */}
+      {/* â”€â”€ Send Invitation Modal â”€â”€ */}
       {showModal && (
         <Modal title="Send Invitation Jockey" onClose={() => setShowModal(false)}>
           {modalLoading ? (
@@ -347,7 +365,7 @@ export default function OwnerInvitationsPage() {
                     <option value="">-- Select entry --</option>
                     {entries.map((en) => (
                       <option key={en.entryId} value={en.entryId}>
-                        {en.horseName || `Horse #${en.horseId}`} — {en.raceName || `Race #${en.raceId}`}
+                        {en.horseName || `Horse #${en.horseId}`} â€” {en.raceName || `Race #${en.raceId}`}
                       </option>
                     ))}
                   </select>
@@ -368,7 +386,7 @@ export default function OwnerInvitationsPage() {
                     <option value="">-- Select Jockey --</option>
                     {jockeys.map((j) => (
                       <option key={j.jockeyId} value={j.jockeyId}>
-                        {j.fullName || j.username} {j.experienceYear ? `(${j.experienceYear} years exp.)` : ""}
+                        {jockeyLabel(j)} {j.experienceYear ? `(${j.experienceYear} years exp.)` : ""}
                       </option>
                     ))}
                   </select>
@@ -379,6 +397,40 @@ export default function OwnerInvitationsPage() {
                 )}
               </div>
 
+              {selectedJockey && (() => {
+                const selected = jockeys.find((j) => String(j.jockeyId) === String(selectedJockey));
+                if (!selected) return null;
+                return (
+                  <div className="grid grid-cols-4 gap-2 rounded-xl border border-sb-border bg-sb-s2 p-3">
+                    {[
+                      ["Races", selected.totalRaces ?? 0],
+                      ["Wins", selected.totalWins ?? 0],
+                      ["Losses", selected.totalLosses ?? Math.max(Number(selected.totalRaces || 0) - Number(selected.totalWins || 0), 0)],
+                      ["Win Rate", jockeyWinRate(selected)],
+                    ].map(([label, value]) => (
+                      <div key={label}>
+                        <p className="text-sb-tx-3 text-[10px] uppercase font-bold">{label}</p>
+                        <p className="text-sb-tx text-sm font-black tabular-nums">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              <div>
+                <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-2">
+                  Deal Amount
+                </label>
+                <input
+                  value={dealAmount}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/[^\d]/g, "");
+                    setDealAmount(digits ? Number(digits).toLocaleString("vi-VN") : "");
+                  }}
+                  placeholder="1,000,000"
+                  className="w-full rounded-xl bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-sb-emerald placeholder:text-sb-tx-3"
+                />
+              </div>
               {/* Message */}
               <div>
                 <label className="block text-sb-tx-3 text-xs font-semibold uppercase tracking-widest mb-2">
@@ -416,3 +468,4 @@ export default function OwnerInvitationsPage() {
     </AdminLayout>
   );
 }
+

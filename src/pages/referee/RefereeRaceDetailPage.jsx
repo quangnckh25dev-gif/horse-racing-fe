@@ -35,88 +35,8 @@ function isValidRaceEntry(entry) {
   return ["approved", "ready"].includes(status) && (entry.jockeyId || entry.jockeyName);
 }
 
-function PreRaceCheckPanel({ entries, checked, onChange }) {
-  const validEntries = entries.filter(isValidRaceEntry);
-
-  return (
-    <div className="bg-[#111827]/80 border border-sb-border rounded-2xl p-6 space-y-4">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/25 flex items-center justify-center shrink-0">
-            <ClipboardCheck size={18} className="text-[#D4AF37]" />
-          </div>
-          <div>
-            <h2 className="text-white font-bold text-base">Pre-Race Check</h2>
-            <p className="text-sb-tx-3 text-sm mt-1">
-              Only approved registrations with jockeys can have results or violations recorded.
-            </p>
-          </div>
-        </div>
-        <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold cursor-pointer transition-colors ${
-          checked
-            ? "bg-sb-emerald-soft border-sb-emerald-bd text-sb-emerald-ink"
-            : "bg-[#0A0E1A] border-sb-border text-sb-tx-2 hover:text-white"
-        }`}>
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={(e) => onChange(e.target.checked)}
-            className="accent-sb-emerald"
-          />
-          I have checked horse information before the race
-        </label>
-      </div>
-
-      {validEntries.length === 0 ? (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-sb-lose/10 border border-sb-lose/30 text-sb-lose text-sm">
-          <AlertCircle size={14} /> No valid registrations to race.
-        </div>
-      ) : (
-        <div className="rounded-xl border border-sb-border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-sm">
-              <thead>
-                <tr className="bg-sb-s2 border-b border-sb-border text-[10px] uppercase tracking-widest text-sb-tx-3">
-                  <th className="text-left px-4 py-2.5">Lane</th>
-                  <th className="text-left px-4 py-2.5">Horse</th>
-                  <th className="text-left px-4 py-2.5">Jockey</th>
-                  <th className="text-left px-4 py-2.5">Horse Owner</th>
-                  <th className="text-left px-4 py-2.5">Health</th>
-                  <th className="text-left px-4 py-2.5">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {validEntries.map((entry) => (
-                  <tr key={entry.entryId} className="border-b border-sb-border last:border-0">
-                    <td className="px-4 py-3 text-sb-tx-2 font-mono">{entry.laneNumber || "-"}</td>
-                    <td className="px-4 py-3">
-                      <p className="text-white font-medium">{entry.horseName || `Horse #${entry.horseId}`}</p>
-                      <p className="text-sb-tx-3 text-xs">Entry #{entry.entryId}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-white">{entry.jockeyName || `Jockey #${entry.jockeyId}`}</p>
-                      <p className="text-sb-tx-3 text-xs">{entry.jockeyConfirmed ? "Confirmed" : "Not Confirmed"}</p>
-                    </td>
-                    <td className="px-4 py-3 text-sb-tx-2">{entry.ownerName || "-"}</td>
-                    <td className="px-4 py-3 text-sb-tx-2">{entry.healthStatus || "Not Recorded"}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-1 rounded-full bg-sb-emerald-soft border border-sb-emerald-bd text-sb-emerald-ink text-xs font-semibold">
-                        {entry.registrationStatus}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Results Tab ───────────────────────────────────────────────────────────────
-function ResultsTab({ raceId, entries, preRaceChecked }) {
+function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -143,6 +63,10 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
   const raceable = entries.filter(isValidRaceEntry);
 
   const initForm = () => {
+    if (disabledReason) {
+      alert(disabledReason);
+      return;
+    }
     if (!preRaceChecked) {
       alert("Please confirm the pre-race horse information check.");
       return;
@@ -164,6 +88,10 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (disabledReason) {
+      alert(disabledReason);
+      return;
+    }
     if (!preRaceChecked) {
       alert("Please confirm the pre-race horse information check.");
       return;
@@ -212,13 +140,14 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
   return (
     <div className="space-y-4">
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
-      {!preRaceChecked && (
+      {(disabledReason || !preRaceChecked) && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
-          <AlertCircle size={14} /> Pre-race check confirmation is required before entering results.
+          <AlertCircle size={14} /> {disabledReason || "Pre-race check confirmation is required before entering results."}
         </div>
       )}
       <div className="flex justify-end">
-        <button onClick={initForm} disabled={!preRaceChecked}
+        <button onClick={initForm} disabled={!!disabledReason || !preRaceChecked}
+          title={disabledReason || (!preRaceChecked ? "Complete pre-race check before entering results." : "Enter race results")}
           className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <Edit2 size={14} /> {results.length > 0 ? "Update Results" : "Enter Results"}
         </button>
@@ -333,7 +262,7 @@ function ResultsTab({ raceId, entries, preRaceChecked }) {
 }
 
 // ── Violations Tab ────────────────────────────────────────────────────────────
-function ViolationsTab({ raceId, entries, preRaceChecked }) {
+function ViolationsTab({ raceId, entries, preRaceChecked, disabledReason }) {
   const [violations, setViolations] = useState([]);
   const [violationOptions, setViolationOptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -371,6 +300,10 @@ function ViolationsTab({ raceId, entries, preRaceChecked }) {
 
   const handleAdd = async (e) => {
     e.preventDefault();
+    if (disabledReason) {
+      alert(disabledReason);
+      return;
+    }
     if (!preRaceChecked) {
       alert("Please confirm the pre-race horse information check.");
       return;
@@ -403,13 +336,14 @@ function ViolationsTab({ raceId, entries, preRaceChecked }) {
   return (
     <div className="space-y-4">
       {error && <div className="text-red-300 text-sm p-3 bg-red-950/40 border border-red-900 rounded-xl">{error}</div>}
-      {!preRaceChecked && (
+      {(disabledReason || !preRaceChecked) && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
-          <AlertCircle size={14} /> Pre-race check confirmation is required before recording violations.
+          <AlertCircle size={14} /> {disabledReason || "Pre-race check confirmation is required before recording violations."}
         </div>
       )}
       <div className="flex justify-end">
-        <button onClick={() => setShowAdd(true)} disabled={!preRaceChecked}
+        <button onClick={() => setShowAdd(true)} disabled={!!disabledReason || !preRaceChecked}
+          title={disabledReason || (!preRaceChecked ? "Complete pre-race check before recording violations." : "Record a violation")}
           className="flex items-center gap-2 px-4 py-2 bg-red-600/20 border border-red-600/40 text-red-300 hover:bg-red-600/30 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <Plus size={14} /> Record Violation
         </button>
@@ -502,7 +436,7 @@ function ViolationsTab({ raceId, entries, preRaceChecked }) {
 }
 
 // ── Minutes Tab ───────────────────────────────────────────────────────────────
-function MinutesTab({ raceId }) {
+function MinutesTab({ raceId, disabledReason }) {
   const [minutes, setMinutes] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -536,6 +470,10 @@ function MinutesTab({ raceId }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (disabledReason) {
+      alert(disabledReason);
+      return;
+    }
     if (!form.minutesFileUrl) { alert("Please attach the signed minutes file (image/PDF)."); return; }
     setFormLoading(true);
     try {
@@ -557,7 +495,12 @@ function MinutesTab({ raceId }) {
       <div className="text-center py-10 text-sb-tx-3">
         <FileText size={32} className="mx-auto mb-2 opacity-30" />
         <p className="text-sm mb-4">No race minutes yet</p>
-        <button onClick={() => setEditing(true)}
+        {disabledReason && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm mb-4">
+            <AlertCircle size={14} /> {disabledReason}
+          </div>
+        )}
+        <button onClick={() => setEditing(true)} disabled={!!disabledReason} title={disabledReason || "Create race minutes"}
           className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold rounded-lg text-sm transition-colors mx-auto">
           <Plus size={14} /> Create Minutes
         </button>
@@ -569,8 +512,8 @@ function MinutesTab({ raceId }) {
     return (
       <div className="space-y-4">
         <div className="flex justify-end">
-          <button onClick={() => setEditing(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#111827] border border-sb-border text-sb-tx-3 hover:text-sb-tx rounded-lg text-sm transition-colors">
+          <button onClick={() => setEditing(true)} disabled={!!disabledReason} title={disabledReason || "Edit race minutes"}
+            className="flex items-center gap-2 px-4 py-2 bg-[#111827] border border-sb-border text-sb-tx-3 hover:text-sb-tx rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <Edit2 size={14} /> Edit Minutes
           </button>
         </div>
@@ -670,19 +613,24 @@ export default function RefereeRaceDetailPage() {
   const [busy, setBusy] = useState("");
   const [flash, setFlash] = useState("");
   const [preRaceChecked, setPreRaceChecked] = useState(false);
+  const [preRaceChecks, setPreRaceChecks] = useState([]);
   const [sent, setSent] = useState(false);          // sent biên bản cho Owner
   const [handedOff, setHandedOff] = useState(false); // đã bàn giao BTC
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [raceRes, entriesRes, minRes] = await Promise.all([
+      const [raceRes, entriesRes, minRes, checkRes] = await Promise.all([
         spectatorService.getRaceById(raceId),
         spectatorService.getRaceEntries(raceId),
         raceResultService.getMinutes(raceId).catch(() => ({ data: null })),
+        raceResultService.getPreRaceChecks(raceId).catch(() => ({ data: [] })),
       ]);
+      const checks = checkRes.data || [];
       setRace(raceRes.data);
       setEntries(entriesRes.data || []);
+      setPreRaceChecks(checks);
+      setPreRaceChecked(checks.length > 0 && checks.every((check) => ["checked", "rejected"].includes(String(check.status || "").toLowerCase())));
       // Nếu biên bản sent Owner từ trước → giữ nút khoá kể cả khi reload
       if (minRes?.data?.sentToOwners) setSent(true);
     } catch (e) {
@@ -693,24 +641,6 @@ export default function RefereeRaceDetailPage() {
   }, [raceId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-
-  useEffect(() => {
-    try {
-      setPreRaceChecked(localStorage.getItem(`referee-precheck-${raceId}`) === "1");
-    } catch {
-      setPreRaceChecked(false);
-    }
-  }, [raceId]);
-
-  const handlePreRaceChecked = (checked) => {
-    setPreRaceChecked(checked);
-    try {
-      if (checked) localStorage.setItem(`referee-precheck-${raceId}`, "1");
-      else localStorage.removeItem(`referee-precheck-${raceId}`);
-    } catch {
-      // localStorage can be unavailable in private/test environments.
-    }
-  };
 
   const doAction = async (key, fn, okMsg, onOk) => {
     if (busy) return;              // chặn spam khi đang xử lý
@@ -730,9 +660,12 @@ export default function RefereeRaceDetailPage() {
   const status = race?.status;
   // Chỉ tính ngựa đủ điều kiện đua (đã có jockey)
   const raceableCount = entries.filter(isValidRaceEntry).length;
-  const canStart = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount >= 1 && preRaceChecked;
-  const startBlockedNoHorse = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount < 1;
-  const startBlockedPreCheck = (status === "Scheduled" || status === "RegistrationOpen") && raceableCount >= 1 && !preRaceChecked;
+  const canStart = status === "RegistrationOpen" && raceableCount >= 1 && preRaceChecked;
+  const startBlockedNoHorse = status === "RegistrationOpen" && raceableCount < 1;
+  const startBlockedPreCheck = status === "RegistrationOpen" && raceableCount >= 1 && !preRaceChecked;
+  const resultsDisabledReason = status === "Ongoing" ? "" : "Results are available only while the race is Ongoing.";
+  const violationsDisabledReason = status === "Ongoing" ? "" : "Violations are available only while the race is Ongoing.";
+  const minutesDisabledReason = ["Ongoing", "Finished"].includes(status) ? "" : "Minutes are available only after the race starts.";
 
   return (
     <AdminLayout title="Race Data Entry">
@@ -815,29 +748,50 @@ export default function RefereeRaceDetailPage() {
               </div>
             </div>
 
-            <PreRaceCheckPanel
-              entries={entries}
-              checked={preRaceChecked}
-              onChange={handlePreRaceChecked}
-            />
+            <div className="bg-[#111827]/80 border border-sb-border rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${
+                  preRaceChecked ? "bg-sb-emerald-soft border-sb-emerald-bd" : "bg-yellow-500/10 border-yellow-500/30"
+                }`}>
+                  {preRaceChecked ? <CheckCircle2 size={18} className="text-sb-emerald-ink" /> : <AlertCircle size={18} className="text-yellow-300" />}
+                </div>
+                <div>
+                  <h2 className="text-white font-bold text-base">Pre-Race Check</h2>
+                  <p className="text-sb-tx-3 text-sm mt-1">
+                    {preRaceChecked
+                      ? `All ${preRaceChecks.length} entries have been processed.`
+                      : "Process every horse before starting the race."}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => navigate(`/referee/races/${raceId}/pre-race-check`)}
+                className="flex items-center justify-center gap-2 px-4 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/25 text-[#D4AF37] hover:bg-[#D4AF37]/20 text-sm font-bold">
+                <ClipboardCheck size={14} /> Open Pre-Race Check
+              </button>
+            </div>
 
             {/* Tabs */}
             <div className="flex gap-1 bg-[#111827]/60 p-1 rounded-xl border border-sb-border">
-              {TABS.map((tab) => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              {TABS.map((tab) => {
+                const reason = tab.id === "results" ? resultsDisabledReason : tab.id === "violations" ? violationsDisabledReason : minutesDisabledReason;
+                return (
+                <button key={tab.id} onClick={() => !reason && setActiveTab(tab.id)}
+                  disabled={!!reason}
+                  title={reason || tab.label}
                   className={`flex items-center gap-2 flex-1 justify-center py-2 rounded-lg text-sm font-medium transition-all ${
                     activeTab === tab.id ? "bg-[#D4AF37] text-[#0A0E1A]" : "text-sb-tx-3 hover:text-sb-tx"
+                  } ${reason ? "opacity-50 cursor-not-allowed hover:text-sb-tx-3" : ""
                   }`}>
                   <tab.icon size={14} /> {tab.label}
                 </button>
-              ))}
+              );})}
             </div>
 
             {/* Tab content */}
             <div className="bg-[#111827]/80 border border-sb-border rounded-2xl p-6">
-              {activeTab === "results" && <ResultsTab raceId={raceId} entries={entries} preRaceChecked={preRaceChecked} />}
-              {activeTab === "violations" && <ViolationsTab raceId={raceId} entries={entries} preRaceChecked={preRaceChecked} />}
-              {activeTab === "minutes" && <MinutesTab raceId={raceId} />}
+              {activeTab === "results" && <ResultsTab raceId={raceId} entries={entries} preRaceChecked={preRaceChecked} disabledReason={resultsDisabledReason} />}
+              {activeTab === "violations" && <ViolationsTab raceId={raceId} entries={entries} preRaceChecked={preRaceChecked} disabledReason={violationsDisabledReason} />}
+              {activeTab === "minutes" && <MinutesTab raceId={raceId} disabledReason={minutesDisabledReason} />}
             </div>
           </>
         )}

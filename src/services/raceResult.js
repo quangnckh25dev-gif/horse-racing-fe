@@ -27,6 +27,11 @@ export const raceResultService = {
   // Bàn giao kết quả + biên bản cho Organizer duyệt
   handoff: (raceId) => api.post(`/races/${raceId}/minutes/handoff`, {}),
 
+  getPreRaceChecks: (raceId) => api.get(`/races/${raceId}/pre-race-checks`),
+  initPreRaceChecks: (raceId) => api.post(`/races/${raceId}/pre-race-checks/init`, {}),
+  updatePreRaceCheck: (raceId, entryId, data) =>
+    api.patch(`/races/${raceId}/pre-race-checks/${entryId}`, data),
+
   // ── Điều khiển trạng thái đua (Referee là người DUY NHẤT đổi) ──
   // PATCH /races/{id}/status: Scheduled/RegistrationOpen → Ongoing → Finished
   changeRaceStatus: (raceId, status) =>

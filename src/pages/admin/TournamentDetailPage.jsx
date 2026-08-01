@@ -10,6 +10,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { tournamentService } from "../../services/tournament";
+import TournamentBracket from "../../components/tournament/TournamentBracket";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -302,6 +303,7 @@ export default function TournamentDetailPage() {
 
   const TABS = [
     { key: "info",   label: "Information",    icon: Trophy },
+    { key: "bracket", label: "Bracket", icon: Trophy },
     { key: "rounds", label: "Rounds",     icon: Flag },
     { key: "races",  label: "Race Schedule", icon: Calendar },
   ];
@@ -451,6 +453,10 @@ export default function TournamentDetailPage() {
         {/* ══════════════════════════════════════════════════════════
             TAB: ROUNDS
         ══════════════════════════════════════════════════════════ */}
+        {activeTab === "bracket" && (
+          <TournamentBracket tournament={tournament} rounds={rounds} races={races} />
+        )}
+
         {activeTab === "rounds" && (
           <div>
             <div className="flex items-center justify-between mb-4">

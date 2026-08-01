@@ -69,6 +69,10 @@ function formatDate(value) {
   });
 }
 
+function formatMoney(value) {
+  return `${Number(value || 0).toLocaleString("vi-VN")} VND`;
+}
+
 function isRedFlagResult(result) {
   const status = String(result.status || result.resultStatus || result.registrationStatus || "").toLowerCase();
   return result.dq || result.dnf || status.includes("eliminated") || status.includes("pre") || status.includes("reject");
@@ -280,6 +284,7 @@ export default function OrganizerResultDetailPage() {
                         <th className="px-5 py-3 text-right">Penalty</th>
                         <th className="px-5 py-3 text-right">Final Time</th>
                         <th className="px-5 py-3 text-right">Points</th>
+                        <th className="px-5 py-3 text-right">Prize Won</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -303,6 +308,9 @@ export default function OrganizerResultDetailPage() {
                             <td className="px-5 py-3 text-right text-red-300">{formatTime(result.penaltyTime || 0)}</td>
                             <td className="px-5 py-3 text-right font-bold">{formatTime(result.finalTime)}</td>
                             <td className="px-5 py-3 text-right">{result.points ?? "-"}</td>
+                            <td className="px-5 py-3 text-right font-bold text-sb-emerald-ink">
+                              {Number(result.prizeWon || 0) > 0 ? formatMoney(result.prizeWon) : "-"}
+                            </td>
                           </tr>
                         );
                       })}

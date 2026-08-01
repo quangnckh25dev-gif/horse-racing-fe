@@ -55,6 +55,8 @@ const FILTER_TABS = [
   { key: "Finished",         label: "Finished",  icon: CheckCircle2 },
 ];
 
+const fmtMoney = (value) => Number(value || 0).toLocaleString("vi-VN");
+
 export default function RaceSchedulePage() {
   const navigate = useNavigate();
   const [races, setRaces] = useState([]);
@@ -343,6 +345,11 @@ export default function RaceSchedulePage() {
                           <p className={`text-sm font-bold leading-tight ${cls}`}>{r.horseName || `#${r.horseId}`}</p>
                           <p className="text-gray-500 text-[10px] mt-0.5">🏇 {r.jockeyName || "—"}</p>
                           {r.finishTime && <p className="text-gray-400 text-[10px]">⏱ {r.finishTime}</p>}
+                          {Number(r.prizeWon || 0) > 0 && (
+                            <p className="mt-1 text-[10px] font-bold text-sb-emerald-ink">
+                              Prize: {fmtMoney(r.prizeWon)} VND
+                            </p>
+                          )}
                         </div>
                       );
                     })}
@@ -360,6 +367,11 @@ export default function RaceSchedulePage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-white font-semibold text-sm">{r.horseName || `Horse #${r.horseId}`}</p>
                         <p className="text-gray-500 text-xs">🏇 {r.jockeyName || "—"}{r.finishTime ? ` · ⏱ ${r.finishTime}` : ""}</p>
+                        {Number(r.prizeWon || 0) > 0 && (
+                          <p className="text-sb-emerald-ink text-xs font-bold mt-0.5">
+                            Prize awarded: {fmtMoney(r.prizeWon)} VND
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}

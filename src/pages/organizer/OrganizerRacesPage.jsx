@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, Edit2, Trash2, Eye, AlertCircle, Loader2,
   RefreshCw, Flag, X,
-  Clock, Zap, Trophy, Users, Calendar,
+  Clock, Zap, Trophy, Users, Calendar, PlayCircle,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { organizerService } from "../../services/organizer";
@@ -11,8 +11,8 @@ import { tournamentService } from "../../services/tournament";
 import { useAuth } from "../../context/AuthContext";
 
 const STATUS_CONFIG = {
-  Scheduled:        { label: "Scheduled",  color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue",       borderCls: "border-l-blue-glow",   icon: Clock,     iconCls: "text-blue-400",    glow: "hover:shadow-blue-500/10" },
-  RegistrationOpen: { label: "Registration Open",   color: "bg-purple-500/20 text-purple-300 border-purple-500/40",                 borderCls: "border-l-purple-glow", icon: Calendar,  iconCls: "text-purple-400",  glow: "hover:shadow-purple-500/10" },
+  Draft:            { label: "Draft", color: "bg-blue-500/20 text-blue-300 border-blue-500/40 badge-glow-blue", borderCls: "border-l-blue-glow", icon: Clock, iconCls: "text-blue-400", glow: "hover:shadow-blue-500/10" },
+  RegistrationOpen: { label: "Registration Open", color: "bg-purple-500/20 text-purple-300 border-purple-500/40", borderCls: "border-l-purple-glow", icon: Calendar, iconCls: "text-purple-400", glow: "hover:shadow-purple-500/10" },
   Ongoing:          { label: "Ongoing", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 badge-glow-yellow", borderCls: "border-l-gold-glow",   icon: Zap,       iconCls: "text-[#D4AF37]",   glow: "hover:shadow-yellow-500/10" },
   Finished:         { label: "Finished",  color: "bg-green-500/20 text-green-300 border-green-500/40 badge-glow-green",   borderCls: "border-l-green-glow",  icon: Trophy,    iconCls: "text-green-400",   glow: "hover:shadow-green-500/10" },
   Cancelled:        { label: "Cancelled",       color: "bg-red-500/20 text-red-300 border-red-500/40",                          borderCls: "border-l-red-glow",    icon: X,         iconCls: "text-red-400",     glow: "" },
@@ -245,7 +245,7 @@ export default function OrganizerRacesPage() {
     prizeFirst: Number(f.prizeFirst) || 0,
     prizeSecond: Number(f.prizeSecond) || 0,
     prizeThird: Number(f.prizeThird) || 0,
-    status: "Scheduled",
+    status: "Draft",
     registrationOpen: new Date().toISOString().slice(0, 16),
     registrationClose: f.startTime,
   });
@@ -322,6 +322,18 @@ export default function OrganizerRacesPage() {
     finally { setFormLoading(false); }
   };
 
+  const handleOpenRegistration = async (race) => {
+    setFormLoading(true); setFormError("");
+    try {
+      await organizerService.openRaceRegistration(race.raceId);
+      await fetchRaces();
+    } catch (err) {
+      setFormError(err.message || "Failed to open registration");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   // FE-10: BE da bo duyet tournament cua Admin -> Organizer quan ly truc tiep, khong con submit
   const TOURNAMENT_STATUS = {
     Draft:           { label: "Draft",         cls: "bg-sb-s2 text-sb-tx-2 border-sb-border" },
@@ -346,7 +358,7 @@ export default function OrganizerRacesPage() {
 
   const filtered = filterStatus === "all" ? races : races.filter((r) => r.status === filterStatus);
 
-  const scheduledCount  = races.filter((r) => r.status === "Scheduled").length;
+  const draftCount      = races.filter((r) => r.status === "Draft").length;
   const regOpenCount    = races.filter((r) => r.status === "RegistrationOpen").length;
   const ongoingCount    = races.filter((r) => r.status === "Ongoing").length;
   const finishedCount   = races.filter((r) => r.status === "Finished").length;
@@ -464,7 +476,7 @@ export default function OrganizerRacesPage() {
         <div className="flex gap-2 flex-wrap">
           {[
             { key: "all",              label: "All",    count: races.length },
-            { key: "Scheduled",        count: scheduledCount },
+            { key: "Draft",            count: draftCount },
             { key: "RegistrationOpen", count: regOpenCount },
             { key: "Ongoing",          count: ongoingCount },
             { key: "Finished",         count: finishedCount },
@@ -518,6 +530,7 @@ export default function OrganizerRacesPage() {
             {filtered.map((race, idx) => {
               const cfg = STATUS_CONFIG[race.status] || { label: race.status, color: "bg-gray-500/20 text-sb-tx-3 border-gray-500/40", borderCls: "border-l-gray-glow", iconCls: "text-sb-tx-3", glow: "" };
               const StatusIcon = cfg.icon || Flag;
+              const isDraft = race.status === "Draft";
               return (
                 <div
                   key={race.raceId}
@@ -562,12 +575,20 @@ export default function OrganizerRacesPage() {
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-sb-tx hover:border-gray-600 rounded-xl text-xs transition-all">
                         <Eye size={12} /> Details
                       </button>
-                      <button onClick={() => openEdit(race)}
-                        className="p-2 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-[#D4AF37] hover:border-[#D4AF37]/30 rounded-xl transition-all">
+                      {isDraft && (
+                        <button onClick={() => handleOpenRegistration(race)} disabled={formLoading}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:text-purple-200 hover:border-purple-400/50 rounded-xl text-xs font-semibold transition-all disabled:opacity-50">
+                          <PlayCircle size={12} /> Open Registration
+                        </button>
+                      )}
+                      <button onClick={() => isDraft && openEdit(race)} disabled={!isDraft}
+                        title={isDraft ? "Edit race" : "Only Draft races can be edited"}
+                        className={`p-2 bg-sb-s1/[0.03] border border-sb-border rounded-xl transition-all ${isDraft ? "text-sb-tx-3 hover:text-[#D4AF37] hover:border-[#D4AF37]/30" : "text-sb-tx-3/35 cursor-not-allowed opacity-50"}`}>
                         <Edit2 size={14} />
                       </button>
-                      <button onClick={() => { setFormError(""); setShowDelete(race); }}
-                        className="p-2 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-red-400 hover:border-red-900/50 rounded-xl transition-all">
+                      <button onClick={() => { if (isDraft) { setFormError(""); setShowDelete(race); } }} disabled={!isDraft}
+                        title={isDraft ? "Delete race" : "Only Draft races can be deleted"}
+                        className={`p-2 bg-sb-s1/[0.03] border border-sb-border rounded-xl transition-all ${isDraft ? "text-sb-tx-3 hover:text-red-400 hover:border-red-900/50" : "text-sb-tx-3/35 cursor-not-allowed opacity-50"}`}>
                         <Trash2 size={14} />
                       </button>
                     </div>

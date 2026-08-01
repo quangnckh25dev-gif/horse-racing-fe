@@ -9,9 +9,11 @@ export const organizerService = {
   deleteRace: (raceId) => api.delete(`/organizer/races/${raceId}`),
 
   // ── Race status ───────────────────────────────────────────
-  // Referee mới là người đổi trạng thái đua → BE đặt ở /races/{id}/status
+  // Organizer opens registration; later race status transitions belong to Referee flows.
   changeRaceStatus: (raceId, status) =>
-    api.patch(`/races/${raceId}/status`, { status }),
+    api.patch(`/organizer/races/${raceId}/status`, { status }),
+  openRaceRegistration: (raceId) =>
+    api.patch(`/organizer/races/${raceId}/status`, { status: "RegistrationOpen" }),
 
   // ── Referees ──────────────────────────────────────────────
   getAllReferees: () => api.get("/organizer/referees"),

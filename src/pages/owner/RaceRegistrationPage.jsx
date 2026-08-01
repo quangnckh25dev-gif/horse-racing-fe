@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   AlertCircle, Loader2, Trophy, Calendar, X, Plus,
   RefreshCw, CheckCircle2, Clock, XCircle, Send,
-  Flag, ClipboardList,
+  Flag, ClipboardList, Activity,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { confirmBox } from "../../lib/toast";
@@ -26,6 +26,13 @@ const entryStatusOf = (e) => {
   if (raw === "Approved" && (e.jockeyConfirmed || e.jockeyName)) return "Ready";
   return raw;
 };
+
+const activeHorse = (horse) => {
+  const status = String(horse.status || horse.healthStatus || "").toLowerCase();
+  return horse.active !== false && status !== "inactive" && status !== "injured";
+};
+
+const raceMaxSlots = (race) => race.maxParticipants || race.maxEntries || race.maxHorses || 0;
 
 const selectCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
 const inputCls  = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 transition-all";
@@ -63,6 +70,8 @@ export default function RaceRegistrationPage() {
   const [formError, setFormError]       = useState("");
   const [activeTab, setActiveTab]       = useState("upcoming");
   const [actionLoading, setActionLoading] = useState("");
+  const [entryFilter, setEntryFilter] = useState("all");
+  const [raceSlots, setRaceSlots] = useState({});
 
   const [jockeys, setJockeys] = useState([]);
 
@@ -74,10 +83,18 @@ export default function RaceRegistrationPage() {
         horseService.getMyHorses(),
         entryService.getJockeys().catch(() => ({ data: [] })),
       ]);
+      const openRaces = (racesRes.data || []).filter((r) => r.status === "RegistrationOpen");
       setRaces(racesRes.data || []);
       // Horse đang active (BE trả active/statusLabel, không có field status)
-      setHorses((horsesRes.data || []).filter((h) => h.active !== false));
+      setHorses((horsesRes.data || []).filter(activeHorse));
       setJockeys(jockeysRes.data || []);
+
+      const slotPairs = await Promise.all(openRaces.map((race) =>
+        spectatorService.getRaceEntries(race.raceId)
+          .then((res) => [race.raceId, (res.data || []).filter((e) => !["Rejected", "Withdrawn"].includes(entryStatusOf(e))).length])
+          .catch(() => [race.raceId, 0])
+      ));
+      setRaceSlots(Object.fromEntries(slotPairs));
     } catch (e) {
       setError(e.message || "Unable to load data");
     } finally {
@@ -155,6 +172,13 @@ export default function RaceRegistrationPage() {
   const pendingEntries  = myEntries.filter((e) => entryStatusOf(e) === "Pending").length;
   const approvedEntries = myEntries.filter((e) => entryStatusOf(e) === "Approved").length;
   const readyEntries    = myEntries.filter((e) => entryStatusOf(e) === "Ready").length;
+  const filteredEntries = myEntries.filter((entry) => entryFilter === "all" || entryStatusOf(entry) === entryFilter);
+  const entryFilterLabel = {
+    all: "All",
+    Pending: "Pending Approval",
+    Approved: "Approved Without Jockey",
+    Ready: "Ready With Jockey",
+  }[entryFilter];
 
   return (
     <AdminLayout title="Race Registration">
@@ -216,7 +240,7 @@ export default function RaceRegistrationPage() {
         )}
 
         {/* ── Tab: Upcoming Races ── */}
-        {activeTab === "upcoming" && (
+        {activeTab === "upcoming" ? (
           loading ? (
             <div className="space-y-3">
               {[...Array(4)].map((_, i) => <div key={i} className="h-24 shimmer rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />)}
@@ -231,7 +255,11 @@ export default function RaceRegistrationPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {upcomingRaces.map((race, idx) => (
+              {upcomingRaces.map((race, idx) => {
+                const currentSlots = raceSlots[race.raceId] ?? 0;
+                const maxSlots = raceMaxSlots(race);
+                const full = maxSlots > 0 && currentSlots >= maxSlots;
+                return (
                 <div key={race.raceId}
                   className="group bg-[#0d1117] border border-sb-border rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4 card-hover border-l-blue-glow animate-fade-in-up"
                   style={{ animationDelay: `${idx * 50}ms` }}>
@@ -241,7 +269,7 @@ export default function RaceRegistrationPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
                       <h3 className="text-white font-bold">{race.raceName}</h3>
-                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full border bg-blue-500/20 text-blue-300 border-blue-500/40">Scheduled</span>
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full border bg-purple-500/20 text-purple-300 border-purple-500/40">Registration Open</span>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
                       {(race.raceDate || race.startTime) && (
@@ -249,26 +277,47 @@ export default function RaceRegistrationPage() {
                           <Calendar size={10} /> {new Date(race.raceDate || race.startTime).toLocaleString("vi-VN")}
                         </span>
                       )}
+                      {race.trackType && <span className="stat-pill"><Activity size={10} /> {race.trackType}</span>}
+                      {maxSlots > 0 && <span className={`stat-pill ${full ? "text-red-300" : "text-green-300"}`}>{currentSlots} / {maxSlots} slots</span>}
                       {(race.trackLength || race.distance) && <span className="stat-pill">📏 {race.trackLength || race.distance}m</span>}
-                      {(race.maxParticipants || race.maxEntries) && <span className="stat-pill">👥 {race.maxParticipants || race.maxEntries} slots</span>}
                       {(race.prizePool || race.prizeFirst) && <span className="text-xs font-bold text-[#D4AF37] neon-gold">💰 {Number(race.prizePool || race.prizeFirst).toLocaleString("vi-VN")} VND</span>}
                     </div>
                   </div>
                   <button
                     onClick={() => { setRegisterForm({ horseId: "" }); setFormError(""); setShowRegister(race); }}
-                    disabled={horses.length === 0}
+                    disabled={horses.length === 0 || full}
                     className="flex items-center gap-2 px-4 py-2.5 bg-[#D4AF37] hover:bg-[#c49b2e] text-[#0A0E1A] font-bold rounded-xl text-sm transition-colors disabled:opacity-40 shrink-0 btn-gold-glow">
-                    <Plus size={14} /> Register
+                    <Plus size={14} /> {full ? "Full" : "Register"}
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )
-        )}
+        ) : null}
 
         {/* ── Tab: My Entries ── */}
         {activeTab === "entries" && (
-          entriesLoading ? (
+          <>
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { key: "all", label: "All", count: myEntries.length },
+              { key: "Pending", label: "Pending Approval", count: pendingEntries },
+              { key: "Approved", label: "Approved Without Jockey", count: approvedEntries },
+              { key: "Ready", label: "Ready With Jockey", count: readyEntries },
+            ].map((item) => (
+              <button key={item.key} onClick={() => setEntryFilter(item.key)}
+                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                  entryFilter === item.key
+                    ? "bg-[#D4AF37] text-[#0A0E1A] border-[#D4AF37]"
+                    : "bg-sb-s2 text-sb-tx-3 border-sb-border hover:text-sb-tx"
+                }`}>
+                {item.label} <span className="opacity-70">({item.count})</span>
+              </button>
+            ))}
+          </div>
+
+          {entriesLoading ? (
             <div className="space-y-3">
               {[...Array(4)].map((_, i) => <div key={i} className="h-24 shimmer rounded-xl" style={{ animationDelay: `${i * 70}ms` }} />)}
             </div>
@@ -280,9 +329,17 @@ export default function RaceRegistrationPage() {
               <p className="text-white font-semibold mb-1">No registrations yet</p>
               <p className="text-sb-tx-3 text-sm">Switch to the Upcoming Races tab to register</p>
             </div>
+          ) : filteredEntries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-sb-s2 border border-sb-border flex items-center justify-center mb-4">
+                <ClipboardList size={24} className="text-sb-tx-2" />
+              </div>
+              <p className="text-white font-semibold mb-1">No {entryFilterLabel.toLowerCase()} registrations</p>
+              <p className="text-sb-tx-3 text-sm">Registrations matching this filter will appear here.</p>
+            </div>
           ) : (
             <div className="space-y-3">
-              {myEntries.map((entry, idx) => {
+              {filteredEntries.map((entry, idx) => {
                 const status = entryStatusOf(entry);
                 const cfg = ENTRY_STATUS[status] || ENTRY_STATUS.Pending;
                 const StatusIcon = cfg.icon;
@@ -348,7 +405,8 @@ export default function RaceRegistrationPage() {
                 );
               })}
             </div>
-          )
+          )}
+          </>
         )}
       </div>
 

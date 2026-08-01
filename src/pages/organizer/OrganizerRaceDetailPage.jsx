@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, Globe, RefreshCw,
   Clock, Zap, MapPin, Calendar, Trophy,
   Timer, User, Medal, ShieldCheck,
-  PlayCircle,
+  PlayCircle, Eye, HeartPulse,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { confirmBox } from "../../lib/toast";
@@ -282,6 +282,7 @@ function EntriesTab({ raceId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState("");
+  const [detailEntry, setDetailEntry] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -314,9 +315,13 @@ function EntriesTab({ raceId }) {
   const [rejectReason, setRejectReason] = useState("");
   const handleReject = async () => {
     if (!rejectEntry) return;
+    if (!rejectReason.trim()) {
+      alert("Reject reason is required.");
+      return;
+    }
     setActionLoading(rejectEntry.entryId);
     try {
-      await organizerService.approveEntry(raceId, rejectEntry.entryId, { approved: false, reason: rejectReason || "Does not meet requirements" });
+      await organizerService.approveEntry(raceId, rejectEntry.entryId, { approved: false, reason: rejectReason.trim() });
       setRejectEntry(null); setRejectReason("");
       load();
     } catch (err) {
@@ -367,6 +372,7 @@ function EntriesTab({ raceId }) {
             const isReady = st === "Ready" || (st === "Approved" && (entry.jockeyConfirmed || entry.jockeyName));
             const isApproved = st === "Approved" && !isReady;
             const busyThis = actionLoading === entry.entryId;
+            const canApprove = entry.healthStatus === "Active";
 
             return (
               <div key={entry.entryId}
@@ -383,6 +389,11 @@ function EntriesTab({ raceId }) {
                   <p className="text-white font-semibold text-sm">{entry.horseName || `Horse #${entry.horseId}`}</p>
                   <div className="flex items-center gap-3 mt-1 flex-wrap">
                     {entry.ownerName && <span className="stat-pill">👤 {entry.ownerName}</span>}
+                    {entry.healthStatus && (
+                      <span className={`stat-pill ${entry.healthStatus === "Active" ? "text-green-300" : "text-red-300"}`}>
+                        <HeartPulse size={10} /> {entry.healthStatus}
+                      </span>
+                    )}
                     {entry.jockeyName ? (
                       <span className="stat-pill">🏇 {entry.jockeyName}</span>
                     ) : (
@@ -393,9 +404,14 @@ function EntriesTab({ raceId }) {
 
                 {/* Status / action */}
                 <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => setDetailEntry(entry)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-3 hover:text-sb-tx rounded-xl text-xs font-bold transition-all">
+                    <Eye size={12} /> Detail
+                  </button>
                   {isPending ? (
                     <>
-                      <button onClick={() => handleApprove(entry.entryId)} disabled={busyThis}
+                      <button onClick={() => handleApprove(entry.entryId)} disabled={busyThis || !canApprove}
+                        title={canApprove ? "Approve entry" : "Only Active horses can be approved"}
                         className="flex items-center gap-1.5 px-3.5 py-2 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-xl text-xs font-bold transition-all disabled:opacity-50">
                         {busyThis ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
                         Approve
@@ -423,6 +439,55 @@ function EntriesTab({ raceId }) {
       )}
 
       {/* Modal từ chối kèm lý do */}
+      {detailEntry && (
+        <Modal title={`Entry Detail: ${detailEntry.horseName || `Horse #${detailEntry.horseId}`}`} onClose={() => setDetailEntry(null)}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-sb-s2 border border-sb-border rounded-xl p-3">
+                <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1">Horse</p>
+                <p className="text-white text-sm font-semibold">{detailEntry.horseName || `Horse #${detailEntry.horseId}`}</p>
+              </div>
+              <div className="bg-sb-s2 border border-sb-border rounded-xl p-3">
+                <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1">Health</p>
+                <p className={detailEntry.healthStatus === "Active" ? "text-green-300 text-sm font-semibold" : "text-red-300 text-sm font-semibold"}>
+                  {detailEntry.healthStatus || "Unknown"}
+                </p>
+              </div>
+              <div className="bg-sb-s2 border border-sb-border rounded-xl p-3">
+                <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1">Owner</p>
+                <p className="text-white text-sm font-semibold">{detailEntry.ownerName || "Unknown"}</p>
+              </div>
+              <div className="bg-sb-s2 border border-sb-border rounded-xl p-3">
+                <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-1">Jockey</p>
+                <p className="text-white text-sm font-semibold">{detailEntry.jockeyName || "No jockey yet"}</p>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-2">Health Records</p>
+              {(detailEntry.healthHistory || []).length === 0 ? (
+                <div className="bg-sb-s2 border border-sb-border rounded-xl p-3 text-sb-tx-3 text-sm">
+                  No health records available.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-56 overflow-auto pr-1">
+                  {detailEntry.healthHistory.map((record) => (
+                    <div key={record.recordId} className="bg-sb-s2 border border-sb-border rounded-xl p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-white text-sm font-semibold">{record.diagnosis || "Health check"}</p>
+                        <span className="text-sb-tx-3 text-xs">{record.checkDate || ""}</span>
+                      </div>
+                      {record.vetName && <p className="text-sb-tx-3 text-xs mt-1">Vet: {record.vetName}</p>}
+                      {record.notes && <p className="text-sb-tx-2 text-xs mt-1">{record.notes}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {rejectEntry && (
         <Modal title={`Rejected: ${rejectEntry.horseName || "registrations"}`} accentColor="rgb(239,68,68)" onClose={() => setRejectEntry(null)}>
           <p className="text-sb-tx-3 text-sm mb-3">Enter a reason so the Owner knows why it was rejected:</p>
@@ -432,7 +497,7 @@ function EntriesTab({ raceId }) {
           <div className="flex gap-3">
             <button onClick={() => setRejectEntry(null)}
               className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-3 hover:text-sb-tx text-sm transition-colors">Cancel</button>
-            <button onClick={handleReject} disabled={!!actionLoading}
+            <button onClick={handleReject} disabled={!!actionLoading || !rejectReason.trim()}
               className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 transition-colors">
               {actionLoading === rejectEntry.entryId && <Loader2 size={14} className="animate-spin" />} Confirm Rejection
             </button>

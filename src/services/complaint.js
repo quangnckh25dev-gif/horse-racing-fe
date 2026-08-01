@@ -8,4 +8,7 @@ export const complaintService = {
     api.put(`/admin/complaints/deposits/${id}/resolve`, { adminNote }),
   rejectDepositComplaint: (id, adminNote) =>
     api.put(`/admin/complaints/deposits/${id}/reject`, { adminNote }),
+
+  createRaceComplaint: (payload) => api.post("/complaints/races", payload),
+  getMyRaceComplaints: () => api.get("/complaints/races/mine"),
 };

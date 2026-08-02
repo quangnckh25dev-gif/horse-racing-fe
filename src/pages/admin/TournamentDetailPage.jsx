@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, Plus, Pencil, Trash2, Loader2, AlertCircle,
+  ArrowLeft, Plus, Pencil, Trash2, Loader2, AlertCircle, Eye,
   CheckCircle2, Users, Calendar, Flag, Trophy,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
@@ -331,28 +331,10 @@ export default function TournamentDetailPage() {
               <p className="text-sb-tx-3 text-sm mt-0.5">{tournament.location}</p>
             )}
           </div>
-          {/* Status transition buttons */}
-          <div className="flex gap-2 shrink-0 flex-wrap">
-            {transitions.map((t) => (
-              <button
-                key={t.next}
-                onClick={() => handleChangeStatus(t.next)}
-                disabled={isChangingStatus}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${t.cls}`}
-              >
-                {isChangingStatus ? <Loader2 size={13} className="animate-spin" /> : t.label}
-              </button>
-            ))}
-            {canCancel && (
-              <button
-                onClick={() => handleChangeStatus("Cancelled")}
-                disabled={isChangingStatus}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sb-lose/10 hover:bg-sb-lose/20 border border-sb-lose/30 text-sb-lose transition-all"
-              >
-                Cancel Tournament
-              </button>
-            )}
-          </div>
+          {/* Read-only: Admin chi xem giam sat, giai dau do Organizer quan ly */}
+          <span className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sb-info/10 border border-sb-info/30 text-sb-info">
+            <Eye size={13} /> View-only
+          </span>
         </div>
 
         {errorMsg && (

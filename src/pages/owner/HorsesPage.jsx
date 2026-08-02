@@ -56,7 +56,7 @@ const inputCls = "w-full bg-sb-s1 border border-sb-border rounded-xl px-3 py-2.5
 function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-xl shadow-2xl shadow-black/20 max-h-[90vh] overflow-y-auto animate-scale-in">
+      <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-xl shadow-2xl shadow-black/20 max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
         <div className="h-0.5 w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }} />
         <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border">
           <h3 className="text-sb-tx font-bold">{title}</h3>
@@ -64,7 +64,7 @@ function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
             <X size={16} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto min-h-0">{children}</div>
       </div>
     </div>
   );

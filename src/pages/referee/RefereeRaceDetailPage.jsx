@@ -21,12 +21,12 @@ const TABS = [
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-[#111827] border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#111827] border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border sticky top-0 bg-[#111827]">
           <h3 className="text-white font-semibold">{title}</h3>
           <button onClick={onClose} className="text-sb-tx-3 hover:text-sb-tx"><X size={18} /></button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto min-h-0">{children}</div>
       </div>
     </div>
   );

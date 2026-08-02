@@ -32,14 +32,14 @@ const STATUS_CONFIG = {
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-sb-border bg-[#111827] shadow-2xl">
+      <div className="w-full max-w-md rounded-2xl border border-sb-border bg-[#111827] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between border-b border-sb-border px-6 py-4">
           <h3 className="font-bold text-white">{title}</h3>
           <button onClick={onClose} className="text-sb-tx-3 hover:text-white">
             <X size={18} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto min-h-0">{children}</div>
       </div>
     </div>
   );

@@ -53,7 +53,7 @@ const COMPLAINT_STATUS = {
 function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
-      <div className="bg-[#0d1117] border border-sb-border rounded-2xl w-full max-w-md shadow-2xl animate-scale-in">
+      <div className="bg-[#0d1117] border border-sb-border rounded-2xl w-full max-w-md shadow-2xl animate-scale-in flex flex-col max-h-[90vh] overflow-hidden">
         <div className="h-0.5 w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }} />
         <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border">
           <h3 className="text-white font-bold">{title}</h3>
@@ -61,7 +61,7 @@ function Modal({ title, accentColor = "#D4AF37", onClose, children }) {
             <X size={16} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto min-h-0">{children}</div>
       </div>
     </div>
   );

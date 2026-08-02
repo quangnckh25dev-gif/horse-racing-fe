@@ -60,14 +60,14 @@ const jockeyWinRate = (j) => {
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-sb-s1 border border-sb-border rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-sb-border sticky top-0 bg-sb-s1">
           <h3 className="text-sb-tx font-semibold">{title}</h3>
           <button onClick={onClose} className="text-sb-tx-3 hover:text-sb-tx-2 p-1 rounded-lg hover:bg-sb-s2 transition-colors">
             <X size={18} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto min-h-0">{children}</div>
       </div>
     </div>
   );

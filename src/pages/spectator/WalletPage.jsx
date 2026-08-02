@@ -237,6 +237,23 @@ function DepositModal({ onClose, onDone }) {
   );
 }
 
+// Mo anh xem: data URL bi trinh duyet chan mo top-level -> ghi <img> vao tab moi.
+export const openImage = (url) => {
+  if (!url) return;
+  if (url.startsWith("data:")) {
+    const w = window.open("", "_blank");
+    if (w) {
+      w.document.write(
+        `<title>Evidence</title><body style="margin:0;background:#0b0f14;display:flex;align-items:center;justify-content:center;min-height:100vh">` +
+        `<img src="${url}" style="max-width:100%;max-height:100vh"/></body>`
+      );
+      w.document.close();
+    }
+  } else {
+    window.open(url, "_blank", "noopener");
+  }
+};
+
 // Evidence hop le: data:image (anh upload) hoac http(s) tro toi file anh
 export const isValidEvidence = (v) => {
   if (!v) return true; // optional
@@ -680,7 +697,7 @@ export default function WalletPage() {
                               <img
                                 src={item.evidenceUrl}
                                 alt="evidence"
-                                onClick={() => window.open(item.evidenceUrl, "_blank", "noopener")}
+                                onClick={() => openImage(item.evidenceUrl)}
                                 className="mt-1.5 max-h-28 rounded-lg border border-sb-border cursor-zoom-in"
                               />
                             )}

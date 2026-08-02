@@ -222,22 +222,30 @@ export default function DepositComplaintsPage() {
                         </td>
                         <td className="px-5 py-4"><StatusBadge status={item.status} /></td>
                         <td className="px-5 py-4">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => setModal({ action: "resolve", item })}
-                              disabled={!pending || busy}
-                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-emerald text-white text-xs font-bold disabled:opacity-40"
-                            >
-                              {busy ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />} Resolve
-                            </button>
-                            <button
-                              onClick={() => setModal({ action: "reject", item })}
-                              disabled={!pending || busy}
-                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-lose text-white text-xs font-bold disabled:opacity-40"
-                            >
-                              <XCircle size={13} /> Reject
-                            </button>
-                          </div>
+                          {/* Chi hien nut khi con Pending; da xu ly roi thi hien trang thai */}
+                          {pending ? (
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => setModal({ action: "resolve", item })}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-emerald text-white text-xs font-bold disabled:opacity-40"
+                              >
+                                {busy ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />} Resolve
+                              </button>
+                              <button
+                                onClick={() => setModal({ action: "reject", item })}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sb-lose text-white text-xs font-bold disabled:opacity-40"
+                              >
+                                <XCircle size={13} /> Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-right text-xs text-sb-tx-3">
+                              {item.status === "Resolved" ? "Resolved" : "Rejected"}
+                              {item.adminNote ? ` · ${item.adminNote}` : ""}
+                            </p>
+                          )}
                         </td>
                       </tr>
                     );

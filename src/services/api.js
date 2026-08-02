@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:8080/api";
+// Deploy: dat VITE_API_BASE_URL (vd https://api.mydomain.com/api). Chay local thi mac dinh localhost.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 const getToken = () =>
   localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");

@@ -10,6 +10,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import FilePreviewModal from "../../components/FilePreviewModal";
 import { confirmBox } from "../../lib/toast";
 import { organizerService } from "../../services/organizer";
 import { raceResultService } from "../../services/raceResult";
@@ -287,6 +288,7 @@ function EntriesTab({ raceId }) {
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState("");
   const [detailEntry, setDetailEntry] = useState(null);
+  const [preview, setPreview] = useState(null); // xem giay kham trong modal
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -513,9 +515,11 @@ function EntriesTab({ raceId }) {
                       {record.reviewNote && <p className="text-sb-tx-2 text-xs mt-1">Review note: {record.reviewNote}</p>}
                       <div className="flex flex-wrap items-center gap-2 mt-3">
                         {record.evidenceUrl && (
-                          <a href={uploadService.normalizeUploadUrl(record.evidenceUrl)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-2 hover:text-sb-info rounded-lg text-xs font-bold">
+                          <button type="button"
+                            onClick={() => setPreview({ url: record.evidenceUrl, subtitle: `${record.checkDate || ""}${record.status ? " · " + record.status : ""}` })}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-2 hover:text-sb-info rounded-lg text-xs font-bold">
                             <ExternalLink size={12} /> Evidence
-                          </a>
+                          </button>
                         )}
                         {(record.status || "Pending") === "Pending" && (
                           <>
@@ -535,6 +539,10 @@ function EntriesTab({ raceId }) {
             </div>
           </div>
         </Modal>
+      )}
+
+      {preview && (
+        <FilePreviewModal url={preview.url} title="Health certificate" subtitle={preview.subtitle} onClose={() => setPreview(null)} />
       )}
 
       {rejectEntry && (

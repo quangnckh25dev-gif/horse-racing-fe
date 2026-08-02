@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import FilePreviewModal from "../../components/FilePreviewModal";
 import { horseService } from "../../services/horse";
 import { uploadService } from "../../services/upload";
 
@@ -175,6 +176,7 @@ function HealthModal({ horseId, horseName, onClose }) {
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formError, setFormError] = useState("");
+  const [preview, setPreview] = useState(null); // { url, subtitle } - xem giay kham trong modal
   const [form, setForm] = useState({
     checkDate: new Date().toISOString().slice(0, 10),
     healthStatus: "Active",
@@ -250,6 +252,7 @@ function HealthModal({ horseId, horseName, onClose }) {
   };
 
   return (
+    <>
     <Modal title={`Health Records - ${horseName}`} accentColor="rgb(244,114,182)" onClose={onClose}>
       <div className="space-y-4">
         <form onSubmit={handleSubmit} className="rounded-xl border border-pink-500/20 bg-pink-500/10 p-3 space-y-3">
@@ -273,9 +276,10 @@ function HealthModal({ horseId, horseName, onClose }) {
               <input type="file" accept="image/*,.pdf" onChange={handleUpload} className="hidden" />
             </label>
             {form.evidenceUrl && (
-              <a href={form.evidenceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-pink-300 hover:text-pink-200">
+              <button type="button" onClick={() => setPreview({ url: form.evidenceUrl, subtitle: "New upload" })}
+                className="mt-2 inline-flex items-center gap-1 text-xs text-pink-300 hover:text-pink-200">
                 <ExternalLink size={12} /> View uploaded certificate
-              </a>
+              </button>
             )}
           </FormField>
           <FormField label="Notes">
@@ -307,9 +311,11 @@ function HealthModal({ horseId, horseName, onClose }) {
                 {record.vetName && <p className="text-sb-tx-3 text-xs">Veterinarian: {record.vetName}</p>}
                 {record.notes && <p className="text-sb-tx-3 text-xs mt-1">{record.notes}</p>}
                 {record.evidenceUrl && (
-                  <a href={uploadService.normalizeUploadUrl(record.evidenceUrl)} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-pink-300 hover:text-pink-200">
+                  <button type="button"
+                    onClick={() => setPreview({ url: record.evidenceUrl, subtitle: `${record.checkDate || ""}${record.status ? " · " + record.status : ""}` })}
+                    className="mt-2 inline-flex items-center gap-1 text-xs text-pink-300 hover:text-pink-200">
                     <ExternalLink size={12} /> View certificate
-                  </a>
+                  </button>
                 )}
               </div>
             ))}
@@ -317,6 +323,16 @@ function HealthModal({ horseId, horseName, onClose }) {
         )}
       </div>
     </Modal>
+
+    {preview && (
+      <FilePreviewModal
+        url={preview.url}
+        title="Health certificate"
+        subtitle={preview.subtitle}
+        onClose={() => setPreview(null)}
+      />
+    )}
+    </>
   );
 }
 

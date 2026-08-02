@@ -12,6 +12,7 @@ import { spectatorService } from "../../services/spectator";
 import { invitationService } from "../../services/invitation";
 import { complaintService } from "../../services/complaint";
 import { uploadService } from "../../services/upload";
+import { tournamentService } from "../../services/tournament";
 
 const ENTRY_STATUS = {
   Pending:  { label: "Pending Organizer Approval",       color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", borderCls: "border-l-gold-glow",  icon: Clock },
@@ -33,6 +34,16 @@ const activeHorse = (horse) => {
 };
 
 const raceMaxSlots = (race) => race.maxParticipants || race.maxEntries || race.maxHorses || 0;
+
+// Owner chi dang ky duoc: race DANG MO DANG KY + o vong QUALIFY (vong 1)
+const isRegistrationOpen = (race) =>
+  race.status === "RegistrationOpen" || race.status === "Open" || race.statusLabel === "Registration Open";
+// roundsById: map roundId -> { roundName, roundOrder } (vi race chi co roundId)
+const isQualifyRound = (race, roundsById = {}) => {
+  const rd = roundsById[race.roundId] || {};
+  return race.roundName === "Qualify" || race.roundName === "Qualified" || race.roundOrder === 1
+    || rd.roundName === "Qualify" || rd.roundName === "Qualified" || rd.roundOrder === 1;
+};
 const jockeyLabel = (j) => j.fullName || j.username || `Jockey #${j.jockeyId}`;
 const jockeyWinRate = (j) => {
   const races = Number(j.totalRaces || 0);
@@ -85,6 +96,7 @@ export default function RaceRegistrationPage() {
   const [actionLoading, setActionLoading] = useState("");
   const [entryFilter, setEntryFilter] = useState("all");
   const [raceSlots, setRaceSlots] = useState({});
+  const [roundsById, setRoundsById] = useState({});
   const [complaints, setComplaints] = useState([]);
   const [complaintsLoading, setComplaintsLoading] = useState(false);
   const [showComplaint, setShowComplaint] = useState(null);
@@ -101,12 +113,24 @@ export default function RaceRegistrationPage() {
         horseService.getMyHorses(),
         entryService.getJockeys().catch(() => ({ data: [] })),
       ]);
-      const openRaces = (racesRes.data || []).filter((r) => r.status === "RegistrationOpen");
-      setRaces(racesRes.data || []);
+      const all = racesRes.data || [];
+      setRaces(all);
       setHorses((horsesRes.data || []).filter(activeHorse));
       setJockeys(jockeysRes.data || []);
 
-      const slotPairs = await Promise.all(openRaces.map((race) =>
+      // Nap thong tin vong (round) cho cac tournament co race dang mo dang ky (race chi co roundId)
+      const regOpen = all.filter(isRegistrationOpen);
+      const tids = [...new Set(regOpen.map((r) => r.tournamentId).filter(Boolean))];
+      const roundLists = await Promise.all(
+        tids.map((tid) => tournamentService.getPublicRounds(tid).then((r) => r.data || []).catch(() => []))
+      );
+      const rmap = {};
+      roundLists.flat().forEach((rd) => { if (rd && rd.roundId != null) rmap[rd.roundId] = rd; });
+      setRoundsById(rmap);
+
+      // Chi tinh slot cho race Qualify + dang mo dang ky (dung danh sach da filter)
+      const qualifyOpen = regOpen.filter((r) => isQualifyRound(r, rmap));
+      const slotPairs = await Promise.all(qualifyOpen.map((race) =>
         spectatorService.getRaceEntries(race.raceId)
           .then((res) => [race.raceId, (res.data || []).filter((e) => !["Rejected", "Withdrawn"].includes(entryStatusOf(e))).length])
           .catch(() => [race.raceId, 0])
@@ -247,7 +271,8 @@ export default function RaceRegistrationPage() {
       || Boolean(entry.publishedAt || entry.resultPublished);
   };
 
-  const upcomingRaces = races.filter((r) => r.status === "RegistrationOpen");
+  // Chi hien race DANG MO DANG KY + vong QUALIFY (owner chi dang ky o vong dau)
+  const upcomingRaces = races.filter((r) => isRegistrationOpen(r) && isQualifyRound(r, roundsById));
   const completedEntries = myEntries.filter(isCompletedEntry);
   const pendingEntries  = myEntries.filter((e) => entryStatusOf(e) === "Pending").length;
   const approvedEntries = myEntries.filter((e) => entryStatusOf(e) === "Approved").length;
@@ -330,8 +355,8 @@ export default function RaceRegistrationPage() {
               <div className="w-16 h-16 rounded-2xl bg-orange-500/5 border border-orange-500/10 flex items-center justify-center mb-4 animate-float">
                 <Trophy size={24} className="text-orange-400/30" />
               </div>
-              <p className="text-white font-semibold mb-1">No open races</p>
-              <p className="text-sb-tx-3 text-sm">Only Registration Open races appear here.</p>
+              <p className="text-white font-semibold mb-1">No qualify races are open for registration.</p>
+              <p className="text-sb-tx-3 text-sm">Owners can only register in the Qualify round while it is open.</p>
             </div>
           ) : (
             <div className="space-y-3">

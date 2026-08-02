@@ -201,8 +201,9 @@ export default function RefereeRaceComplaintsPage() {
                     </div>
                     <p className="mt-3 text-sm text-sb-tx-2">{item.reason}</p>
                     {item.evidenceUrl && (
-                      <a href={uploadService.normalizeUploadUrl(item.evidenceUrl)} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#D4AF37] hover:underline">
-                        <Eye size={12} /> View evidence
+                      <a href={uploadService.normalizeUploadUrl(item.evidenceUrl)} target="_blank" rel="noreferrer" className="mt-2 inline-block">
+                        <img src={uploadService.normalizeUploadUrl(item.evidenceUrl)} alt="evidence"
+                          className="max-h-32 rounded-lg border border-sb-border" />
                       </a>
                     )}
                     {item.refereeNote && <p className="mt-2 text-xs text-blue-300">Referee note: {item.refereeNote}</p>}

@@ -11,6 +11,7 @@ import { horseService } from "../../services/horse";
 import { spectatorService } from "../../services/spectator";
 import { invitationService } from "../../services/invitation";
 import { complaintService } from "../../services/complaint";
+import { uploadService } from "../../services/upload";
 
 const ENTRY_STATUS = {
   Pending:  { label: "Pending Organizer Approval",       color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40", borderCls: "border-l-gold-glow",  icon: Clock },
@@ -88,6 +89,7 @@ export default function RaceRegistrationPage() {
   const [complaintsLoading, setComplaintsLoading] = useState(false);
   const [showComplaint, setShowComplaint] = useState(null);
   const [complaintForm, setComplaintForm] = useState({ reason: "", evidenceUrl: "" });
+  const [evidenceBusy, setEvidenceBusy] = useState(false);
 
   const [jockeys, setJockeys] = useState([]);
 
@@ -194,6 +196,22 @@ export default function RaceRegistrationPage() {
       alert(err.message || "Cancellation failed");
     } finally {
       setActionLoading("");
+    }
+  };
+
+  const handleEvidenceUpload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setFormError("Please choose an image file."); return; }
+    setEvidenceBusy(true); setFormError("");
+    try {
+      const res = await uploadService.uploadEvidence(file);   // upload file that -> tra url
+      setComplaintForm((p) => ({ ...p, evidenceUrl: res.url }));
+    } catch (err) {
+      setFormError(err.message || "Upload failed");
+    } finally {
+      setEvidenceBusy(false);
     }
   };
 
@@ -569,9 +587,9 @@ export default function RaceRegistrationPage() {
                         </div>
                         <p className="mt-3 text-sm text-sb-tx-2">{item.reason}</p>
                         {item.evidenceUrl && (
-                          <a href={item.evidenceUrl} target="_blank" rel="noreferrer"
-                            className="mt-2 inline-flex text-xs font-semibold text-[#D4AF37] hover:underline">
-                            View evidence
+                          <a href={uploadService.normalizeUploadUrl(item.evidenceUrl)} target="_blank" rel="noreferrer" className="mt-2 inline-block">
+                            <img src={uploadService.normalizeUploadUrl(item.evidenceUrl)} alt="evidence"
+                              className="max-h-32 rounded-lg border border-sb-border" />
                           </a>
                         )}
                         {item.refereeNote && <p className="mt-2 text-xs text-blue-300">Referee note: {item.refereeNote}</p>}
@@ -712,14 +730,20 @@ export default function RaceRegistrationPage() {
               />
             </div>
             <div>
-              <label className={labelCls}>Evidence URL</label>
-              <input
-                value={complaintForm.evidenceUrl}
-                onChange={(e) => setComplaintForm((p) => ({ ...p, evidenceUrl: e.target.value }))}
-                placeholder="https://..."
-                className={inputCls}
-              />
-              <p className="text-sb-tx-3 text-xs mt-1">Attach an image or file link if available.</p>
+              <label className={labelCls}>Evidence image</label>
+              <label className="flex items-center gap-2 rounded-xl bg-[#070B14] border border-dashed border-sb-border px-3 py-2.5 cursor-pointer hover:border-[#D4AF37] transition-colors text-sm text-sb-tx-2">
+                <input type="file" accept="image/*" hidden onChange={handleEvidenceUpload} />
+                {evidenceBusy ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} className="text-[#D4AF37]" />}
+                {evidenceBusy ? "Uploading..." : (complaintForm.evidenceUrl ? "Change image" : "Upload an image")}
+              </label>
+              {complaintForm.evidenceUrl && (
+                <div className="relative mt-2 inline-block">
+                  <img src={uploadService.normalizeUploadUrl(complaintForm.evidenceUrl)} alt="evidence"
+                    className="max-h-40 rounded-xl border border-sb-border" />
+                  <button type="button" onClick={() => setComplaintForm((p) => ({ ...p, evidenceUrl: "" }))}
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center hover:bg-black/80">✕</button>
+                </div>
+              )}
             </div>
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setShowComplaint(null)}

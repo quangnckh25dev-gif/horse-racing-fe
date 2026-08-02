@@ -260,10 +260,12 @@ export default function OrganizerResultDetailPage() {
                 <p className="mb-3 text-xs font-bold uppercase tracking-widest text-sb-tx-3">Race Minutes</p>
                 {minutes ? (
                   <div className="space-y-2 text-sm">
-                    <p className="text-white">{minutes.weatherCondition || "No weather condition"}</p>
+                    <p className="text-sb-tx-3 text-xs">Weather: <span className="text-white">{minutes.weatherCondition || "—"}</span></p>
+                    {minutes.content && <p className="text-sb-tx-2 whitespace-pre-wrap">{minutes.content}</p>}
                     {minutes.minutesFileUrl && (
-                      <a className="break-all text-[#D4AF37] hover:underline" href={uploadService.normalizeUploadUrl(minutes.minutesFileUrl)} target="_blank" rel="noreferrer">
-                        {minutes.minutesFileUrl}
+                      <a href={uploadService.normalizeUploadUrl(minutes.minutesFileUrl)} target="_blank" rel="noreferrer" className="inline-block">
+                        <img src={uploadService.normalizeUploadUrl(minutes.minutesFileUrl)} alt="minutes evidence"
+                          className="mt-1 max-h-48 rounded-lg border border-sb-border" />
                       </a>
                     )}
                   </div>

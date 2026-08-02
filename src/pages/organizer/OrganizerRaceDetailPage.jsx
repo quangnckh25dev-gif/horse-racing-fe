@@ -7,11 +7,14 @@ import {
   Clock, Zap, MapPin, Calendar, Trophy,
   Timer, User, Medal, ShieldCheck,
   PlayCircle, Eye, HeartPulse,
+  ExternalLink,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { confirmBox } from "../../lib/toast";
 import { organizerService } from "../../services/organizer";
 import { raceResultService } from "../../services/raceResult";
+import { horseService } from "../../services/horse";
+import { uploadService } from "../../services/upload";
 import { useAuth } from "../../context/AuthContext";
 
 const RACE_STATUS_CONFIG = {
@@ -331,6 +334,29 @@ function EntriesTab({ raceId }) {
     }
   };
 
+  const handleReviewHealthRecord = async (record, status) => {
+    if (!detailEntry || !record?.recordId) return;
+    const note = status === "Rejected" ? window.prompt("Reject reason for this health record:") : "";
+    if (status === "Rejected" && !note?.trim()) return;
+
+    setActionLoading(`health-${record.recordId}`);
+    try {
+      await horseService.reviewHealthRecord(detailEntry.horseId, record.recordId, {
+        status,
+        healthStatus: record.healthStatus || detailEntry.healthStatus || "Active",
+        reviewNote: note?.trim() || "",
+      });
+      const refreshed = await organizerService.getRaceEntries(raceId);
+      const nextEntries = refreshed.data || [];
+      setEntries(nextEntries);
+      setDetailEntry(nextEntries.find((entry) => entry.entryId === detailEntry.entryId) || null);
+    } catch (err) {
+      alert(err.message || "Health review failed");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
   const statusOf = (e) => e.registrationStatus || e.status || "Pending";
 
   if (loading) return (
@@ -472,11 +498,36 @@ function EntriesTab({ raceId }) {
                   {detailEntry.healthHistory.map((record) => (
                     <div key={record.recordId} className="bg-sb-s2 border border-sb-border rounded-xl p-3">
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-white text-sm font-semibold">{record.diagnosis || "Health check"}</p>
-                        <span className="text-sb-tx-3 text-xs">{record.checkDate || ""}</span>
+                        <p className="text-white text-sm font-semibold">{record.diagnosis || record.healthStatus || "Health check"}</p>
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${
+                          record.status === "Approved" ? "bg-green-500/15 text-green-300 border-green-500/30" :
+                          record.status === "Rejected" ? "bg-red-500/15 text-red-300 border-red-500/30" :
+                          "bg-yellow-500/15 text-yellow-300 border-yellow-500/30"
+                        }`}>
+                          {record.status || "Pending"}
+                        </span>
                       </div>
+                      <p className="text-sb-tx-3 text-xs mt-1">{record.checkDate || ""}</p>
                       {record.vetName && <p className="text-sb-tx-3 text-xs mt-1">Vet: {record.vetName}</p>}
                       {record.notes && <p className="text-sb-tx-2 text-xs mt-1">{record.notes}</p>}
+                      {record.reviewNote && <p className="text-sb-tx-2 text-xs mt-1">Review note: {record.reviewNote}</p>}
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        {record.evidenceUrl && (
+                          <a href={uploadService.normalizeUploadUrl(record.evidenceUrl)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-sb-s1/[0.03] border border-sb-border text-sb-tx-2 hover:text-sb-info rounded-lg text-xs font-bold">
+                            <ExternalLink size={12} /> Evidence
+                          </a>
+                        )}
+                        {(record.status || "Pending") === "Pending" && (
+                          <>
+                            <button type="button" onClick={() => handleReviewHealthRecord(record, "Approved")} disabled={actionLoading === `health-${record.recordId}`} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-green-600/15 border border-green-600/30 text-green-300 hover:bg-green-600/25 rounded-lg text-xs font-bold disabled:opacity-50">
+                              {actionLoading === `health-${record.recordId}` ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />} Approve Health
+                            </button>
+                            <button type="button" onClick={() => handleReviewHealthRecord(record, "Rejected")} disabled={actionLoading === `health-${record.recordId}`} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600/10 border border-red-600/25 text-red-400 hover:bg-red-600/20 rounded-lg text-xs font-bold disabled:opacity-50">
+                              <XCircle size={12} /> Reject Health
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

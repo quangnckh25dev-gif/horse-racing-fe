@@ -11,10 +11,12 @@ export const horseService = {
   getById: (id) => api.get(`/horses/${id}`),
   create: (data) => api.post("/horses", data),
   update: (id, data) => api.put(`/horses/${id}`, data),
+  archive: (id) => api.delete(`/horses/${id}`),
   changeStatus: (id, status) => api.patch(`/horses/${id}/status`, { status }),
 
   getHealthRecords: (id) => api.get(`/horses/${id}/health`),
   addHealthRecord: (id, data) => api.post(`/horses/${id}/health`, data),
+  reviewHealthRecord: (horseId, recordId, data) => api.patch(`/horses/${horseId}/health-records/${recordId}/review`, data),
 
   getStats: (id) => api.get(`/horses/${id}/stats`),
 };

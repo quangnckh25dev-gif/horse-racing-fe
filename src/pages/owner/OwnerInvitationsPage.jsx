@@ -358,7 +358,7 @@ export default function OwnerInvitationsPage() {
                     <option value="">-- Select entry --</option>
                     {entries.map((en) => (
                       <option key={en.entryId} value={en.entryId}>
-                        {en.horseName || `Horse #${en.horseId}`} N/A {en.raceName || `Race #${en.raceId}`}
+                        {en.horseName || `Horse #${en.horseId}`} - {en.raceName || `Race #${en.raceId}`}
                       </option>
                     ))}
                   </select>

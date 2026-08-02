@@ -3,15 +3,20 @@ import {
   Activity,
   AlertCircle,
   Edit2,
+  ExternalLink,
+  FileText,
   Heart,
   Loader2,
   Plus,
   RefreshCw,
   Search,
+  Trash2,
+  Upload,
   X,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { horseService } from "../../services/horse";
+import { uploadService } from "../../services/upload";
 
 const STATUS_OPTIONS = ["Active", "Injured", "Inactive"];
 const FILTER_OPTIONS = ["Active", "Injured", "Inactive", "All"];
@@ -167,6 +172,16 @@ function HorseForm({ form, onChange, onSubmit, onCancel, loading, submitLabel })
 function HealthModal({ horseId, horseName, onClose }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [form, setForm] = useState({
+    checkDate: new Date().toISOString().slice(0, 10),
+    healthStatus: "Active",
+    diagnosis: "",
+    notes: "",
+    evidenceUrl: "",
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -182,12 +197,96 @@ function HealthModal({ horseId, horseName, onClose }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const handleUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setFormError("");
+    try {
+      const uploaded = await uploadService.uploadEvidence(file);
+      setForm((previous) => ({ ...previous, evidenceUrl: uploaded.url }));
+    } catch (err) {
+      setFormError(err.message || "Evidence upload failed.");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!form.checkDate) {
+      setFormError("Check date is required.");
+      return;
+    }
+    if (!form.evidenceUrl) {
+      setFormError("Health certificate image or PDF is required.");
+      return;
+    }
+
+    setSubmitting(true);
+    setFormError("");
+    try {
+      await horseService.addHealthRecord(horseId, {
+        checkDate: form.checkDate,
+        healthStatus: form.healthStatus,
+        diagnosis: form.diagnosis.trim() || "Owner submitted health certificate",
+        notes: form.notes.trim() || null,
+        evidenceUrl: form.evidenceUrl,
+      });
+      setForm({
+        checkDate: new Date().toISOString().slice(0, 10),
+        healthStatus: "Active",
+        diagnosis: "",
+        notes: "",
+        evidenceUrl: "",
+      });
+      load();
+    } catch (err) {
+      setFormError(err.message || "Submit health record failed.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Modal title={`Health Records - ${horseName}`} accentColor="rgb(244,114,182)" onClose={onClose}>
       <div className="space-y-4">
-        <div className="rounded-xl border border-pink-500/20 bg-pink-500/10 p-3 text-xs text-pink-200">
-          Owners can update the horse status from the list. Detailed health records are managed by the Organizer.
-        </div>
+        <form onSubmit={handleSubmit} className="rounded-xl border border-pink-500/20 bg-pink-500/10 p-3 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormField label="Check Date" required>
+              <input type="date" value={form.checkDate} onChange={(event) => setForm((previous) => ({ ...previous, checkDate: event.target.value }))} className={inputCls} />
+            </FormField>
+            <FormField label="Health Status" required>
+              <select value={form.healthStatus} onChange={(event) => setForm((previous) => ({ ...previous, healthStatus: event.target.value }))} className={inputCls}>
+                {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{status}</option>)}
+              </select>
+            </FormField>
+          </div>
+          <FormField label="Diagnosis">
+            <input value={form.diagnosis} onChange={(event) => setForm((previous) => ({ ...previous, diagnosis: event.target.value }))} className={inputCls} placeholder="General health check" />
+          </FormField>
+          <FormField label="Health Certificate" required>
+            <label className="flex items-center justify-center gap-2 w-full bg-sb-s1 border border-sb-border rounded-xl px-3 py-2.5 text-sb-tx text-sm hover:border-pink-400 cursor-pointer transition-all">
+              {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+              {form.evidenceUrl ? "Replace file" : "Upload image or PDF"}
+              <input type="file" accept="image/*,.pdf" onChange={handleUpload} className="hidden" />
+            </label>
+            {form.evidenceUrl && (
+              <a href={form.evidenceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-pink-300 hover:text-pink-200">
+                <ExternalLink size={12} /> View uploaded certificate
+              </a>
+            )}
+          </FormField>
+          <FormField label="Notes">
+            <textarea value={form.notes} onChange={(event) => setForm((previous) => ({ ...previous, notes: event.target.value }))} rows={2} className={inputCls} placeholder="Optional notes for Organizer" />
+          </FormField>
+          {formError && <div className="flex items-center gap-2 text-sb-lose text-xs"><AlertCircle size={13} /> {formError}</div>}
+          <button type="submit" disabled={submitting || uploading} className="w-full py-2.5 rounded-xl bg-pink-500/20 border border-pink-500/30 text-pink-200 font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2">
+            {submitting ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+            Submit Health Record
+          </button>
+        </form>
 
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="animate-spin text-sb-info" size={24} /></div>
@@ -202,10 +301,16 @@ function HealthModal({ horseId, horseName, onClose }) {
               <div key={record.recordId || `${record.horseId}-${record.checkDate}`} className="bg-sb-s2 border border-sb-border rounded-xl p-3">
                 <div className="flex items-center justify-between gap-3 mb-1">
                   <span className="text-sb-tx text-sm font-semibold">{record.healthStatus || record.diagnosis || "Health Check"}</span>
-                  <span className="text-sb-tx-3 text-xs bg-sb-s1 px-2 py-0.5 rounded-full">{record.checkDate || "No date"}</span>
+                  <span className="text-sb-tx-3 text-xs bg-sb-s1 px-2 py-0.5 rounded-full">{record.status || "Pending"}</span>
                 </div>
+                <p className="text-sb-tx-3 text-xs mb-1">{record.checkDate || "No date"}</p>
                 {record.vetName && <p className="text-sb-tx-3 text-xs">Veterinarian: {record.vetName}</p>}
                 {record.notes && <p className="text-sb-tx-3 text-xs mt-1">{record.notes}</p>}
+                {record.evidenceUrl && (
+                  <a href={uploadService.normalizeUploadUrl(record.evidenceUrl)} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-pink-300 hover:text-pink-200">
+                    <ExternalLink size={12} /> View certificate
+                  </a>
+                )}
               </div>
             ))}
           </div>
@@ -228,6 +333,7 @@ export default function HorsesPage() {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [statusLoading, setStatusLoading] = useState("");
+  const [archiveLoading, setArchiveLoading] = useState("");
 
   const fetchHorses = useCallback(async () => {
     setLoading(true);
@@ -330,6 +436,19 @@ export default function HorsesPage() {
       alert(err.message || "Failed to change status.");
     } finally {
       setStatusLoading("");
+    }
+  };
+
+  const handleArchiveHorse = async (horse) => {
+    if (!window.confirm(`Archive horse "${horse.horseName}"? Race history will be kept.`)) return;
+    setArchiveLoading(horse.horseId);
+    try {
+      await horseService.archive(horse.horseId);
+      setHorses((previous) => previous.filter((item) => item.horseId !== horse.horseId));
+    } catch (err) {
+      alert(err.message || "Archive horse failed.");
+    } finally {
+      setArchiveLoading("");
     }
   };
 
@@ -469,6 +588,9 @@ export default function HorsesPage() {
                       </button>
                       <button type="button" onClick={() => openEdit(horse)} className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-sb-s2 border border-sb-border text-sb-tx-3 hover:text-sb-info hover:border-blue-300 rounded-xl text-xs font-semibold transition-all">
                         <Edit2 size={12} /> Edit
+                      </button>
+                      <button type="button" onClick={() => handleArchiveHorse(horse)} disabled={archiveLoading === horse.horseId} className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-sb-lose/10 border border-sb-lose/25 text-sb-lose hover:bg-sb-lose/20 rounded-xl text-xs font-semibold transition-all disabled:opacity-50">
+                        {archiveLoading === horse.horseId ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />} Archive
                       </button>
                       {statusLoading === horse.horseId && <Loader2 size={14} className="animate-spin text-[#D4AF37] self-center" />}
                     </div>

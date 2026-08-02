@@ -94,17 +94,20 @@ export default function TournamentDetailPage() {
     setIsLoading(true); setErrorMsg("");
     try {
       const res = await tournamentService.getById(id);
-      const t   = res.data;
+      const d   = res.data || {};
+      // BE tra ve dang { tournament: {...}, rounds: [...], races: [...] } -> lay dung field long
+      const t   = d.tournament || d;
       setTournament(t);
-      setRounds(t.rounds || []);
-      setRaces(t.races   || []);
+      setRounds(d.rounds || t.rounds || []);
+      setRaces(d.races   || t.races  || []);
       setInfoForm({
         tournamentName: t.tournamentName || "",
         description:    t.description   || "",
         location:       t.location      || "",
         startDate:      t.startDate?.slice(0, 10) || "",
         endDate:        t.endDate?.slice(0, 10)   || "",
-        prizeFund:      t.prizeFund || "",
+        // giai dung field budgetTotal (khong phai prizeFund)
+        prizeFund:      t.budgetTotal ?? t.prizeFund ?? "",
       });
     } catch (err) {
       setErrorMsg(err.message || "Unable to load tournament details.");
@@ -364,72 +367,23 @@ export default function TournamentDetailPage() {
             TAB: INFORMATION
         ══════════════════════════════════════════════════════════ */}
         {activeTab === "info" && (
-          <form onSubmit={handleSaveInfo} className="max-w-xl space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Tournament Name</Label>
-              <Input
-                value={infoForm.tournamentName}
-                onChange={(e) => setInfoForm({ ...infoForm, tournamentName: e.target.value })}
-                className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Location</Label>
-              <Input
-                value={infoForm.location}
-                onChange={(e) => setInfoForm({ ...infoForm, location: e.target.value })}
-                className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Start Date</Label>
-                <Input
-                  type="date" value={infoForm.startDate}
-                  onChange={(e) => setInfoForm({ ...infoForm, startDate: e.target.value })}
-                  className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
-                />
+          <div className="max-w-xl space-y-4">
+            {[
+              ["Tournament Name", infoForm.tournamentName],
+              ["Location", infoForm.location],
+              ["Start Date", infoForm.startDate],
+              ["End Date", infoForm.endDate],
+              ["Total Prize (VND)", infoForm.prizeFund ? Number(infoForm.prizeFund).toLocaleString("en-US") : "0"],
+              ["Description", infoForm.description],
+            ].map(([label, val]) => (
+              <div key={label} className="space-y-1.5">
+                <p className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">{label}</p>
+                <p className="text-sb-tx text-sm bg-sb-s1 border border-sb-border rounded-lg px-3 py-2.5 min-h-[2.6rem] whitespace-pre-wrap break-words">
+                  {val || "—"}
+                </p>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">End Date</Label>
-                <Input
-                  type="date" value={infoForm.endDate}
-                  onChange={(e) => setInfoForm({ ...infoForm, endDate: e.target.value })}
-                  className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Total Prize (VND)</Label>
-              <Input
-                type="number" min="0" value={infoForm.prizeFund}
-                onChange={(e) => setInfoForm({ ...infoForm, prizeFund: e.target.value })}
-                placeholder="0"
-                className="h-10 bg-sb-s1 border-sb-border text-sb-tx focus-visible:ring-sb-gold focus-visible:border-[#D4AF37]"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sb-tx-3 text-xs font-semibold uppercase tracking-widest">Description</Label>
-              <textarea
-                value={infoForm.description}
-                onChange={(e) => setInfoForm({ ...infoForm, description: e.target.value })}
-                rows={3}
-                className="w-full rounded-md bg-sb-s1 border border-sb-border text-sb-tx text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] resize-none placeholder:text-sb-tx-3"
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={isSavingInfo}
-              className="h-10 px-6 bg-[#D4AF37] hover:bg-[#b0902c] text-[#0A0E1A] font-bold text-sm"
-            >
-              {isSavingInfo ? (
-                <Loader2 size={15} className="animate-spin" />
-              ) : infoSaved ? (
-                <><CheckCircle2 size={15} className="mr-1.5" />Saved</>
-              ) : "Save Changes"}
-            </Button>
-          </form>
+            ))}
+          </div>
         )}
 
         {/* ══════════════════════════════════════════════════════════

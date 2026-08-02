@@ -125,7 +125,7 @@ export default function OwnerInvitationsPage() {
   const handleSend = async () => {
     if (!selectedEntry)  { setModalError("Please select a race entry"); return; }
     if (!selectedJockey) { setModalError("Please select a jockey"); return; }
-    const amount = Number(String(dealAmount).replace(/,/g, ""));
+    const amount = Number(String(dealAmount).replace(/\D/g, ""));
     if (!Number.isFinite(amount) || amount <= 0) { setModalError("Deal amount must be greater than 0"); return; }
     setSending(true); setModalError(""); setModalSuccess("");
     try {

@@ -165,7 +165,7 @@ export default function RaceRegistrationPage() {
   const handleInvite = async (e) => {
     e.preventDefault();
     if (!inviteForm.jockeyId) { setFormError("Please select a jockey"); return; }
-    const dealAmount = Number(String(inviteForm.dealAmount).replace(/,/g, ""));
+    const dealAmount = Number(String(inviteForm.dealAmount).replace(/\D/g, ""));
     if (!Number.isFinite(dealAmount) || dealAmount <= 0) { setFormError("Deal amount must be greater than 0"); return; }
     setFormLoading(true); setFormError("");
     try {

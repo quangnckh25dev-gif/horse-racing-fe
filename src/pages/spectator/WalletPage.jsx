@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Wallet, Plus, History, Loader2, ArrowUpRight, ArrowDownLeft, RotateCcw,
   TrendingUp, Trophy, ShieldCheck, Copy, QrCode, Clock3, CheckCircle2, XCircle,
-  MessageSquareWarning,
+  MessageSquareWarning, ImagePlus,
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import SbModal from "../../components/sb/Modal";
@@ -228,6 +228,40 @@ function DepositModal({ onClose, onDone }) {
   );
 }
 
+// Evidence hop le: data:image (anh upload) hoac http(s) tro toi file anh
+export const isValidEvidence = (v) => {
+  if (!v) return true; // optional
+  const s = String(v).trim();
+  if (s.startsWith("data:image/")) return true;
+  return /^https?:\/\/.+\.(png|jpe?g|gif|webp|bmp)(\?.*)?$/i.test(s);
+};
+
+// Nen anh tu file -> data URL (<=1000px, JPEG 0.7) de nhung vao evidenceUrl
+async function fileToCompressedDataUrl(file, max = 1000, quality = 0.7) {
+  const dataUrl = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+  const img = await new Promise((res, rej) => {
+    const i = new window.Image();
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = dataUrl;
+  });
+  let { width, height } = img;
+  if (width > max || height > max) {
+    const s = Math.min(max / width, max / height);
+    width = Math.round(width * s);
+    height = Math.round(height * s);
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = width; canvas.height = height;
+  canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
 function ComplaintModal({ depositRequests, onClose, onDone }) {
   const [selectedId, setSelectedId] = useState("");
   const [form, setForm] = useState({
@@ -239,6 +273,23 @@ function ComplaintModal({ depositRequests, onClose, onDone }) {
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [imgBusy, setImgBusy] = useState(false);
+
+  const handlePickImage = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // cho phep chon lai cung file
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
+    setImgBusy(true); setError("");
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file);
+      setForm((prev) => ({ ...prev, evidenceUrl: dataUrl }));
+    } catch {
+      setError("Could not read the image. Please try another file.");
+    } finally {
+      setImgBusy(false);
+    }
+  };
 
   const selectDeposit = (id) => {
     setSelectedId(id);
@@ -263,6 +314,10 @@ function ComplaintModal({ depositRequests, onClose, onDone }) {
     }
     if (!form.reason.trim()) {
       setError("Reason is required.");
+      return;
+    }
+    if (form.evidenceUrl && !isValidEvidence(form.evidenceUrl)) {
+      setError("Evidence must be an image — upload a file, or paste a valid image URL (png/jpg/webp...).");
       return;
     }
     setBusy(true);
@@ -322,7 +377,26 @@ function ComplaintModal({ depositRequests, onClose, onDone }) {
           placeholder="Describe the issue..."
           className="w-full rounded-xl bg-sb-s2 border border-sb-border px-3 py-2 text-sm text-sb-tx outline-none focus:border-sb-gold"
         />
-        <SbInput placeholder="Evidence image URL" value={form.evidenceUrl} onChange={(e) => setForm({ ...form, evidenceUrl: e.target.value })} />
+        {/* Evidence: upload anh that (nen -> data URL) hoac dan URL anh */}
+        <div className="space-y-2">
+          <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest">Evidence image</p>
+          <label className="flex items-center gap-2 rounded-xl bg-sb-s2 border border-dashed border-sb-border px-3 py-2.5 cursor-pointer hover:border-sb-gold transition-colors text-sm text-sb-tx-2">
+            <input type="file" accept="image/*" hidden onChange={handlePickImage} />
+            {imgBusy ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} className="text-sb-gold-2" />}
+            {imgBusy ? "Processing image..." : "Upload an image from your device"}
+          </label>
+          {!form.evidenceUrl?.startsWith("data:") && (
+            <SbInput placeholder="...or paste an image URL (png/jpg/webp...)" value={form.evidenceUrl}
+              onChange={(e) => setForm({ ...form, evidenceUrl: e.target.value })} />
+          )}
+          {form.evidenceUrl && isValidEvidence(form.evidenceUrl) && (
+            <div className="relative">
+              <img src={form.evidenceUrl} alt="evidence preview" className="max-h-44 rounded-xl border border-sb-border" />
+              <button type="button" onClick={() => setForm({ ...form, evidenceUrl: "" })}
+                className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center hover:bg-black/80">✕</button>
+            </div>
+          )}
+        </div>
         <div className="flex gap-3">
           <button onClick={onClose} disabled={busy} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm disabled:opacity-50">
             Cancel
@@ -493,10 +567,13 @@ export default function WalletPage() {
                             </p>
                             {item.reason && <p className="text-sb-tx-2 text-xs mt-1 line-clamp-2">{item.reason}</p>}
                             {item.adminNote && <p className="text-sb-info text-xs mt-1">Admin note: {item.adminNote}</p>}
-                            {item.evidenceUrl && (
-                              <a href={item.evidenceUrl} target="_blank" rel="noreferrer" className="text-sb-emerald-ink text-xs font-bold hover:underline">
-                                View evidence
-                              </a>
+                            {item.evidenceUrl && isValidEvidence(item.evidenceUrl) && (
+                              <img
+                                src={item.evidenceUrl}
+                                alt="evidence"
+                                onClick={() => window.open(item.evidenceUrl, "_blank", "noopener")}
+                                className="mt-1.5 max-h-28 rounded-lg border border-sb-border cursor-zoom-in"
+                              />
                             )}
                           </div>
                           <p className="text-sb-tx-3 text-xs shrink-0">{item.createdAt ? new Date(item.createdAt).toLocaleString("vi-VN") : ""}</p>

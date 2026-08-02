@@ -7,6 +7,14 @@ import { SbPageHeader } from "../../components/sb/Data";
 import { complaintService } from "../../services/complaint";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
+// Evidence hop le: data:image (anh upload) hoac http(s) tro toi file anh
+const isValidEvidence = (v) => {
+  if (!v) return false;
+  const s = String(v).trim();
+  if (s.startsWith("data:image/")) return true;
+  return /^https?:\/\/.+\.(png|jpe?g|gif|webp|bmp)(\?.*)?$/i.test(s);
+};
+
 const STATUS_FILTERS = ["All", "Pending", "Resolved", "Rejected"];
 
 const STATUS = {
@@ -213,11 +221,16 @@ export default function DepositComplaintsPage() {
                         <td className="px-5 py-4 text-right text-sb-gold-2 font-black tabular-nums">{fmt(item.amount)} VND</td>
                         <td className="px-5 py-4 max-w-[260px]">
                           <p className="text-sb-tx-2 text-xs line-clamp-2">{item.reason}</p>
-                          {item.evidenceUrl && (
-                            <a href={item.evidenceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sb-info text-xs font-bold hover:underline mt-1">
-                              <Eye size={12} /> Evidence
-                            </a>
-                          )}
+                          {item.evidenceUrl && isValidEvidence(item.evidenceUrl) ? (
+                            <img
+                              src={item.evidenceUrl}
+                              alt="evidence"
+                              onClick={() => window.open(item.evidenceUrl, "_blank", "noopener")}
+                              className="mt-1.5 max-h-24 rounded-lg border border-sb-border cursor-zoom-in"
+                            />
+                          ) : item.evidenceUrl ? (
+                            <p className="text-sb-tx-3 text-[11px] italic mt-1">Evidence attached (invalid format)</p>
+                          ) : null}
                           {item.adminNote && <p className="text-sb-tx-3 text-xs mt-1">Admin note: {item.adminNote}</p>}
                         </td>
                         <td className="px-5 py-4"><StatusBadge status={item.status} /></td>

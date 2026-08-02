@@ -51,13 +51,14 @@ const parseMoney = (v) => String(v ?? "").replace(/\D/g, "");
 
 const inputCls = "w-full bg-[#070B14] border border-sb-border rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#D4AF37]/60 focus:shadow-[0_0_0_3px_rgba(212,175,55,0.08)] transition-all";
 
-function StatusBadge({ status }) {
+function StatusBadge({ status, roundOrder }) {
   const cfg = STATUS_CONFIG[status] || { label: status, color: "bg-gray-500/20 text-sb-tx-3 border-gray-500/40" };
+  const label = Number(roundOrder || 0) > 1 && status === "RegistrationOpen" ? "Ready for Race" : cfg.label;
   const isLive = status === "Ongoing";
   return (
     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${cfg.color}`}>
       {isLive && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 live-dot shrink-0" />}
-      {cfg.label}
+      {label}
     </span>
   );
 }
@@ -457,7 +458,7 @@ export default function OrganizerRacesPage() {
                                   <button key={r.raceId} onClick={() => navigate(`/organizer/races/${r.raceId}`)}
                                     className="w-full text-left flex items-center justify-between gap-2 rounded-md bg-sb-s2 border border-sb-border px-2 py-1.5 hover:border-[#D4AF37]/40 transition-colors">
                                     <span className="text-sb-tx-2 text-[11px] truncate">{r.raceName}</span>
-                                    <StatusBadge status={r.status} />
+                                    <StatusBadge status={r.status} roundOrder={rd.roundOrder} />
                                   </button>
                                 ))}
                               </div>

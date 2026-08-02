@@ -30,6 +30,16 @@ function getRaceDate(race) {
   return value ? String(value).slice(0, 16).replace("T", " ") : "";
 }
 
+function raceStatusLabel(race) {
+  const status = race?.status || "Draft";
+  const roundOrder = Number(race?.roundOrder || 0);
+  if (roundOrder > 1 && status === "RegistrationOpen") {
+    return "Ready for Race";
+  }
+  if (status === "RegistrationOpen") return "Registration Open";
+  return status;
+}
+
 function getResultForEntry(entry, results) {
   return results.find((result) => Number(result.entryId) === Number(entry.entryId));
 }
@@ -112,7 +122,7 @@ function RaceCard({ race, entries = [], results = [], loading }) {
           <p className="text-xs text-sb-tx-3">{getRaceDate(race) || "No race date"}</p>
         </div>
         <span className="rounded-full border border-sb-border bg-[#0d1117] px-2 py-0.5 text-[10px] font-bold text-sb-tx-3">
-          {race.status || "Draft"}
+          {raceStatusLabel(race)}
         </span>
       </div>
 

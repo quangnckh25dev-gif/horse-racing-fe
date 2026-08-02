@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   CheckCircle2,
@@ -46,6 +47,7 @@ function StatusBadge({ status }) {
 }
 
 export default function RefereeRaceComplaintsPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -99,6 +101,10 @@ export default function RefereeRaceComplaintsPage() {
       if (action === "resolve") {
         payload.resultCorrectionRequired = correctionRequired;
         await complaintService.resolveRaceComplaint(selected.complaintId, payload);
+        if (correctionRequired) {
+          navigate(`/referee/races/${selected.raceId}`);
+          return;
+        }
       } else if (action === "reject") {
         await complaintService.rejectRaceComplaint(selected.complaintId, payload);
       } else {

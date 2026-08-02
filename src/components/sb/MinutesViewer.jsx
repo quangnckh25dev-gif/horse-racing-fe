@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { X, FileText, Trophy, Loader2, Paperclip } from "lucide-react";
 import { raceResultService } from "../../services/raceResult";
 import { spectatorService } from "../../services/spectator";
+import { uploadService } from "../../services/upload";
+
+function isImageUrl(url) {
+  return /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(String(url || ""));
+}
 
 export default function MinutesViewer({ raceId, raceName, onClose }) {
   const [minutes, setMinutes] = useState(null);
@@ -38,15 +43,8 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
     ["Additional Notes", minutes?.notes],
   ].filter(([, value]) => value);
 
-  const fileUrl = minutes?.minutesFileUrl || "";
-  let localImg = null;
-  try {
-    localImg = localStorage.getItem(`minutes-img-${raceId}`)
-      || (fileUrl ? localStorage.getItem(`minutes-file-${fileUrl}`) : null);
-  } catch {
-    localImg = null;
-  }
-  const imageSrc = localImg || (fileUrl.startsWith("data:image/") ? fileUrl : null);
+  const fileUrl = uploadService.normalizeUploadUrl(minutes?.minutesFileUrl || "");
+  const imageSrc = fileUrl && (fileUrl.startsWith("data:image/") || isImageUrl(fileUrl)) ? fileUrl : null;
 
   return (
     <div
@@ -103,15 +101,14 @@ export default function MinutesViewer({ raceId, raceName, onClose }) {
                         className="w-full rounded-xl border border-sb-border max-h-[420px] object-contain bg-sb-s2"
                       />
                     </div>
-                  ) : minutes.minutesFileUrl ? (
+                  ) : fileUrl ? (
                     <div className="flex items-start gap-2 bg-sb-gold-soft border border-sb-gold-bd rounded-xl p-3">
                       <Paperclip size={15} className="text-sb-gold-2 shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-sb-gold-2 text-sm truncate">{minutes.minutesFileUrl}</p>
-                        <p className="text-sb-tx-3 text-xs mt-0.5">
-                          Only a demo file name is available; no real image is stored in this browser.
-                          The referee needs to select the image again and save the minutes.
-                        </p>
+                        <a href={fileUrl} target="_blank" rel="noreferrer" className="text-sb-gold-2 text-sm break-all hover:underline">
+                          {fileUrl}
+                        </a>
+                        <p className="text-sb-tx-3 text-xs mt-0.5">Open the attached race minutes evidence file.</p>
                       </div>
                     </div>
                   ) : null}

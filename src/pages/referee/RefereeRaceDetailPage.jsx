@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { confirmBox } from "../../lib/toast";
+import { complaintService } from "../../services/complaint";
 import { raceResultService } from "../../services/raceResult";
 import { spectatorService } from "../../services/spectator";
 import { uploadService } from "../../services/upload";
@@ -55,6 +56,13 @@ function EvidenceLink({ url, label = "Evidence" }) {
       {label}
     </a>
   );
+}
+
+function formatSeconds(totalSeconds) {
+  const seconds = Math.max(0, Number(totalSeconds) || 0);
+  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const ss = String(seconds % 60).padStart(2, "0");
+  return `${mm}:${ss}`;
 }
 
 function ResultsTab({ raceId, entries, preRaceChecked, disabledReason }) {
@@ -739,23 +747,31 @@ export default function RefereeRaceDetailPage() {
   const [preRaceChecked, setPreRaceChecked] = useState(false);
   const [preRaceChecks, setPreRaceChecks] = useState([]);
   const [sent, setSent] = useState(false);          // Minutes sent to owners.
+  const [minutesSentAt, setMinutesSentAt] = useState(null);
+  const [complaintSecondsLeft, setComplaintSecondsLeft] = useState(0);
+  const [openComplaintCount, setOpenComplaintCount] = useState(0);
   const [handedOff, setHandedOff] = useState(false); // Handoff completed.
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [raceRes, entriesRes, minRes, checkRes] = await Promise.all([
+      const [raceRes, entriesRes, minRes, checkRes, complaintRes] = await Promise.all([
         spectatorService.getRaceById(raceId),
         spectatorService.getRaceEntries(raceId),
         raceResultService.getMinutes(raceId).catch(() => ({ data: null })),
         raceResultService.getPreRaceChecks(raceId).catch(() => ({ data: [] })),
+        complaintService.getRefereeRaceComplaints({ status: "Pending" }).catch(() => ({ data: [] })),
       ]);
       const checks = checkRes.data || [];
+      const minute = minRes?.data || null;
+      const pendingComplaints = (complaintRes.data || []).filter((item) => String(item.raceId) === String(raceId));
       setRace(raceRes.data);
       setEntries(entriesRes.data || []);
       setPreRaceChecks(checks);
       setPreRaceChecked(checks.length > 0 && checks.every((check) => ["checked", "rejected"].includes(String(check.status || "").toLowerCase())));
-      if (minRes?.data?.sentToOwners) setSent(true);
+      setSent(Boolean(minute?.sentToOwners));
+      setMinutesSentAt(minute?.sentAt || null);
+      setOpenComplaintCount(pendingComplaints.length);
     } catch (e) {
       setError(e.message || "Unable to load data");
     } finally {
@@ -764,6 +780,29 @@ export default function RefereeRaceDetailPage() {
   }, [raceId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (!minutesSentAt) {
+      setComplaintSecondsLeft(0);
+      return undefined;
+    }
+
+    const updateCountdown = () => {
+      const sentTime = new Date(minutesSentAt).getTime();
+      const deadline = sentTime + 60_000;
+      setComplaintSecondsLeft(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [minutesSentAt]);
+
+  useEffect(() => {
+    if (sent && minutesSentAt && complaintSecondsLeft === 0) {
+      fetchData();
+    }
+  }, [sent, minutesSentAt, complaintSecondsLeft, fetchData]);
 
   const doAction = async (key, fn, okMsg, onOk) => {
     if (busy) return;              // Prevent duplicate actions while processing.
@@ -785,9 +824,17 @@ export default function RefereeRaceDetailPage() {
   const canStart = status === "RegistrationOpen" && raceableCount >= 1 && preRaceChecked;
   const startBlockedNoHorse = status === "RegistrationOpen" && raceableCount < 1;
   const startBlockedPreCheck = status === "RegistrationOpen" && raceableCount >= 1 && !preRaceChecked;
-  const resultsDisabledReason = status === "Ongoing" ? "" : "Results are available only while the race is Ongoing.";
-  const violationsDisabledReason = status === "Ongoing" ? "" : "Violations are available only while the race is Ongoing.";
+  const canEditRaceDecision = ["Ongoing", "Finished"].includes(status);
+  const resultsDisabledReason = canEditRaceDecision ? "" : "Results are available after the race starts.";
+  const violationsDisabledReason = canEditRaceDecision ? "" : "Violations are available after the race starts.";
   const minutesDisabledReason = ["Ongoing", "Finished"].includes(status) ? "" : "Minutes are available only after the race starts.";
+  const handoffDisabledReason = !sent
+    ? "Send minutes to owners first."
+    : complaintSecondsLeft > 0
+      ? `Owner complaint window is still open (${formatSeconds(complaintSecondsLeft)} left).`
+      : openComplaintCount > 0
+        ? `${openComplaintCount} pending complaint${openComplaintCount > 1 ? "s" : ""} must be resolved before handoff.`
+        : "";
 
   return (
     <AdminLayout title="Race Data Entry">
@@ -857,11 +904,17 @@ export default function RefereeRaceDetailPage() {
                         {sent ? "Sent to Owners" : "Send to Owners"}
                       </button>
                       <button onClick={() => doAction("handoff", () => raceResultService.handoff(raceId), "Handed off to Organizer", () => setHandedOff(true))}
-                        disabled={!!busy || handedOff}
+                        disabled={!!busy || handedOff || !!handoffDisabledReason}
+                        title={handoffDisabledReason || "Hand off to Organizer"}
                         className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-emerald text-white font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity">
                         {busy === "handoff" ? <Loader2 size={14} className="animate-spin" /> : handedOff ? <CheckCircle2 size={14} /> : <Send size={14} />}
                         {handedOff ? "Handed Off" : "Hand Off to Organizer"}
                       </button>
+                      {handoffDisabledReason && (
+                        <span className="basis-full text-xs font-semibold text-yellow-300">
+                          {handoffDisabledReason}
+                        </span>
+                      )}
                     </>
                   )}
                 </div>

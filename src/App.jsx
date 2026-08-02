@@ -21,6 +21,7 @@ import AuditLogsPage from "./pages/admin/AuditLogsPage";
 import SystemConfigsPage from "./pages/admin/SystemConfigsPage";
 import DepositRequestsPage from "./pages/admin/DepositRequestsPage";
 import DepositComplaintsPage from "./pages/admin/DepositComplaintsPage";
+import WithdrawalRequestsPage from "./pages/admin/WithdrawalRequestsPage";
 
 // Organizer pages
 import OrganizerRacesPage from "./pages/organizer/OrganizerRacesPage";
@@ -103,6 +104,7 @@ export default function App() {
           <Route path="/admin/configs"        element={guard(["Admin"], <SystemConfigsPage />)} />
           <Route path="/admin/deposit-requests" element={guard(["Admin"], <DepositRequestsPage />)} />
           <Route path="/admin/deposit-complaints" element={guard(["Admin"], <DepositComplaintsPage />)} />
+          <Route path="/admin/withdrawal-requests" element={guard(["Admin"], <WithdrawalRequestsPage />)} />
 
           {/* ── Organizer — F5 ──────────────────────────────── */}
           <Route path="/organizer/races"
@@ -139,8 +141,9 @@ export default function App() {
           {/* ── Spectator — F4 ──────────────────────────────── */}
           <Route path="/spectator/schedule"
             element={guard(["Spectator"], <RaceSchedulePage />)} />
+          {/* Vi: moi role deu co vi (nap/rut tien) */}
           <Route path="/spectator/wallet"
-            element={guard(["Spectator"], <WalletPage />)} />
+            element={anyAuth(<WalletPage />)} />
           <Route path="/spectator/betting"
             element={guard(["Spectator"], <BettingPage />)} />
           <Route path="/spectator/betting/history"

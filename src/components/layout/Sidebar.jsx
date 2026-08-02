@@ -17,6 +17,7 @@ const MENU_BY_ROLE = {
     { label: "Tournament Review",      icon: Trophy,        path: "/admin/tournaments" },
     { label: "Approve Deposits",      icon: Wallet,        path: "/admin/deposit-requests" },
     { label: "Deposit Complaints",      icon: MessageSquareWarning,        path: "/admin/deposit-complaints" },
+    { label: "Withdrawals",      icon: DollarSign,        path: "/admin/withdrawal-requests" },
     { label: "System Logs",    icon: FileText,      path: "/admin/audit-logs" },
     { label: "System Configurations",   icon: Settings,      path: "/admin/configs" },
   ],
@@ -31,11 +32,13 @@ const MENU_BY_ROLE = {
     { label: "My Horses",        icon: PawPrint,      path: "/owner/horses" },
     { label: "Race Registration",     icon: Trophy,        path: "/owner/race-registration" },
     { label: "Jockey Invitations",      icon: Mail,          path: "/owner/invitations" },
+    { label: "My Wallet",          icon: Wallet,        path: "/spectator/wallet" },
     { label: "Profile",       icon: User,          path: "/profile" },
   ],
   Jockey: [
     { label: "Dashboard",           icon: LayoutDashboard,          path: "/dashboard" },
     { label: "Race Invitations",     icon: Mail,          path: "/jockey/invitations" },
+    { label: "My Wallet",          icon: Wallet,        path: "/spectator/wallet" },
     { label: "Profile",       icon: User,          path: "/profile" },
   ],
   Referee: [

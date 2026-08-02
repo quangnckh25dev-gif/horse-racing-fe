@@ -19,4 +19,12 @@ export const walletService = {
   approveDepositRequest: (id) => api.put(`/admin/deposit-requests/${id}/approve`),
   rejectDepositRequest: (id, adminNote) =>
     api.put(`/admin/deposit-requests/${id}/reject`, { adminNote }),
+
+  // ── Rút tiền (Withdrawal) ──────────────────────────────
+  createWithdrawalRequest: (payload) => api.post("/wallets/withdrawal-requests", payload),
+  getMyWithdrawalRequests: () => api.get("/wallets/withdrawal-requests/mine"),
+  getAdminWithdrawalRequests: () => api.get("/admin/withdrawal-requests"),
+  approveWithdrawalRequest: (id) => api.put(`/admin/withdrawal-requests/${id}/approve`),
+  rejectWithdrawalRequest: (id, adminNote) =>
+    api.put(`/admin/withdrawal-requests/${id}/reject`, { adminNote }),
 };

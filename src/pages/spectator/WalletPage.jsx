@@ -18,10 +18,19 @@ const TX_TYPE = {
   BetWon: { label: "Bet Won", cls: "text-sb-win", sign: "+", icon: TrendingUp },
   BetRefund: { label: "Refunded", cls: "text-sb-info", sign: "+", icon: RotateCcw },
   PrizeAwarded: { label: "Prize Awarded", cls: "text-sb-win", sign: "+", icon: Trophy },
+  Withdrawal: { label: "Withdrawal", cls: "text-sb-lose", sign: "-", icon: ArrowUpRight },
+  WithdrawalRefund: { label: "Withdrawal Refund", cls: "text-sb-info", sign: "+", icon: RotateCcw },
 };
 
+const MIN_WITHDRAWAL = 10_000;
+// Danh sach ngan hang cho dropdown khi rut tien
+const BANKS = [
+  "Vietcombank", "VietinBank", "BIDV", "Agribank", "Techcombank", "MB Bank",
+  "ACB", "VPBank", "Sacombank", "TPBank", "VIB", "HDBank", "SHB", "MSB",
+  "OCB", "SeABank", "Eximbank", "SCB", "LPBank", "Nam A Bank",
+];
 const QUICK_AMOUNTS = [100_000, 200_000, 500_000, 1_000_000, 2_000_000, 5_000_000];
-const TX_FILTERS = ["All", "Deposit", "Bet Placed", "Bet Won", "Bet Refund", "Prize Awarded", "Money In", "Money Out"];
+const TX_FILTERS = ["All", "Deposit", "Bet Placed", "Bet Won", "Bet Refund", "Prize Awarded", "Withdrawal", "Money In", "Money Out"];
 
 const METHODS = [
   { id: "BANK", label: "Bank Transfer", hint: "Bank transfer", qr: "/payments/bank-qr.png" },
@@ -410,6 +419,93 @@ function ComplaintModal({ depositRequests, onClose, onDone }) {
   );
 }
 
+// ── Modal rút tiền ──────────────────────────────────────────────
+function WithdrawModal({ balance, onClose, onDone }) {
+  const [form, setForm] = useState({
+    amount: "", paymentMethod: "BANK", bankName: "", bankAccountNumber: "", bankAccountName: "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const amountNum = Number(String(form.amount).replace(/[^\d]/g, "")) || 0;
+
+  const submit = async () => {
+    if (amountNum < MIN_WITHDRAWAL) { setError(`Minimum withdrawal is ${fmt(MIN_WITHDRAWAL)} VND.`); return; }
+    if (amountNum > Number(balance || 0)) { setError("Amount exceeds your available balance."); return; }
+    if (form.paymentMethod === "BANK" && !form.bankName) { setError("Please select a bank."); return; }
+    if (!form.bankAccountNumber.trim()) { setError(form.paymentMethod === "MOMO" ? "MoMo phone number is required." : "Bank account number is required."); return; }
+    if (!form.bankAccountName.trim()) { setError("Account holder name is required."); return; }
+    setBusy(true); setError("");
+    try {
+      await walletService.createWithdrawalRequest({
+        amount: amountNum,
+        paymentMethod: form.paymentMethod,
+        bankName: form.bankName.trim() || null,
+        bankAccountNumber: form.bankAccountNumber.trim(),
+        bankAccountName: form.bankAccountName.trim(),
+      });
+      onDone?.();
+    } catch (e) {
+      setError(e.message || "Failed to submit withdrawal request.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <SbModal title="Withdraw money" subtitle={`Available balance: ${fmt(balance)} VND`} tone="gold" onClose={busy ? undefined : onClose}>
+      <div className="space-y-4">
+        {error && <SbAlert tone="error">{error}</SbAlert>}
+        <div>
+          <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-2">Amount (VND) — min {fmt(MIN_WITHDRAWAL)}</p>
+          <SbInput
+            inputMode="numeric"
+            placeholder="e.g. 100.000"
+            value={form.amount ? fmt(amountNum) : ""}
+            onChange={(e) => setForm({ ...form, amount: e.target.value })}
+          />
+        </div>
+        <div>
+          <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-2">Method</p>
+          <select
+            value={form.paymentMethod}
+            onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
+            className="w-full h-11 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-gold"
+          >
+            <option value="BANK">BANK</option>
+            <option value="MOMO">MOMO</option>
+          </select>
+        </div>
+        {form.paymentMethod === "BANK" && (
+          <div>
+            <p className="text-sb-tx-3 text-[10px] font-bold uppercase tracking-widest mb-2">Bank</p>
+            <select
+              value={form.bankName}
+              onChange={(e) => setForm({ ...form, bankName: e.target.value })}
+              className="w-full h-11 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx text-sm px-3 outline-none focus:border-sb-gold"
+            >
+              <option value="">Select a bank</option>
+              {BANKS.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+        )}
+        <SbInput placeholder={form.paymentMethod === "MOMO" ? "MoMo phone number" : "Bank account number"}
+          value={form.bankAccountNumber} onChange={(e) => setForm({ ...form, bankAccountNumber: e.target.value })} />
+        <SbInput placeholder="Account holder name"
+          value={form.bankAccountName} onChange={(e) => setForm({ ...form, bankAccountName: e.target.value })} />
+        <p className="text-sb-tx-3 text-[11px]">The amount is held from your balance now. If Admin rejects, it is refunded.</p>
+        <div className="flex gap-3">
+          <button onClick={onClose} disabled={busy} className="flex-1 py-2.5 rounded-xl border border-sb-border text-sb-tx-2 hover:text-sb-tx text-sm disabled:opacity-50">
+            Cancel
+          </button>
+          <button onClick={submit} disabled={busy} className="flex-1 py-2.5 rounded-xl bg-sb-gold text-[#0B0F14] font-bold text-sm disabled:opacity-50">
+            {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : "Request withdrawal"}
+          </button>
+        </div>
+      </div>
+    </SbModal>
+  );
+}
+
 export default function WalletPage() {
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -419,7 +515,9 @@ export default function WalletPage() {
   const [success, setSuccess] = useState("");
   const [depositOpen, setDepositOpen] = useState(false);
   const [complaintOpen, setComplaintOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [complaints, setComplaints] = useState([]);
+  const [withdrawals, setWithdrawals] = useState([]);
   const [txFilter, setTxFilter] = useState("All");
   const [txDate, setTxDate] = useState("");
 
@@ -452,6 +550,13 @@ export default function WalletPage() {
       setComplaints(cRes.data || []);
     } catch {
       setComplaints([]);
+    }
+
+    try {
+      const wdRes = await walletService.getMyWithdrawalRequests();
+      setWithdrawals(wdRes.data || []);
+    } catch {
+      setWithdrawals([]);
     }
   }, []);
 
@@ -486,6 +591,10 @@ export default function WalletPage() {
             <button onClick={() => { setSuccess(""); setError(""); setComplaintOpen(true); }}
               className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx font-bold text-sm">
               <MessageSquareWarning size={15} /> Complaint
+            </button>
+            <button onClick={() => { setSuccess(""); setError(""); setWithdrawOpen(true); }}
+              className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-s2 border border-sb-border text-sb-tx-2 hover:text-sb-tx font-bold text-sm">
+              <ArrowUpRight size={15} /> Withdraw
             </button>
             <button onClick={() => { setSuccess(""); setError(""); setDepositOpen(true); }}
               className="flex items-center gap-2 px-4 h-10 rounded-xl bg-sb-gold text-[#0B0F14] font-bold text-sm hover:opacity-90">
@@ -584,6 +693,36 @@ export default function WalletPage() {
                 )}
               </div>
 
+              {/* Lich su rut tien */}
+              <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
+                <div className="flex items-center gap-2 p-5 border-b border-sb-border">
+                  <ArrowUpRight size={14} className="text-sb-lose" />
+                  <h3 className="font-bold text-sm text-sb-tx">Withdrawal requests</h3>
+                </div>
+                {withdrawals.length === 0 ? <SbEmpty icon="↑" title="No withdrawals yet" hint="Withdraw money to your bank/MoMo" /> : (
+                  <div className="divide-y divide-sb-border">
+                    {withdrawals.map((item) => (
+                      <div key={item.withdrawalRequestId} className="px-5 py-4 hover:bg-sb-s2 transition-colors">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sb-tx text-sm font-bold tabular-nums">{fmt(item.amount)} VND</p>
+                              <StatusBadge status={item.status} />
+                              <span className="text-[11px] font-bold text-sb-tx-3">{item.paymentMethod}</span>
+                            </div>
+                            <p className="text-sb-tx-3 text-xs mt-1">
+                              {item.bankName ? `${item.bankName} · ` : ""}{item.bankAccountNumber} · {item.bankAccountName}
+                            </p>
+                            {item.adminNote && <p className="text-sb-info text-xs mt-1">Admin note: {item.adminNote}</p>}
+                          </div>
+                          <p className="text-sb-tx-3 text-xs shrink-0">{item.createdAt ? new Date(item.createdAt).toLocaleString("vi-VN") : ""}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="rounded-2xl bg-sb-s1 border border-sb-border overflow-hidden">
                 <div className="flex flex-col gap-3 p-5 border-b border-sb-border">
                   <div className="flex items-center gap-2">
@@ -650,6 +789,17 @@ export default function WalletPage() {
       </div>
 
       {depositOpen && <DepositModal onClose={() => setDepositOpen(false)} onDone={onCreated} />}
+      {withdrawOpen && (
+        <WithdrawModal
+          balance={wallet?.balance || 0}
+          onClose={() => setWithdrawOpen(false)}
+          onDone={() => {
+            setWithdrawOpen(false);
+            setSuccess("Withdrawal request submitted. The amount is held until Admin processes it.");
+            load();
+          }}
+        />
+      )}
       {complaintOpen && (
         <ComplaintModal
           depositRequests={depositRequests}
